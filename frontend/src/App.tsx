@@ -19,7 +19,7 @@ const App = () => {
   return (
     <>
       <AppHeader />
-      <AppContent />
+      <AppContent me={me} />
       <AppFooter />
     </>
   );
@@ -29,11 +29,11 @@ export default App;
 
 
 
-const AppContent = () => {
+const AppContent = ({ me }: { me?: User }) => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage me={me} />} />
         <Route path="/profile" element={<UserSettings />} />
       </Routes>
     </BrowserRouter>
