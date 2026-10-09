@@ -15,7 +15,11 @@ from models import TodoItem, TodoItemForCreate, User
 load_dotenv()
 
 # Requests without login headers (public access, local development) share this user
-GUEST_USER = User(id="guest", name="Guest")
+GUEST_USER = User(
+    id="guest",
+    firstName="Guest",
+    lastName=""
+)
 
 
 def default_todos() -> list[TodoItem]:
