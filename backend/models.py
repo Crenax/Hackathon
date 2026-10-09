@@ -28,8 +28,6 @@ class User(BaseModel):
     gender: Gender
     major: Major
     degree: Degree
-    strengths: list[course]
-    weaknesses: list[course]
     pfp: str
     description: str
     blockedEmails: list[str]
