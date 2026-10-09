@@ -2,7 +2,7 @@ import "./CreateEvent.css";
 
 const CreateEvent = () => {
     return(
-        <header>
+        <header className="create-event">
             Create a new event!
         </header>
     );
