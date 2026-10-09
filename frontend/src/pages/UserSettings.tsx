@@ -74,43 +74,9 @@ export default function UserSettings() {
                     <option value="fr">French</option>
                   </select>
                 </label>
-
-                <label style={styles.field}>
-                  <span style={styles.label}>Timezone</span>
-                  <select style={styles.input} defaultValue="utc">
-                    <option value="utc">UTC</option>
-                    <option value="est">EST</option>
-                    <option value="pst">PST</option>
-                  </select>
-                </label>
-
-                <label style={styles.field}>
-                  <span style={styles.label}>Theme</span>
-                  <select style={styles.input} defaultValue="light">
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="system">System</option>
-                  </select>
-                </label>
               </div>
             </section>
-
-            <section style={styles.section}>
-              <h3 style={styles.sectionTitle}>Security</h3>
-
-              <div style={styles.formGrid}>
-                <label style={styles.field}>
-                  <span style={styles.label}>Password</span>
-                  <input style={styles.input} type="password" defaultValue="********" />
-                </label>
-
-                <label style={styles.field}>
-                  <span style={styles.label}>Two-factor authentication</span>
-                  <button type="button" style={styles.secondaryButton}>Enable</button>
-                </label>
-              </div>
-            </section>
-
+            
             <div style={styles.footerActions}>
               <button type="button" style={styles.secondaryButton}>Cancel</button>
               <button type="button" style={styles.primaryButton}>Update profile</button>
