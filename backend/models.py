@@ -30,9 +30,14 @@ class User(BaseModel):
     degree: Degree
     pfp: str
     description: str
-    blockedEmails: list[str]
-    buddies: list[int] #IDs of the buddies
-    
+
+class Listing(BaseModel):
+	id: str
+	startTime: datetime
+	endTime: datetime
+	location: str
+	members: list[User]
+	admin: User
 
 
 class TodoItem(BaseModel):
