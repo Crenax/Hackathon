@@ -1,0 +1,18 @@
+
+.listing {
+    margin: 5px 5px;
+    padding: 2px 5px;
+    border: 2px solid black;
+    display: flex;
+    width: 100%;
+
+    .a {
+        align-self: left;
+        display: inline;
+    }
+    
+    .b {
+        align-self: right;
+        display: inline;
+    }
+}
