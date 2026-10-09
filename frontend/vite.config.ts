@@ -5,7 +5,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ["15.hackathon.ethz.ch"],
     proxy: {
       // Forward all requests to the backend server
       "/api": "http://localhost:8000",

@@ -1,13 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { getMe, type User } from "./api";
-
 import AppHeader from "./components/AppHeader";
-import AppFooter from "./components/AppFooter.tsx";
-
-import UserSettings from "./pages/UserSettings.tsx";
-import HomePage from "./pages/HomePage.tsx";
-
+import Todos from "./components/Todos";
 
 const App = () => {
   const [me, setMe] = useState<User | undefined>();
@@ -18,24 +12,10 @@ const App = () => {
 
   return (
     <>
-      <AppHeader />
-      <AppContent me={me} />
-      <AppFooter />
+      <AppHeader me={me} />
+      <Todos me={me} />
     </>
   );
 };
 
 export default App;
-
-
-
-const AppContent = ({ me }: { me?: User }) => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage me={me} />} />
-        <Route path="/profile" element={<UserSettings />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
