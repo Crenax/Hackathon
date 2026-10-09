@@ -11,6 +11,7 @@ const TodoTable = ({ todos, onTodoDeleted }: TodoTableProps) => {
     onTodoDeleted();
   };
 
+  
   return (
     <div className="table-container">
       <table>
