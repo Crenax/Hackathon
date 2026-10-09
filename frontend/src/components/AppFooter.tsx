@@ -1,15 +1,13 @@
 import "./AppFooter.css";
+import { House, PersonBadge } from 'react-bootstrap-icons';
 
 const AppFooter = () => {
-  return (
-    <footer className="app-footer">
-      <div className="container">
-        <a href="" ><img src="././public/favicon.ico" alt="icon" /></a>
-        <a href="" ><img src="././public/favicon.ico" alt="icon" /></a>
-        <a href="" ><img src="././public/favicon.ico" alt="icon" /></a>
-      </div>
-    </footer>
-  );
+    return (
+        <footer className="app-footer">
+            <a href=""><House /></a>
+            <a href=""><PersonBadge /></a>
+        </footer>
+    );
 };
 
 export default AppFooter;
