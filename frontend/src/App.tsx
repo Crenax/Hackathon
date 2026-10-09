@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from "react";
-import { getMe, type User } from "./api";
 
 import AppHeader from "./components/AppHeader";
 import AppFooter from "./components/AppFooter.tsx";
@@ -10,12 +8,6 @@ import HomePage from "./pages/HomePage.tsx";
 
 
 const App = () => {
-  const [me, setMe] = useState<User | undefined>();
-
-  useEffect(() => {
-    getMe().then(setMe);
-  }, []);
-
   return (
     <>
       <AppHeader />
@@ -29,7 +21,7 @@ export default App;
 
 
 
-const AppContent = ({ me }: { me?: User }) => {
+const AppContent = () => {
   return (
     <BrowserRouter>
       <Routes>

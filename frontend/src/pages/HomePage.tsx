@@ -1,6 +1,18 @@
-import type { User } from "../api";
-import Todos from "../components/Todos";
+import { useEffect, useState } from "react";
+import { getMe, type User } from "../api";
 
-export default function HomePage({ me }: { me?: User }) {
-  return <Todos me={me} />;
+export default function HomePage() {
+    const [me, setMe] = useState<User | undefined>();
+
+    useEffect(() => {
+        getMe().then(setMe);
+    }, []);
+
+    return (
+        <>
+            <h1>Current learning sessions</h1>
+
+            
+        </>
+    );
 }
