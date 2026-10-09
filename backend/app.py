@@ -22,63 +22,27 @@ GUEST_USER = User(
 )
 
 
-def default_todos() -> list[TodoItem]:
-    now = datetime.now()
-    return [
-        TodoItem(
-            id=1,
-            title="Find a great team",
-            description="Find a great team to work with",
-            deadline=now,
-        ),
-        TodoItem(
-            id=2,
-            title="Choose a project",
-            description="Choose a project to work on",
-            deadline=now + timedelta(hours=1),
-        ),
-        TodoItem(
-            id=3,
-            title="Interview people for need-finding",
-            description="Interview people for need-finding",
-            deadline=now + timedelta(hours=2),
-        ),
-        TodoItem(
-            id=4,
-            title="Come up with a lo-fi prototype",
-            description="Come up with a lo-fi prototype",
-            deadline=now + timedelta(hours=3),
-        ),
-    ]
 
-
-class State:
+class ManageListings:
     def __init__(self):
-        # Mapping from user id to their todo items (in memory, lost on restart)
-        self.todos_by_user_id: dict[str, list[TodoItem]] = {}
+        self.listings: dict[str, list[Listing]] = defaultdict(list)
 
-    def get_todos(self, user_id: str) -> list[TodoItem]:
-        # When a new user id is seen, initialize with the default todos
-        return self.todos_by_user_id.setdefault(user_id, default_todos())
+    def get_listings(self, user_id: str) -> list[Listing]:
+        return self.listings[user_id]
 
-    def create_todo(self, user_id: str, item: TodoItemForCreate) -> TodoItem:
-        todos = self.get_todos(user_id)
-        next_id = max((todo.id for todo in todos), default=0) + 1
-        new_todo = TodoItem(
-            id=next_id,
-            title=item.title,
-            description=item.description,
-            deadline=item.deadline,
-        )
-        todos.append(new_todo)
-        return new_todo
+    def create_listing(self, user_id: str, listing: Listing) -> Listing:
+        self.listings[user_id].append(listing)
+        return listing
 
-    def delete_todo(self, user_id: str, todo_id: int):
-        todos = self.get_todos(user_id)
-        self.todos_by_user_id[user_id] = [todo for todo in todos if todo.id != todo_id]
+    def delete_listing(self, user_id: str, listing_id: str):
+        self.listings[user_id] = [
+            listing for listing in self.listings[user_id] if listing.id != listing_id
+        ]
 
 
 state = State()
+
+listings_manager = ManageListings()
 
 # Open live update streams per user id (one queue per open tab)
 listeners: dict[str, set[asyncio.Queue]] = defaultdict(set)
@@ -110,6 +74,37 @@ def extract_user(request: Request) -> User:
 def auth_me(request: Request):
     return extract_user(request)
 
+
+
+
+
+
+""" class State:
+    def __init__(self):
+        # Mapping from user id to their todo items (in memory, lost on restart)
+        self.todos_by_user_id: dict[str, list[TodoItem]] = {}
+
+    def get_todos(self, user_id: str) -> list[TodoItem]:
+        # When a new user id is seen, initialize with the default todos
+        return self.todos_by_user_id.setdefault(user_id, default_todos())
+
+    def create_todo(self, user_id: str, item: TodoItemForCreate) -> TodoItem:
+        todos = self.get_todos(user_id)
+        next_id = max((todo.id for todo in todos), default=0) + 1
+        new_todo = TodoItem(
+            id=next_id,
+            title=item.title,
+            description=item.description,
+            deadline=item.deadline,
+        )
+        todos.append(new_todo)
+        return new_todo
+
+    def delete_todo(self, user_id: str, todo_id: int):
+        todos = self.get_todos(user_id)
+        self.todos_by_user_id[user_id] = [todo for todo in todos if todo.id != todo_id]
+
+state = State()
 
 @app.get("/api/todos", response_model=list[TodoItem])
 def get_todos(request: Request):
@@ -158,7 +153,7 @@ def generate_todo(prompt: str):
 
     # Fail gracefully: return a prefilled todo the user can complete by hand
     return TodoItemForCreate(title=prompt, description="", deadline=datetime.now())
-
+ """
 
 if __name__ == "__main__":
     print("Starting server")
