@@ -19,7 +19,7 @@ const App = () => {
   return (
     <>
       <AppHeader />
-      <AppContent me={me} />
+      <AppContent />
       <AppFooter />
     </>
   );
@@ -33,7 +33,7 @@ const AppContent = ({ me }: { me?: User }) => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage me={me} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/profile" element={<UserSettings />} />
       </Routes>
     </BrowserRouter>

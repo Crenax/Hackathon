@@ -18,91 +18,100 @@ export default function UserSettings() {
                     <button style={styles.primaryButton}>Save changes</button>
                 </header>
 
-                <div style={styles.content}>
-                    <aside style={styles.sidebar}>
-                        <div style={styles.avatarWrap}>
-                            <div style={styles.avatar}>JD</div>
-                        </div>
-                        <h2 style={styles.name}>John Doe</h2>
-                        <p style={styles.subtitle}>Administrator</p>
+                <aside style={styles.sidebar}>
+                    <div style={styles.avatarWrap}>
+                        <div style={styles.avatar}>JD</div>
+                    </div>
+                    <h2 style={styles.name}>John Doe</h2>
+                    <p style={styles.subtitle}>Administrator</p>
 
-                        <nav style={styles.nav}>
-                            {settingsSections.map((section) => (
-                                <button key={section.title} style={styles.navButton}>
-                                    {section.title}
-                                </button>
-                            ))}
-                        </nav>
-                    </aside>
+                    <nav style={styles.nav}>
+                        {settingsSections.map((section) => (
+                            <button key={section.title} style={styles.navButton}>
+                                {section.title}
+                            </button>
+                        ))}
+                    </nav>
+                </aside>
 
-                    <main style={styles.mainPanel}>
-                        <section style={styles.section}>
-                            <h3 style={styles.sectionTitle}>Personal information</h3>
-
-                            <div style={styles.formGrid}>
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Full name</span>
-                                    <input style={styles.input} type="text" defaultValue="John Doe" />
-                                </label>
-
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Username</span>
-                                    <input style={styles.input} type="text" defaultValue="johndoe" />
-                                </label>
-
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Email address</span>
-                                    <input style={styles.input} type="email" defaultValue="john@example.com" />
-                                </label>
-
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Phone number</span>
-                                    <input style={styles.input} type="tel" defaultValue="+1 (555) 123-4567" />
-                                </label>
-                            </div>
-                        </section>
-
-                        <section style={styles.section}>
-                            <h3 style={styles.sectionTitle}>Preferences</h3>
-
-                            <div style={styles.formGrid}>
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Language</span>
-                                    <select style={styles.input} defaultValue="en">
-                                        <option value="en">English</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="fr">French</option>
-                                    </select>
-                                </label>
-                            </div>
-                        </section>
-
-                        <section style={styles.section}>
-                            <h3 style={styles.sectionTitle}>Security</h3>
-
-                            <div style={styles.formGrid}>
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Password</span>
-                                    <input style={styles.input} type="password" defaultValue="********" />
-                                </label>
-
-                                <label style={styles.field}>
-                                    <span style={styles.label}>Two-factor authentication</span>
-                                    <button type="button" style={styles.secondaryButton}>Enable</button>
-                                </label>
-                            </div>
-                        </section>
-
-                        <div style={styles.footerActions}>
-                            <button type="button" style={styles.secondaryButton}>Cancel</button>
-                            <button type="button" style={styles.primaryButton}>Update profile</button>
-                        </div>
-                    </main>
-                </div>
+                <main style={styles.mainPanel}>
+                    <SettingsSection />
+                </main>
             </div>
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+function SettingsSection() {
+    return (
+        <>  
+            <section style={styles.section}>
+                <h3 style={styles.sectionTitle}>Personal information</h3>
+
+                <div style={styles.formGrid}>
+                    <label style={styles.field}>
+                        <span style={styles.label}>Full name</span>
+                        <input style={styles.input} type="text" defaultValue="John Doe" />
+                    </label>
+
+                    <label style={styles.field}>
+                        <span style={styles.label}>Username</span>
+                        <input style={styles.input} type="text" defaultValue="johndoe" />
+                    </label>
+
+                    <label style={styles.field}>
+                        <span style={styles.label}>Email address</span>
+                        <input style={styles.input} type="email" defaultValue="john@example.com" />
+                    </label>
+                </div>
+            </section>
+
+            <section style={styles.section}>
+                <h3 style={styles.sectionTitle}>Preferences</h3>
+
+                <div style={styles.formGrid}>
+                    <label style={styles.field}>
+                        <span style={styles.label}>Language</span>
+                        <select style={styles.input} defaultValue="en">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                        </select>
+                    </label>
+                </div>
+            </section>
+
+
+            <div style={styles.footerActions}>
+                <button type="button" style={styles.secondaryButton}>Cancel</button>
+                <button type="button" style={styles.primaryButton}>Update profile</button>
+            </div>
+        </>
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const styles: Record<string, React.CSSProperties> = {
     page: {
