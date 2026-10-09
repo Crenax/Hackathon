@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMe, type User } from "./api";
 import AppHeader from "./components/AppHeader";
+import AppFooter from "./components/AppFooter.tsx";
 import Todos from "./components/Todos";
 
 const App = () => {
@@ -12,8 +13,9 @@ const App = () => {
 
   return (
     <>
-      <AppHeader me={me} />
+      <AppHeader />
       <Todos me={me} />
+      <AppFooter />
     </>
   );
 };
