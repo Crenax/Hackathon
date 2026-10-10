@@ -34,3 +34,9 @@
 .event-page__calendar { margin-left: auto; max-width: 100%; }
 .event-page__calendar button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .event-page__calendar p { max-width: 280px; color: #b83242; font-size: .85rem; }
+
+.event-page__members { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.event-page__member { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px 18px; border: 1px solid #e1e5ee; border-radius: 8px; background: #f7f8fa; }
+.event-page__member-name { color: #242b3d; font-size: 1.05rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.event-page__member-role { color: #7040b5; font-size: .78rem; font-weight: 600; line-height: 1.4; }
+.event-page__member-role--admin { color: #b83242; }

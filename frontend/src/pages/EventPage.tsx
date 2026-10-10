@@ -220,10 +220,15 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                         ) : members.length === 0 ? (
                             <p>No accepted members yet.</p>
                         ) : (
-                            <ul className="event-page__tags">
-                                {members.map(({ user }) => (
-                                    <li key={user.id}>
-                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                            <ul className="event-page__members">
+                                {members.map(({ user, role }) => (
+                                    <li className="event-page__member" key={user.id}>
+                                        <span className="event-page__member-name">
+                                            {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                                        </span>
+                                        <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
+                                            {role === MemberRole.admin ? "Admin" : "Member"}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
