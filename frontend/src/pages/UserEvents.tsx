@@ -46,7 +46,7 @@ export default function UserEvents() {
                 memberships.forEach((listing) => {
                     userEvents.set(listing.id, {
                         listing,
-                        relationship: listing.createdBy === user.id ? "Published" : "Joined",
+                        relationship: listing.createdBy?.id === user.id ? "Published" : "Joined",
                     });
                 });
                 requests.forEach(({ listing }) => {

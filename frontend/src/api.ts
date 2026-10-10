@@ -1,24 +1,26 @@
 
 
+// These types mirror backend/models.py. Dates and datetimes arrive as ISO strings.
+
 const Gender = {
-    prefer_not_to_say: 0,
-    male: 1,
-    female: 2,
-    nonBinary: 3
+    preferNotToSay: "prefer_not_to_say",
+    male: "male",
+    female: "female",
+    nonBinary: "non_binary"
 } as const;
 type Gender = (typeof Gender)[keyof typeof Gender];
 export { Gender };
 
 const Major = {
-    cs: 0
+    ComputerScience: "computer_science"
 } as const;
 type Major = (typeof Major)[keyof typeof Major];
 export { Major };
 
 const Degree = {
-    bachelor: 0,
-    master: 1,
-    phd: 2
+    Bachelor: "bachelor",
+    Master: "master",
+    PHD: "phd"
 } as const;
 type Degree = (typeof Degree)[keyof typeof Degree];
 export { Degree };
@@ -27,9 +29,12 @@ const MemberRole = {
   admin: "admin",
   member: "member",
   requestPending: "request_pending"
-}
+} as const;
 type MemberRole = (typeof MemberRole)[keyof typeof MemberRole];
 export { MemberRole };
+
+// A course name from GET /api/courses (backend/courses.py)
+export type Course = string;
 
 
 export interface User {
@@ -37,44 +42,86 @@ export interface User {
   firstName: string;
   lastName: string;
   emailAddress: string;
-  dateOfBirth: Date;
-  gender: Gender;
-  major: Major;
-  degree: Degree;
-  pfp: string;
+  dateOfBirth: string | null;
+  gender: Gender | null;
+  major: Major | null;
+  degree: Degree | null;
   description: string;
 }
 
 export interface Listing {
   id: string;
-  createdBy: string | null;
+  createdBy: User | null;
   description: string;
   startTime: string | null;
   endTime: string | null;
   location: string | null;
-  courses: string[];
+  courses: Course[];
   isPrivate: boolean;
-  inviteCode: string | null;
-}
-
-export interface ListingForCreate {
-  description: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  courses: string[];
-  isPrivate: boolean;
+  memberIds: string[];
 }
 
 export interface Message {
   id: string;
   listingId: string;
-  author: User | null;
+  author: User | null; // null if the author deleted their account
   sentAt: string;
   content: string;
 }
 
+export interface ListingMember {
+  user: User;
+  listing: Listing;
+  role: MemberRole;
+  joinedAt: string; // time of the request while the role is request_pending
+}
+
+export interface UserForCreate {
+  firstName?: string;
+  lastName?: string;
+  emailAddress?: string;
+  dateOfBirth?: string | null;
+  gender?: Gender | null;
+  major?: Major | null;
+  degree?: Degree | null;
+  description?: string;
+}
+
+// Only the fields that are sent get updated
+export interface UserForUpdate {
+  firstName?: string | null;
+  lastName?: string | null;
+  dateOfBirth?: string | null;
+  gender?: Gender | null;
+  major?: Major | null;
+  degree?: Degree | null;
+  description?: string | null;
+}
+
+export interface ListingForCreate {
+  createdBy?: User | null; // set by the backend to the current user
+  description?: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  location?: string | null;
+  courses?: Course[];
+  isPrivate?: boolean;
+}
+
+// Only the fields that are sent get updated; send null to unset start/end time or location
+export interface ListingForUpdate {
+  newDescription?: string | null;
+  newStartTime?: string | null;
+  newEndTime?: string | null;
+  newLocation?: string | null;
+  newCourses?: Course[] | null;
+  newIsPrivate?: boolean | null;
+}
+
+// listing and author are set by the backend; clients only send content
 export interface MessageForCreate {
+  listing?: Listing | null;
+  author?: User | null;
   content: string;
 }
 
@@ -123,10 +170,7 @@ export function getMe(): Promise<User> {
 }
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {
-  return request<Listing>(`/api/listings`, "POST", {
-    ...listing,
-    subject: listing.courses[0],
-  });
+  return request<Listing>(`/api/listings`, "POST", listing);
 }
 
 export function getListings(): Promise<Listing[]> {
@@ -144,12 +188,6 @@ export function getListing(listingId: string): Promise<Listing> {
   );
 }
 
-export interface ListingMember {
-  user: User;
-  role: MemberRole;
-  joinedAt: string;
-}
-
 export function getListingMembers(listingId: string): Promise<ListingMember[]> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/members`, "GET");
 }
@@ -162,13 +200,8 @@ export function sendMessage(listingId: string, message: MessageForCreate): Promi
   return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "POST", message);
 }
 
-export interface PendingRequest {
-  listing: Listing;
-  user: User;
-  requestedAt: string;
-}
-
-export function getMyRequests(): Promise<PendingRequest[]> {
+// Pending requests are ListingMembers with role request_pending
+export function getMyRequests(): Promise<ListingMember[]> {
   return request("/api/me/requests", "GET");
 }
 

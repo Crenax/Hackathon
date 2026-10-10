@@ -62,7 +62,7 @@ export default function EventPage() {
                 if (hasJoined && event.createdBy) {
                     const creatorName = await getListingMembers(listingId)
                         .then((members) => {
-                            const creator = members.find((member) => member.user.id === event.createdBy)?.user;
+                            const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
                             return creator ? `${creator.firstName} ${creator.lastName}`.trim() : "";
                         })
                         .catch(() => "");
