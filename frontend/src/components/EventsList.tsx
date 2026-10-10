@@ -1,26 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PlusCircleFill, XCircle, Trash3 } from "react-bootstrap-icons";
 
+import { createListing, type Listing, type ListingForCreate } from "../api";
 import "../FormLayout.css";
 import "./EventsList.css";
 import AutocompleteInputField from "./AutocompleteInputField";
 
-interface StudyEvent {
-    id: string;
-    title: string;
-    date: string;
-    time: string;
-    courses: string[];
-    location: string;
-    description: string;
-}
+const STORAGE_KEY = "viscon-study-listings";
 
-const STORAGE_KEY = "viscon-study-events";
-
-function readEvents(): StudyEvent[] {
+function readEvents(): Listing[] {
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? (JSON.parse(saved) as StudyEvent[]) : [];
+        return saved ? (JSON.parse(saved) as Listing[]) : [];
     } catch {
         return [];
     }
@@ -32,7 +23,7 @@ function today(): string {
 }
 
 export default function EventsList() {
-    const [events, setEvents] = useState<StudyEvent[]>(readEvents);
+    const [events, setEvents] = useState<Listing[]>(readEvents);
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
@@ -41,6 +32,7 @@ export default function EventsList() {
     const [description, setDescription] = useState("");
     const [newCourse, setNewCourse] = useState("");
     const [isAdding, setIsAdding] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -54,31 +46,44 @@ export default function EventsList() {
         setNewCourse("");
     }
 
-    function addEvent(submitEvent: FormEvent<HTMLFormElement>) {
+    async function addEvent(submitEvent: FormEvent<HTMLFormElement>) {
         submitEvent.preventDefault();
-        const newEvent: StudyEvent = {
-            id: crypto.randomUUID(),
-            title: title.trim(),
-            date,
-            time,
-            courses,
-            location: location.trim(),
+        if (isSubmitting) return;
+
+        const startsAt = new Date(`${date}T${time}:00`);
+        const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
+        const newEvent: ListingForCreate = {
+            subject: courses[0] ?? (newCourse.trim() || title.trim()),
             description: description.trim(),
+            startTime: startsAt.toISOString(),
+            endTime: endsAt.toISOString(),
+            location: location.trim(),
+            courses,
+            isPrivate: false,
+            filters: [{ filterType: "degree", value: "master" }],
         };
 
-        setEvents((current) =>
-            [...current, newEvent].sort((a, b) =>
-                `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`),
-            ),
-        );
-        setTitle("");
-        setDate("");
-        setTime("");
-        setLocation("");
-        setDescription("");
-        setCourses([]);
-        setNewCourse("");
-        setIsAdding(false);
+        setIsSubmitting(true);
+        try {
+            const createdEvent = await createListing(newEvent);
+            setEvents((current) =>
+                [...current, createdEvent].sort((a, b) =>
+                    (a.startTime ?? "").localeCompare(b.startTime ?? ""),
+                ),
+            );
+            setTitle("");
+            setDate("");
+            setTime("");
+            setLocation("");
+            setDescription("");
+            setCourses([]);
+            setNewCourse("");
+            setIsAdding(false);
+        } catch (error) {
+            window.alert(error instanceof Error ? error.message : "Could not create the event.");
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     if (isAdding) {
@@ -188,17 +193,20 @@ export default function EventsList() {
                     ) : (
                         <div className="event-list">
                             {events.map((studyEvent) => {
-                                const eventDate = new Date(`${studyEvent.date}T12:00:00`);
+                                const eventDate = new Date(studyEvent.startTime ?? "");
+                                const eventTime = Number.isNaN(eventDate.getTime())
+                                    ? "Time TBD"
+                                    : eventDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 
                                 return (
                                     <article className="event-item" key={studyEvent.id}>
                                         <div className="event-date-badge">
-                                            <span>{eventDate.toLocaleDateString(undefined, { month: "short" })}</span>
-                                            <strong>{eventDate.getDate()}</strong>
+                                            <span>{Number.isNaN(eventDate.getTime()) ? "TBD" : eventDate.toLocaleDateString(undefined, { month: "short" })}</span>
+                                            <strong>{Number.isNaN(eventDate.getTime()) ? "—" : eventDate.getDate()}</strong>
                                         </div>
                                         <div className="event-details">
-                                            <h3>{studyEvent.title}</h3>
-                                            <p className="event-meta">{studyEvent.time} | {studyEvent.location}</p>
+                                            <h3>{studyEvent.subject}</h3>
+                                            <p className="event-meta">{eventTime} | {studyEvent.location}</p>
                                             {studyEvent.description && <p className="event-description">{studyEvent.description}</p>}
                                         </div>
                                         <div
@@ -208,7 +216,7 @@ export default function EventsList() {
                                                 className="event-delete"
                                                 type="button"
                                                 onClick={() => setEvents((current) => current.filter((item) => item.id !== studyEvent.id))}
-                                                aria-label={`Delete ${studyEvent.title}`}
+                                                aria-label={`Delete ${studyEvent.subject}`}
                                             >
                                                 <Trash3 aria-hidden="true" />
                                             </button>

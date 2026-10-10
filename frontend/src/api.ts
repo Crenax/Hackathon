@@ -53,21 +53,32 @@ export interface User {
 }
 
 export interface ListingFilter {
-  filterType: FilterType;
-  value: String;
+  filterType: "gender" | "degree";
+  value: string;
 }
 
 export interface Listing {
-  id: String
-  createdBy: String;
-  subject: String;
-  description: String;
-  startTime: Date;
-  endTime: Date;
-  location: String;
-  courses: String[];
-  isPrivate: Boolean;
-  inviteCode: String;
+  id: string;
+  createdBy: string | null;
+  subject: string;
+  description: string;
+  startTime: string | null;
+  endTime: string | null;
+  location: string | null;
+  courses: string[];
+  isPrivate: boolean;
+  inviteCode: string | null;
+  filters: ListingFilter[];
+}
+
+export interface ListingForCreate {
+  subject: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  courses: string[];
+  isPrivate: boolean;
   filters: ListingFilter[];
 }
 
@@ -140,6 +151,10 @@ function parseDeadline<T extends { deadline: Date }>(todo: T): T {
 
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
+}
+
+export function createListing(listing: ListingForCreate): Promise<Listing> {
+  return request<Listing>(`/api/listings`, "POST", listing);
 }
 
 export function getTodos(): Promise<TodoItem[]> {
