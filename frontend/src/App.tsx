@@ -20,7 +20,7 @@ const App = () => {
       <IconBackground />
       <AppHeader />
       <AppContent />
-      <AppFooter />
+      {/*<AppFooter />*/}
     </>
   );
 };
@@ -41,9 +41,15 @@ const AppContent = () => {
           <Route path="/my-profile" element={<UserSettings />} />
         </Routes>
       </BrowserRouter>
+
+      
       <div className="icon-attribution">
         <a href={scienceIconAttribution.url}>
           {scienceIconAttribution.text}
+        </a>
+        <br />
+        <a href="http://getbootstrap.com">
+          Interface icons by Bootstrap
         </a>
       </div>
     </div>
