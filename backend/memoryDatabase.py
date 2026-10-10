@@ -79,7 +79,7 @@ class MemoryDatabaseManager(DatabaseManager):
     @locked
     def get_listings_by_course(self, course: Course, filters: list[ListingFilter] | None = None) -> list[Listing]:
         return [item.model_copy(deep=True) for item in self._listings.values()
-                if not item.isPrivate and course in item.courses
+                if not item.isPrivate and course == item.subject
                 and all(f in item.filters for f in filters or [])]
 
     @locked

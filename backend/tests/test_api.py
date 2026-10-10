@@ -8,6 +8,7 @@ import httpx
 from postgrest.exceptions import APIError
 
 import app as api
+from courses import Course
 from databaseManager import DatabaseManager, LISTING_COLUMNS, listing_from_row, to_columns
 from models import Listing, ListingForCreate, MemberRole, PendingRequest, User
 
@@ -18,7 +19,7 @@ HEADERS = {"X-User-Id": "einstein@ethz.ch", "X-User-Name": "Albert Einstein"}
 class APITests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.user = User(id="database-user-id", firstName="Albert", lastName="Einstein")
-        self.listing = Listing(id="listing-1", subject="Study", inviteCode="SECRET")
+        self.listing = Listing(id="listing-1", subject="Linear Algebra", inviteCode="SECRET")
         self.db = DatabaseManager.__new__(DatabaseManager)
         self.db.client = MagicMock()
         self.db.get_or_create_user = MagicMock(return_value=self.user)
@@ -83,11 +84,31 @@ class APITests(unittest.IsolatedAsyncioTestCase):
     async def test_create_uses_authenticated_database_id(self):
         self.db.create_listing = MagicMock(return_value=self.listing)
         response = await self.client.post("/api/listings", headers=HEADERS, json={
-            "subject": "Study", "creator_id": "attacker", "createdBy": "attacker",
+            "subject": "Linear Algebra", "creator_id": "attacker", "createdBy": "attacker",
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(self.db.create_listing.call_args.args[0], self.user.id)
         self.db.get_or_create_user.assert_called_once()
+
+    async def test_create_and_update_reject_invalid_subject_without_writes(self):
+        self.db.get_role.return_value = MemberRole.admin
+        self.db.create_listing = MagicMock(return_value=self.listing)
+        for method, path in (("POST", "/api/listings"), ("PATCH", "/api/listings/listing-1")):
+            for subject in ("Study", "linear algebra", "linearAlgebra", "", None, 123):
+                with self.subTest(method=method, subject=subject):
+                    response = await self.client.request(method, path, headers=HEADERS, json={"subject": subject})
+                    self.assertEqual(response.status_code, 422)
+        response = await self.client.post("/api/listings", headers=HEADERS, json={})
+        self.assertEqual(response.status_code, 422)
+        self.db.create_listing.assert_not_called()
+        self.db.client.table.assert_not_called()
+
+    async def test_patch_can_omit_subject(self):
+        self.db.get_role.return_value = MemberRole.admin
+        response = await self.client.patch("/api/listings/listing-1", headers=HEADERS,
+                                           json={"location": "Library"})
+        self.assertEqual(response.status_code, 200)
+        self.db.client.table.return_value.update.assert_called_once_with({"location": "Library"})
 
     async def test_profile_updates_only_authenticated_user(self):
         self.db.update_user = MagicMock(return_value=self.user)
@@ -128,7 +149,7 @@ class APITests(unittest.IsolatedAsyncioTestCase):
     async def test_nonadmin_cannot_mutate_listing_or_members(self):
         self.db.get_role.return_value = MemberRole.member
         operations = [
-            ("PATCH", "/api/listings/listing-1", {"subject": "Changed"}),
+            ("PATCH", "/api/listings/listing-1", {"subject": "Analysis I"}),
             ("DELETE", "/api/listings/listing-1", None),
             ("PUT", "/api/listings/listing-1/filters", []),
             ("POST", "/api/listings/listing-1/requests/other/approve", None),
@@ -144,9 +165,9 @@ class APITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_admin_update_preserves_subject_mapping(self):
         self.db.get_role.return_value = MemberRole.admin
-        response = await self.client.patch("/api/listings/listing-1", headers=HEADERS, json={"subject": "Changed"})
+        response = await self.client.patch("/api/listings/listing-1", headers=HEADERS, json={"subject": "Analysis I"})
         self.assertEqual(response.status_code, 200)
-        self.db.client.table.return_value.update.assert_called_once_with({"subject": "Changed"})
+        self.db.client.table.return_value.update.assert_called_once_with({"subject": "Analysis I"})
 
     async def test_chat_and_member_list_require_membership(self):
         for role in (None, MemberRole.requestPending):
@@ -210,10 +231,28 @@ class APITests(unittest.IsolatedAsyncioTestCase):
 
 
 class MappingTests(unittest.TestCase):
+    def test_every_course_is_a_valid_subject(self):
+        for course in Course:
+            listing = ListingForCreate(subject=course.value)
+            self.assertEqual(listing.subject, course)
+            self.assertEqual(listing.model_dump(mode="json")["subject"], course.value)
+
+    def test_supabase_search_uses_subject(self):
+        db = DatabaseManager.__new__(DatabaseManager)
+        db.client = MagicMock()
+        db.client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        self.assertEqual(db.get_listings_by_course(Course.linearAlgebra), [])
+        db.client.table.return_value.select.return_value.eq.assert_called_once_with("subject", "Linear Algebra")
+
+    def test_database_constraint_matches_course_enum(self):
+        from scripts.generate_subject_migration import ROOT, render_migration
+        migration = (ROOT / "migrations" / "20261010_listing_subject_course.sql").read_text()
+        self.assertEqual(migration, render_migration())
+
     def test_listing_subject_roundtrip(self):
-        listing = ListingForCreate(subject="Physics")
-        self.assertEqual(to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS)["subject"], "Physics")
-        self.assertEqual(listing_from_row({"id": "1", "subject": "Physics", "is_private": False}).subject, "Physics")
+        listing = ListingForCreate(subject="Linear Algebra")
+        self.assertEqual(to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS)["subject"], "Linear Algebra")
+        self.assertEqual(listing_from_row({"id": "1", "subject": "Linear Algebra", "is_private": False}).subject, "Linear Algebra")
 
 
 if __name__ == "__main__":

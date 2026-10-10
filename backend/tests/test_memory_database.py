@@ -51,7 +51,7 @@ class StartupTests(unittest.TestCase):
                 self.assertEqual(client.get("/api/me").status_code, 401)
                 uid = client.get("/api/me", headers=member).json()["id"]
                 response = client.post("/api/listings", headers=admin,
-                                       json={"subject": "Study", "isPrivate": True})
+                                       json={"subject": "Linear Algebra", "isPrivate": True})
                 self.assertEqual(response.status_code, 201)
                 listing = response.json()
                 path = f'/api/listings/{listing["id"]}'
@@ -62,7 +62,7 @@ class StartupTests(unittest.TestCase):
                 self.assertIsNone(response.json()["inviteCode"])
                 self.assertEqual(len(client.get("/api/me/requests", headers=member).json()), 1)
                 self.assertEqual(client.post(path + f"/requests/{uid}/approve", headers=admin).status_code, 204)
-                self.assertEqual(client.patch(path, headers=member, json={"subject": "No"}).status_code, 403)
+                self.assertEqual(client.patch(path, headers=member, json={"subject": "Analysis I"}).status_code, 403)
                 self.assertEqual(client.post(path + "/messages", headers=member, json={"content": "Hello"}).status_code, 201)
                 self.assertEqual(client.get(path + "/messages", headers=admin).json()[0]["content"], "Hello")
                 self.assertEqual(client.patch("/api/me", headers=member, json={"firstName": "New"}).status_code, 200)
@@ -84,10 +84,14 @@ class MemoryDatabaseTests(unittest.TestCase):
         course = next(iter(Course))
         from models import FilterType, ListingFilter
         wanted = ListingFilter(filterType=FilterType.degree, value="master")
-        listing = db.create_listing(owner.id, ListingForCreate(subject="Study", courses=[course], filters=[wanted, wanted]))
+        listing = db.create_listing(owner.id, ListingForCreate(subject=course, filters=[wanted, wanted]))
         self.assertEqual(db.get_listings_by_course(course, [wanted])[0].filters, [wanted])
+        db.update_listing(listing.id, owner.id, ListingForUpdate(subject=Course.linearAlgebra))
+        self.assertEqual(db.get_listings_by_course(course), [])
+        self.assertEqual(db.get_listings_by_course(Course.linearAlgebra)[0].subject, Course.linearAlgebra)
+        db.update_listing(listing.id, owner.id, ListingForUpdate(subject=course))
         listing.subject = "External mutation"
-        self.assertEqual(db.get_listing_by_id(listing.id).subject, "Study")
+        self.assertEqual(db.get_listing_by_id(listing.id).subject, course)
         db.request_to_join(listing.id, guest.id)
         with self.assertRaises(ValueError):
             db.request_to_join(listing.id, guest.id)

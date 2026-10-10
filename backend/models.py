@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import AliasChoices, BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from courses import Course
 
@@ -72,7 +72,7 @@ class ListingFilter(BaseModel):
 class Listing(BaseModel):
     id: str
     createdBy: str | None = None
-    subject: str
+    subject: Course
     description: str = ""
     startTime: datetime | None = None
     endTime: datetime | None = None
@@ -84,7 +84,7 @@ class Listing(BaseModel):
 
 
 class ListingForCreate(BaseModel):
-    subject: str
+    subject: Course
     description: str = ""
     startTime: datetime | None = None
     endTime: datetime | None = None
@@ -96,13 +96,20 @@ class ListingForCreate(BaseModel):
 
 class ListingForUpdate(BaseModel):
     # Only the fields that are sent get updated; send null to unset start/end time or location
-    subject: str | None = None
+    subject: Course | None = None
     description: str | None = None
     startTime: datetime | None = None
     endTime: datetime | None = None
     location: str | None = None
     courses: list[Course] | None = None
     isPrivate: bool | None = None
+
+    @field_validator("subject")
+    @classmethod
+    def subject_cannot_be_null(cls, value: Course | None) -> Course:
+        if value is None:
+            raise ValueError("subject must be a course name")
+        return value
 
 
 class ListingMember(BaseModel):

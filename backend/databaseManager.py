@@ -194,7 +194,7 @@ class DatabaseManager:
         rows = (
             self.client.table("listings")
             .select(LISTING_SELECT)
-            .contains("courses", [course.value])
+            .eq("subject", course.value)
             .eq("is_private", False)
             .execute()
             .data
