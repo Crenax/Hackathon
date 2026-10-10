@@ -1,10 +1,7 @@
 """Authenticated API behind the VIScon identity proxy."""
 
 from contextlib import asynccontextmanager
-from functools import lru_cache
 from ipaddress import ip_address
-import logging
-from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import unquote, urlsplit
@@ -15,51 +12,29 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from postgrest.exceptions import APIError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+import databaseManager as db
 from campus_schedule import availability
 from courses import Course
-from databaseManager import DatabaseManager
-from memoryDatabase import MemoryDatabaseManager
-from models import (
-    Degree, FilterType, Gender, Listing, ListingFilter, ListingForCreate,
-    ListingForUpdate, ListingMember, MemberRole, Message, MessageForCreate,
-    PendingRequest, User, UserForUpdate,
-)
+from models import *
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
-@lru_cache(maxsize=1)
-def get_database() -> DatabaseManager:
-    if (getenv("SUPABASE_URL") or "").strip() and (getenv("SUPABASE_SERVICE_ROLE_KEY") or "").strip():
-        return DatabaseManager()
-    logging.getLogger("uvicorn.error").warning(
-        "\n\n" + "!" * 88 + "\n"
-        "!!! WARNING: SUPABASE IS NOT CONFIGURED — USING A RAM-ONLY MOCK DATABASE !!!\n"
-        "!!! ALL DATA WILL BE LOST WHEN THE SERVER RESTARTS.                     !!!\n"
-        "!!! EACH SERVER WORKER HAS ITS OWN SEPARATE DATABASE.                  !!!\n"
-        "!!! Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for persistent data. !!!\n"
-        + "!" * 88 + "\n"
-    )
-    return MemoryDatabaseManager()
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    get_database()
-    try:
-        yield
-    finally:
-        get_database.cache_clear()
+    db.initDatabaseManager()
+    yield
 
 
-Database = Annotated[DatabaseManager, Depends(get_database)]
-
-
-def current_user(request: Request, db: Database) -> User:
+def current_user(request: Request) -> User:
     # The proxy email identifies the account; permissions use its database ID.
-    return db.get_or_create_user(request.state.proxy_email, request.state.proxy_name)
+    user = db.get_user_by_email(request.state.proxy_email)
+    if user is not None:
+        return user
+    first_name, _, last_name = request.state.proxy_name.partition(" ")
+    return db.create_user_From_External_Info(first_name, last_name, request.state.proxy_email)
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
@@ -142,27 +117,34 @@ async def database_connection_error(request: Request, exc: httpx.HTTPError):
     return JSONResponse({"detail": "Database is unavailable"}, status_code=503)
 
 
-def listing_for_user(listing: Listing, user: User, db: DatabaseManager) -> Listing:
-    if db.is_listing_admin(listing.id, user.id):
-        return listing
-    return listing.model_copy(update={"inviteCode": None})
+def is_listing_admin(listing_id: str, user: User) -> bool:
+    return db.get_role_by_user_id_and_listing_id(user.id, listing_id) == MemberRole.admin
 
 
-def visible_listing(listing_id: str, user: User, db: DatabaseManager) -> Listing:
+def is_listing_member(listing_id: str, user: User) -> bool:
+    # Admins and members, not pending requests
+    return db.get_role_by_user_id_and_listing_id(user.id, listing_id) in (MemberRole.admin, MemberRole.member)
+
+
+def visible_listing(listing_id: str, user: User) -> Listing:
     listing = db.get_listing_by_id(listing_id)
-    if listing is None or (listing.isPrivate and not db.is_listing_member(listing_id, user.id)):
+    if listing is None or (listing.isPrivate and not is_listing_member(listing_id, user)):
         raise HTTPException(404, "Listing not found")
     return listing
 
 
-def require_member(listing_id: str, user: User, db: DatabaseManager):
-    visible_listing(listing_id, user, db)
-    if not db.is_listing_member(listing_id, user.id):
+def require_member(listing_id: str, user: User) -> Listing:
+    listing = visible_listing(listing_id, user)
+    if not is_listing_member(listing_id, user):
         raise HTTPException(403, "Listing membership is required")
+    return listing
 
 
-class InviteRequest(BaseModel):
-    inviteCode: str = Field(min_length=1, max_length=128)
+def require_admin(listing_id: str, user: User) -> Listing:
+    listing = visible_listing(listing_id, user)
+    if not is_listing_admin(listing_id, user):
+        raise PermissionError("Only admins of this listing can do this")
+    return listing
 
 
 class RoleUpdate(BaseModel):
@@ -175,8 +157,8 @@ def get_me(user: CurrentUser):
 
 
 @app.patch("/api/me", response_model=User)
-def update_me(update: UserForUpdate, user: CurrentUser, db: Database):
-    return db.update_user(user.id, update)
+def update_me(update: UserForUpdate, user: CurrentUser):
+    return db.update_user_by_id(user.id, update)
 
 
 @app.get("/api/lecture-halls")
@@ -193,126 +175,108 @@ def get_courses():
 
 
 @app.get("/api/me/listings", response_model=list[Listing])
-def get_my_listings(user: CurrentUser, db: Database):
-    return [listing_for_user(item, user, db) for item in db.get_listings_by_user_id(user.id)]
+def get_my_listings(user: CurrentUser):
+    return db.get_listings_by_user_id(user.id)
 
 
-@app.get("/api/me/requests", response_model=list[PendingRequest])
-def get_my_requests(user: CurrentUser, db: Database):
-    return [
-        item.model_copy(update={"listing": listing_for_user(item.listing, user, db)})
-        for item in db.get_pending_requests_by_user_id(user.id)
-    ]
+@app.get("/api/me/requests", response_model=list[ListingMember])
+def get_my_requests(user: CurrentUser):
+    return db.get_pending_requests_by_user_id(user.id)
 
 
 @app.get("/api/listings", response_model=list[Listing])
-def get_listings(
-    user: CurrentUser, db: Database, course: Course | None = None,
-    gender: Gender | None = None, degree: Degree | None = None,
-):
-    filters = []
-    if gender is not None:
-        filters.append(ListingFilter(filterType=FilterType.gender, value=gender.value))
-    if degree is not None:
-        filters.append(ListingFilter(filterType=FilterType.degree, value=degree.value))
-    return [listing_for_user(item, user, db) for item in db.get_listings_by_course(course, filters)]
+def get_listings(user: CurrentUser, course: Course | None = None):
+    return db.get_listings_by_course(course)
 
 
 @app.post("/api/listings", response_model=Listing, status_code=201)
-def create_listing(listing: ListingForCreate, user: CurrentUser, db: Database):
-    return db.create_listing(user.id, listing)
-
-
-@app.post("/api/join-by-invite", response_model=Listing, status_code=201)
-def join_by_invite(invite: InviteRequest, user: CurrentUser, db: Database):
-    listing = db.request_to_join_by_invite_code(invite.inviteCode, user.id)
-    return listing_for_user(listing, user, db)
+def create_listing(listing: ListingForCreate, user: CurrentUser):
+    return db.create_listing(listing.model_copy(update={"createdBy": user}))
 
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)
-def get_listing(listing_id: str, user: CurrentUser, db: Database):
-    return listing_for_user(visible_listing(listing_id, user, db), user, db)
+def get_listing(listing_id: str, user: CurrentUser):
+    return visible_listing(listing_id, user)
 
 
 @app.patch("/api/listings/{listing_id}", response_model=Listing)
-def update_listing(listing_id: str, update: ListingForUpdate, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    return db.update_listing(listing_id, user.id, update)
-
-
-@app.put("/api/listings/{listing_id}/filters", response_model=Listing)
-def set_filters(listing_id: str, filters: list[ListingFilter], user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    return db.set_listing_filters(listing_id, user.id, filters)
+def update_listing(listing_id: str, update: ListingForUpdate, user: CurrentUser):
+    require_admin(listing_id, user)
+    return db.update_listing_by_id(listing_id, update)
 
 
 @app.delete("/api/listings/{listing_id}", status_code=204)
-def delete_listing(listing_id: str, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.delete_listing(listing_id, user.id)
+def delete_listing(listing_id: str, user: CurrentUser):
+    require_admin(listing_id, user)
+    db.delete_listing_by_id(listing_id)
     return Response(status_code=204)
 
 
 @app.get("/api/listings/{listing_id}/members", response_model=list[ListingMember])
-def get_members(listing_id: str, user: CurrentUser, db: Database):
-    require_member(listing_id, user, db)
-    return db.get_users_by_listing(listing_id)
+def get_members(listing_id: str, user: CurrentUser):
+    require_member(listing_id, user)
+    return db.get_listingMembers_by_listing(listing_id)
 
 
-@app.get("/api/listings/{listing_id}/requests", response_model=list[PendingRequest])
-def get_requests(listing_id: str, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.require_admin(listing_id, user.id)
-    return db.get_pending_requests_by_listing(listing_id)
+@app.get("/api/listings/{listing_id}/requests", response_model=list[ListingMember])
+def get_requests(listing_id: str, user: CurrentUser):
+    require_admin(listing_id, user)
+    return db.get_pending_requests_by_listing_id(listing_id)
 
 
 @app.post("/api/listings/{listing_id}/requests", status_code=204)
-def request_to_join(listing_id: str, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.request_to_join(listing_id, user.id)
+def request_to_join(listing_id: str, user: CurrentUser):
+    listing = visible_listing(listing_id, user)
+    if listing.isPrivate:
+        raise PermissionError("This listing is private")
+    if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is not None:
+        raise ValueError("Already a member or request already sent")
+    db.create_request(user.id, listing_id)
     return Response(status_code=204)
 
 
 @app.post("/api/listings/{listing_id}/requests/{user_id}/approve", status_code=204)
-def approve_request(listing_id: str, user_id: str, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.approve_request(listing_id, user_id, user.id)
+def approve_request(listing_id: str, user_id: str, user: CurrentUser):
+    require_admin(listing_id, user)
+    if db.accept_request_by_user_id_and_listing_id(user_id, listing_id) is None:
+        raise ValueError("No pending request from this user")
     return Response(status_code=204)
 
 
 @app.patch("/api/listings/{listing_id}/members/{user_id}", status_code=204)
-def set_member_role(listing_id: str, user_id: str, update: RoleUpdate, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.set_member_role(listing_id, user_id, update.role, user.id)
+def set_member_role(listing_id: str, user_id: str, update: RoleUpdate, user: CurrentUser):
+    require_admin(listing_id, user)
+    if db.update_role_by_user_id_and_listing_id(user_id, listing_id, update.role) is None:
+        raise ValueError("User is not a member of this listing")
     return Response(status_code=204)
 
 
 @app.delete("/api/listings/{listing_id}/members/me", status_code=204)
-def leave_listing(listing_id: str, user: CurrentUser, db: Database):
+def leave_listing(listing_id: str, user: CurrentUser):
     # Pending users must also be able to cancel their request to a private listing.
-    if db.get_role(listing_id, user.id) is None:
+    if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is None:
         raise HTTPException(404, "Membership or request not found")
-    db.leave_listing(listing_id, user.id)
+    db.delete_listing_member_by_user_id_and_listing_id(user.id, listing_id)
     return Response(status_code=204)
 
 
 @app.delete("/api/listings/{listing_id}/members/{user_id}", status_code=204)
-def remove_member(listing_id: str, user_id: str, user: CurrentUser, db: Database):
-    visible_listing(listing_id, user, db)
-    db.remove_member(listing_id, user_id, user.id)
+def remove_member(listing_id: str, user_id: str, user: CurrentUser):
+    require_admin(listing_id, user)
+    db.delete_listing_member_by_user_id_and_listing_id(user_id, listing_id)
     return Response(status_code=204)
 
 
 @app.get("/api/listings/{listing_id}/messages", response_model=list[Message])
-def get_messages(listing_id: str, user: CurrentUser, db: Database):
-    require_member(listing_id, user, db)
+def get_messages(listing_id: str, user: CurrentUser):
+    require_member(listing_id, user)
     return db.get_messages_by_listing(listing_id)
 
 
 @app.post("/api/listings/{listing_id}/messages", response_model=Message, status_code=201)
-def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser, db: Database):
-    require_member(listing_id, user, db)
-    return db.send_message(listing_id, user.id, message)
+def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser):
+    listing = require_member(listing_id, user)
+    return db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
 
 
 if __name__ == "__main__":
