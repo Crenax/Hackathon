@@ -1,0 +1,17 @@
+.icon-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.icon-background img {
+  position: absolute;
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  opacity: 0.24;
+}

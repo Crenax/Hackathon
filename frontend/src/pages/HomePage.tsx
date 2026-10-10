@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { getMe, type User } from "../api";
-import CreateEvent from "../components/EventsList";
+import CreateEvent from "./EventsList";
 
 export default function HomePage() {
-    const [me, setMe] = useState<User | undefined>();
+    const [, setMe] = useState<User | undefined>();
 
     useEffect(() => {
         getMe().then(setMe);

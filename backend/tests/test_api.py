@@ -32,6 +32,20 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         await self.client.aclose()
         api.app.dependency_overrides.clear()
 
+    async def test_lecture_halls_normalizes_building_and_returns_schedules(self):
+        payload = {"rooms": [{"name": "HG F 5", "status": "free"}]}
+        with patch.object(api, "availability", return_value=payload) as availability:
+            response = await self.client.get("/api/lecture-halls?building=eth.hg", headers=HEADERS)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), payload)
+        availability.assert_called_once_with("HG")
+
+    async def test_lecture_halls_requires_building_and_handles_unknown_building(self):
+        response = await self.client.get("/api/lecture-halls", headers=HEADERS)
+        self.assertEqual(response.status_code, 422)
+        response = await self.client.get("/api/lecture-halls?building=MISSING", headers=HEADERS)
+        self.assertEqual(response.status_code, 404)
+
     async def test_every_endpoint_rejects_missing_auth_before_database(self):
         for route in api.app.routes:
             path = route.path.replace("{listing_id}", "listing-1").replace("{user_id}", "other-user")
@@ -214,7 +228,7 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         self.db.get_role.return_value = MemberRole.admin
         response = await self.client.patch("/api/listings/listing-1", headers=HEADERS, json={"subject": "Analysis I"})
         self.assertEqual(response.status_code, 200)
-        self.db.client.table.return_value.update.assert_called_once_with({"subject": "Analysis I"})
+        self.db.client.table.return_value.update.assert_called_once_with({"courses": ["Analysis I"]})
 
     async def test_chat_and_member_list_require_membership(self):
         for role in (None, MemberRole.requestPending):
@@ -284,17 +298,12 @@ class MappingTests(unittest.TestCase):
             self.assertEqual(listing.subject, course)
             self.assertEqual(listing.model_dump(mode="json")["subject"], course.value)
 
-    def test_supabase_search_uses_subject(self):
+    def test_supabase_search_uses_courses(self):
         db = DatabaseManager.__new__(DatabaseManager)
         db.client = MagicMock()
-        db.client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
+        db.client.table.return_value.select.return_value.contains.return_value.eq.return_value.execute.return_value.data = []
         self.assertEqual(db.get_listings_by_course(Course.linearAlgebra), [])
-        db.client.table.return_value.select.return_value.eq.assert_called_once_with("subject", "Linear Algebra")
-
-    def test_database_constraint_matches_course_enum(self):
-        from scripts.generate_subject_migration import ROOT, render_migration
-        migration = (ROOT / "migrations" / "20261010_listing_subject_course.sql").read_text()
-        self.assertEqual(migration, render_migration())
+        db.client.table.return_value.select.return_value.contains.assert_called_once_with("courses", ["Linear Algebra"])
 
     def test_supabase_search_without_course_still_excludes_private_listings(self):
         db = DatabaseManager.__new__(DatabaseManager)
@@ -306,8 +315,39 @@ class MappingTests(unittest.TestCase):
 
     def test_listing_subject_roundtrip(self):
         listing = ListingForCreate(subject="Linear Algebra")
-        self.assertEqual(to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS)["subject"], "Linear Algebra")
-        self.assertEqual(listing_from_row({"id": "1", "subject": "Linear Algebra", "is_private": False}).subject, "Linear Algebra")
+        self.assertNotIn("subject", to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS))
+        self.assertEqual(listing_from_row({"id": "1", "courses": ["Linear Algebra"], "is_private": False}).subject, "Linear Algebra")
+
+    def test_create_user_supplies_uuid_without_database_default(self):
+        from uuid import UUID
+        db = DatabaseManager.__new__(DatabaseManager)
+        db.client = MagicMock()
+        db.client.table.return_value.insert.return_value.execute.return_value.data = [
+            {"id": "user-1", "first_name": "Guest", "last_name": "", "email": "guest@ethz.ch"}
+        ]
+        db.create_user(" GUEST@ETHZ.CH ", "Guest")
+        payload = db.client.table.return_value.insert.call_args.args[0]
+        self.assertEqual(UUID(payload["id"]).version, 4)
+        self.assertEqual(payload["email"], "guest@ethz.ch")
+
+    def test_create_listing_persists_primary_and_additional_courses(self):
+        db = DatabaseManager.__new__(DatabaseManager)
+        db.client = MagicMock()
+        db.client.table.return_value.insert.return_value.execute.return_value.data = [{"id": "listing-1"}]
+        db.get_listing_by_id = MagicMock()
+        db.create_listing("user-1", ListingForCreate(subject="Linear Algebra", courses=["Analysis I", "Linear Algebra"]))
+        payload = db.client.table.return_value.insert.call_args.args[0]
+        self.assertNotIn("subject", payload)
+        self.assertEqual(payload["courses"], ["Linear Algebra", "Analysis I"])
+
+    def test_courses_only_patch_preserves_primary_subject(self):
+        from models import ListingForUpdate
+        db = DatabaseManager.__new__(DatabaseManager)
+        db.client = MagicMock()
+        db.require_admin = MagicMock()
+        db.get_listing_by_id = MagicMock(return_value=Listing(id="listing-1", subject="Linear Algebra", courses=["Linear Algebra"]))
+        db.update_listing("listing-1", "user-1", ListingForUpdate(courses=["Analysis I"]))
+        db.client.table.return_value.update.assert_called_once_with({"courses": ["Linear Algebra", "Analysis I"]})
 
 
 if __name__ == "__main__":

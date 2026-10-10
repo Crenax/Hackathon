@@ -1,9 +1,22 @@
 from os import getenv
+from uuid import uuid4
 
 from supabase import Client, create_client
 
 from courses import Course
-from models import *
+from models import (
+    Listing,
+    ListingFilter,
+    ListingForCreate,
+    ListingForUpdate,
+    ListingMember,
+    MemberRole,
+    Message,
+    MessageForCreate,
+    PendingRequest,
+    User,
+    UserForUpdate,
+)
 
 # Model field name -> database column name
 USER_COLUMNS = {
@@ -13,355 +26,398 @@ USER_COLUMNS = {
     "gender": "gender",
     "major": "major",
     "degree": "degree",
+    "pfp": "profile_picture",
     "description": "description",
 }
 
-# ListingForUpdate field -> listings column
-LISTING_UPDATE_COLUMNS = {
-    "newDescription": "description",
-    "newStartTime": "start_time",
-    "newEndTime": "end_time",
-    "newLocation": "location",
-    "newCourses": "courses",
-    "newIsPrivate": "is_private",
+LISTING_COLUMNS = {
+    "description": "description",
+    "startTime": "start_time",
+    "endTime": "end_time",
+    "location": "location",
+    "courses": "courses",
+    "isPrivate": "is_private",
 }
 
-# Listings are always loaded with their member ids
-LISTING_SELECT = "*, listing_members(user_id, role)"
-
-client: Client | None = None
-
-def initDatabaseManager():
-    global client
-    url = getenv("SUPABASE_URL")
-    key = getenv("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env")
-    client = create_client(url, key)
+# Listings are always loaded together with their filters
+LISTING_SELECT = "*, listing_filters(filter_type, value)"
+REQUEST_SELECT = f"joined_at, users(*), listings({LISTING_SELECT})"
 
 
-#turns rows into Models form models.py
+def to_columns(data: dict, mapping: dict[str, str]) -> dict:
+    return {mapping[key]: value for key, value in data.items() if key in mapping}
+
+
+def listing_courses(subject: str, courses: list[str] | None) -> list[str]:
+    """Keep the API's primary subject first in the database course array."""
+    return list(dict.fromkeys([subject, *(courses or [])]))
+
+
 def user_from_row(row: dict) -> User:
     return User(
         id=row["id"],
-        firstName=row["first_name"] or "",
-        lastName=row["last_name"] or "",
-        emailAddress=row["email"] or "",
-        dateOfBirth=row["date_of_birth"],
-        gender=row["gender"],
-        major=row["major"],
-        degree=row["degree"],
-        description=row["description"] or "",
+        firstName=row.get("first_name") or "",
+        lastName=row.get("last_name") or "",
+        emailAddress=row.get("email"),
+        dateOfBirth=row.get("date_of_birth"),
+        gender=row.get("gender"),
+        major=row.get("major"),
+        degree=row.get("degree"),
+        pfp=row.get("profile_picture"),
+        description=row.get("description") or "",
     )
 
 
 def listing_from_row(row: dict) -> Listing:
     return Listing(
         id=row["id"],
-        createdBy=get_user_by_id(row["created_by"]) if row["created_by"] else None,
-        description=row["description"] or "",
-        startTime=row["start_time"],
-        endTime=row["end_time"],
-        location=row["location"],
-        courses=row["courses"] or [],
+        createdBy=row.get("created_by"),
+        subject=(row.get("courses") or [None])[0],
+        description=row.get("description") or "",
+        startTime=row.get("start_time"),
+        endTime=row.get("end_time"),
+        location=row.get("location"),
+        courses=row.get("courses") or [],
         isPrivate=row["is_private"],
-        memberIds=[
-            m["user_id"]
-            for m in row.get("listing_members") or []
-            if m["role"] != MemberRole.requestPending.value
+        inviteCode=row.get("invite_code"),
+        filters=[
+            ListingFilter(filterType=f["filter_type"], value=f["value"])
+            for f in row.get("listing_filters") or []
         ],
     )
 
 
-def listingMember_from_row(row: dict) -> ListingMember:
-    return ListingMember(
-        user=get_user_by_id(row["user_id"]),
-        listing=get_listing_by_id(row["listing_id"]),
-        role=row["role"],
-        joinedAt=row["joined_at"],
+def request_from_row(row: dict) -> PendingRequest:
+    return PendingRequest(
+        listing=listing_from_row(row["listings"]),
+        user=user_from_row(row["users"]),
+        requestedAt=row["joined_at"],
     )
+
 
 def message_from_row(row: dict) -> Message:
     return Message(
         id=row["id"],
         listingId=row["listing_id"],
-        author=get_user_by_id(row["user_id"]) if row["user_id"] else None,
+        author=user_from_row(row["users"]) if row.get("users") else None,
         sentAt=row["sent_at"],
         content=row["content"],
     )
 
 
-#get-functions
-#user
-def get_user_by_id(user_id: str) -> User | None:
-    rows = client.table("users").select("*").eq("id", user_id).limit(1).execute().data
-    return user_from_row(rows[0]) if rows else None
+class DatabaseManager:
+    """Talks to Supabase.
 
-def get_user_by_email(email: str) -> User | None:
-    rows = client.table("users").select("*").eq("email", email.strip().lower()).limit(1).execute().data
-    return user_from_row(rows[0]) if rows else None
+    Uses the service role key, which bypasses Row Level Security. Every function that
+    changes data therefore checks permissions itself (raises PermissionError).
+    Read functions don't: the endpoints decide who may read what.
+    """
 
-#listings
-def get_listing_by_id(listing_id: str) -> Listing | None:
-    rows = (
-        client.table("listings")
-        .select(LISTING_SELECT)
-        .eq("id", listing_id)
-        .limit(1)
-        .execute()
-        .data
-    )
-    return listing_from_row(rows[0]) if rows else None
+    def __init__(self):
+        url = getenv("SUPABASE_URL")
+        key = getenv("SUPABASE_SERVICE_ROLE_KEY")
+        if not url or not key:
+            raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+        self.client: Client = create_client(url, key)
 
-def get_listings_by_course(course: Course | None = None) -> list[Listing]:
-    #Public listings, optionally only those whose courses contain the course
-    query = client.table("listings").select(LISTING_SELECT).eq("is_private", False)
-    if course is not None:
-        query = query.contains("courses", [course.value])
+    # ===== Users =====
 
-    return [listing_from_row(row) for row in query.execute().data]
+    def get_user_by_id(self, user_id: str) -> User | None:
+        rows = self.client.table("users").select("*").eq("id", user_id).limit(1).execute().data
+        return user_from_row(rows[0]) if rows else None
 
-def get_listings_by_user_id(user_id: str) -> list[Listing]:
-    #Listings the user is admin or member of (pending requests: see get_pending_requests_by_user_id)
-    rows = (
-        client.table("listing_members")
-        .select(f"listings({LISTING_SELECT})")
-        .eq("user_id", user_id)
-        .neq("role", MemberRole.requestPending.value)
-        .execute()
-        .data
-    )
-    return [listing_from_row(row["listings"]) for row in rows]
+    def get_user_by_email(self, email: str) -> User | None:
+        rows = (
+            self.client.table("users")
+            .select("*")
+            .eq("email", email.strip().lower())
+            .limit(1)
+            .execute()
+            .data
+        )
+        return user_from_row(rows[0]) if rows else None
 
-#listing Members
-def get_listingMembers_by_userid(user_id: str) -> list[ListingMember]:
-    #alle listingMembers where user has really joined
-    rows = (
-        client.table("listing_members")
-        .select("*")
-        .eq("user_id", user_id)
-        .neq("role", MemberRole.requestPending.value)
-        .execute()
-        .data
-    )
-    return [listingMember_from_row(row) for row in rows]
+    def create_user(self, email: str, first_name: str, last_name: str = "") -> User:
+        row = (
+            self.client.table("users")
+            .insert({"id": str(uuid4()), "email": email.strip().lower(), "first_name": first_name, "last_name": last_name})
+            .execute()
+            .data[0]
+        )
+        return user_from_row(row)
 
-def get_listingMembers_by_listing(listing_id: str) -> list[ListingMember]:
-    # Admins und Mitglieder einer Listing (keine pending requests), längste Mitglieder zuerst
-    rows = (
-        client.table("listing_members")
-        .select("*")
-        .eq("listing_id", listing_id)
-        .neq("role", MemberRole.requestPending.value)
-        .order("joined_at")
-        .execute()
-        .data
-    )
-    return [listingMember_from_row(row) for row in rows]
+    def get_or_create_user(self, email: str, full_name: str) -> User:
+        """For the portal login headers (X-User-Id = email, X-User-Name = full name)."""
+        user = self.get_user_by_email(email)
+        if user is not None:
+            return user
+        first_name, _, last_name = full_name.strip().partition(" ")
+        return self.create_user(email, first_name, last_name)
 
-#messages
-def get_messages_by_listing(listing_id: str) -> list[Message]:
-    # Oldest message first
-    rows = (
-        client.table("messages")
-        .select("*")
-        .eq("listing_id", listing_id)
-        .order("sent_at")
-        .execute()
-        .data
-    )
-    return [message_from_row(row) for row in rows]
+    def update_user(self, user_id: str, update: UserForUpdate) -> User:
+        columns = to_columns(update.model_dump(mode="json", exclude_unset=True), USER_COLUMNS)
+        if columns:
+            self.client.table("users").update(columns).eq("id", user_id).execute()
+        user = self.get_user_by_id(user_id)
+        if user is None:
+            raise ValueError("User not found")
+        return user
 
+    def get_users_by_listing(self, listing_id: str) -> list[ListingMember]:
+        """Admins and members of a listing (no pending requests), longest members first."""
+        rows = (
+            self.client.table("listing_members")
+            .select("role, joined_at, users(*)")
+            .eq("listing_id", listing_id)
+            .in_("role", [MemberRole.admin.value, MemberRole.member.value])
+            .order("joined_at")
+            .execute()
+            .data
+        )
+        return [
+            ListingMember(user=user_from_row(row["users"]), role=row["role"], joinedAt=row["joined_at"])
+            for row in rows
+        ]
 
-#various
-def get_role_by_user_id_and_listing_id(user_id: str, listing_id: str) -> MemberRole | None:
-    #includes pending requests
-    rows = (
-        client.table("listing_members")
-        .select("role")
-        .eq("user_id", user_id)
-        .eq("listing_id", listing_id)
-        .limit(1)
-        .execute()
-        .data
-    )
-    return MemberRole(rows[0]["role"]) if rows else None
+    # ===== Listings =====
 
-def get_pending_requests_by_listing_id(listing_id: str) -> list[ListingMember]:
-    # Oldest request first
-    rows = (
-        client.table("listing_members")
-        .select("*")
-        .eq("listing_id", listing_id)
-        .eq("role", MemberRole.requestPending.value)
-        .order("joined_at")
-        .execute()
-        .data
-    )
-    return [listingMember_from_row(row) for row in rows]
+    def get_listing_by_id(self, listing_id: str) -> Listing | None:
+        rows = (
+            self.client.table("listings")
+            .select(LISTING_SELECT)
+            .eq("id", listing_id)
+            .limit(1)
+            .execute()
+            .data
+        )
+        return listing_from_row(rows[0]) if rows else None
 
-def get_pending_requests_by_user_id(user_id: str) -> list[ListingMember]:
-    # Oldest request first
-    rows = (
-        client.table("listing_members")
-        .select("*")
-        .eq("user_id", user_id)
-        .eq("role", MemberRole.requestPending.value)
-        .order("joined_at")
-        .execute()
-        .data
-    )
-    return [listingMember_from_row(row) for row in rows]
+    def get_listings_by_course(
+        self, course: Course | None = None, filters: list[ListingFilter] | None = None
+    ) -> list[Listing]:
+        """Public listings, optionally limited to a course, with every given filter."""
+        query = self.client.table("listings").select(LISTING_SELECT)
+        if course is not None:
+            query = query.contains("courses", [course.value])
+        rows = query.eq("is_private", False).execute().data
+        listings = [listing_from_row(row) for row in rows]
+        return [
+            listing
+            for listing in listings
+            if all(wanted in listing.filters for wanted in filters or [])
+        ]
 
+    def get_listings_by_user_id(self, user_id: str) -> list[Listing]:
+        """Listings the user is admin or member of (pending requests: see get_pending_requests_by_user_id)."""
+        rows = (
+            self.client.table("listing_members")
+            .select(f"listings({LISTING_SELECT})")
+            .eq("user_id", user_id)
+            .in_("role", [MemberRole.admin.value, MemberRole.member.value])
+            .execute()
+            .data
+        )
+        return [listing_from_row(row["listings"]) for row in rows]
 
-#create
-def create_user_From_External_Info(firstName: str, lastName: str, email: str) -> User:
-    row = (
-        client.table("users")
-        .insert({
-            "first_name": firstName,
-            "last_name": lastName,
-            "email": email.strip().lower(),
-        })
-        .execute()
-        .data[0]
-    )
-    return user_from_row(row)
+    def create_listing(self, creator_id: str, listing: ListingForCreate) -> Listing:
+        """The creator becomes admin automatically (database trigger)."""
+        columns = to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS)
+        columns["courses"] = listing_courses(listing.subject.value, columns.get("courses"))
+        columns["created_by"] = creator_id
+        row = self.client.table("listings").insert(columns).execute().data[0]
+        self.insert_filters(row["id"], listing.filters)
+        return self.get_listing_by_id(row["id"])
 
+    def update_listing(self, listing_id: str, admin_id: str, update: ListingForUpdate) -> Listing:
+        self.require_admin(listing_id, admin_id)
+        columns = to_columns(update.model_dump(mode="json", exclude_unset=True), LISTING_COLUMNS)
+        # Preserve null handling from the function-based implementation.
+        if "description" in columns and columns["description"] is None:
+            columns["description"] = ""
+        if "is_private" in columns and columns["is_private"] is None:
+            del columns["is_private"]
+        if "subject" in update.model_fields_set or "courses" in update.model_fields_set:
+            existing = self.get_listing_by_id(listing_id)
+            if existing is None:
+                raise ValueError("Listing not found")
+            subject = update.subject or existing.subject
+            courses = columns.get("courses") if "courses" in update.model_fields_set else existing.courses[1:]
+            columns["courses"] = listing_courses(subject.value, courses)
+        if columns:
+            self.client.table("listings").update(columns).eq("id", listing_id).execute()
+        return self.get_listing_by_id(listing_id)
 
-def create_listing(listingForCreate: ListingForCreate) -> Listing:
-    # The database makes createdBy the admin of the new listing
-    fields = listingForCreate.model_dump(mode="json")
-    row = (
-        client.table("listings")
-        .insert({
-            "created_by": listingForCreate.createdBy.id if listingForCreate.createdBy else None,
-            "description": fields["description"],
-            "start_time": fields["startTime"],
-            "end_time": fields["endTime"],
-            "location": fields["location"],
-            "courses": fields["courses"],
-            "is_private": fields["isPrivate"],
-        })
-        .execute()
-        .data[0]
-    )
-    return get_listing_by_id(row["id"])
+    def set_listing_filters(self, listing_id: str, admin_id: str, filters: list[ListingFilter]) -> Listing:
+        """Replaces all filters of a listing."""
+        self.require_admin(listing_id, admin_id)
+        self.client.table("listing_filters").delete().eq("listing_id", listing_id).execute()
+        self.insert_filters(listing_id, filters)
+        return self.get_listing_by_id(listing_id)
 
-def createMessage(messageForCreate: MessageForCreate) -> Message:
-    row = (
-        client.table("messages")
-        .insert({
-            "listing_id": messageForCreate.listing.id,
-            "user_id": messageForCreate.author.id,
-            "content": messageForCreate.content,
-        })
-        .execute()
-        .data[0]
-    )
-    return message_from_row(row)
+    def delete_listing(self, listing_id: str, admin_id: str):
+        """Also deletes its filters, members and messages (cascade)."""
+        self.require_admin(listing_id, admin_id)
+        self.client.table("listings").delete().eq("id", listing_id).execute()
 
-def create_request(userId: str, listingId: str) -> ListingMember:
-    # joined_at is set by the database (time of the request)
-    row = (
-        client.table("listing_members")
-        .insert({
-            "listing_id": listingId,
-            "user_id": userId,
-            "role": MemberRole.requestPending.value,
-        })
-        .execute()
-        .data[0]
-    )
-    return listingMember_from_row(row)
+    def insert_filters(self, listing_id: str, filters: list[ListingFilter]):
+        # dict.fromkeys removes duplicates (the table has a unique constraint)
+        unique = dict.fromkeys((f.filterType.value, f.value) for f in filters)
+        if unique:
+            self.client.table("listing_filters").insert(
+                [{"listing_id": listing_id, "filter_type": t, "value": v} for t, v in unique]
+            ).execute()
 
+    # ===== Membership & join requests =====
 
-#update
-def update_user_by_id(user_id: str, userForUpdate: UserForUpdate) -> User | None:
-    # Only fields that were set get updated
-    fields = userForUpdate.model_dump(mode="json", exclude_unset=True)
-    columns = {USER_COLUMNS[key]: value for key, value in fields.items() if key in USER_COLUMNS}
-    if not columns:
-        return get_user_by_id(user_id)
+    def get_role(self, listing_id: str, user_id: str) -> MemberRole | None:
+        """None if the user has no relation to the listing."""
+        rows = (
+            self.client.table("listing_members")
+            .select("role")
+            .eq("listing_id", listing_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+            .data
+        )
+        return MemberRole(rows[0]["role"]) if rows else None
 
-    rows = client.table("users").update(columns).eq("id", user_id).execute().data
-    return user_from_row(rows[0]) if rows else None
+    def is_listing_admin(self, listing_id: str, user_id: str) -> bool:
+        return self.get_role(listing_id, user_id) == MemberRole.admin
 
-def update_listing_by_id(listing_id: str, listingForUpdate: ListingForUpdate) -> Listing | None:
-    # Only fields that were set get updated; set a field to None to unset start/end time or location
-    fields = listingForUpdate.model_dump(mode="json", exclude_unset=True)
-    columns = {LISTING_UPDATE_COLUMNS[key]: value for key, value in fields.items() if key in LISTING_UPDATE_COLUMNS}
-    if "description" in columns and columns["description"] is None:
-        columns["description"] = ""
-    if "courses" in columns and columns["courses"] is None:
-        columns["courses"] = []
-    if "is_private" in columns and columns["is_private"] is None:
-        del columns["is_private"]
-    if columns:
-        client.table("listings").update(columns).eq("id", listing_id).execute()
+    def is_listing_member(self, listing_id: str, user_id: str) -> bool:
+        """True for admins and members, False for pending requests."""
+        return self.get_role(listing_id, user_id) in (MemberRole.admin, MemberRole.member)
 
-    return get_listing_by_id(listing_id)
+    def require_admin(self, listing_id: str, user_id: str):
+        if not self.is_listing_admin(listing_id, user_id):
+            raise PermissionError("Only admins of this listing can do this")
 
-def update_role_by_user_id_and_listing_id(user_id: str, listing_id: str, role: MemberRole) -> ListingMember | None:
-    # Promote a member to admin or demote an admin to member. None if the user isn't a member
-    # If the last admin is demoted, the database assigns a new one
-    rows = (
-        client.table("listing_members")
-        .update({"role": role.value})
-        .eq("user_id", user_id)
-        .eq("listing_id", listing_id)
-        .neq("role", MemberRole.requestPending.value)
-        .execute()
-        .data
-    )
-    return listingMember_from_row(rows[0]) if rows else None
+    def get_pending_requests_by_user_id(self, user_id: str) -> list[PendingRequest]:
+        rows = (
+            self.client.table("listing_members")
+            .select(REQUEST_SELECT)
+            .eq("user_id", user_id)
+            .eq("role", MemberRole.requestPending.value)
+            .order("joined_at")
+            .execute()
+            .data
+        )
+        return [request_from_row(row) for row in rows]
 
-def accept_request_by_user_id_and_listing_id(user_id: str, listing_id: str) -> ListingMember | None:
-    # Pending request -> member. None if there was no pending request
-    rows = (
-        client.table("listing_members")
-        .update({"role": MemberRole.member.value})
-        .eq("user_id", user_id)
-        .eq("listing_id", listing_id)
-        .eq("role", MemberRole.requestPending.value)
-        .execute()
-        .data
-    )
-    return listingMember_from_row(rows[0]) if rows else None
+    def get_pending_requests_by_listing(self, listing_id: str) -> list[PendingRequest]:
+        rows = (
+            self.client.table("listing_members")
+            .select(REQUEST_SELECT)
+            .eq("listing_id", listing_id)
+            .eq("role", MemberRole.requestPending.value)
+            .order("joined_at")
+            .execute()
+            .data
+        )
+        return [request_from_row(row) for row in rows]
 
+    def request_to_join(self, listing_id: str, user_id: str):
+        listing = self.get_listing_by_id(listing_id)
+        if listing is None:
+            raise ValueError("Listing not found")
+        if listing.isPrivate:
+            raise PermissionError("This listing is private, join requests need an invite code")
+        self.insert_request(listing_id, user_id)
 
-#delete
-def delete_user_by_id(user_id: str):
-    # The database also removes the user's memberships/requests and keeps their messages without author
-    client.table("users").delete().eq("id", user_id).execute()
+    def request_to_join_by_invite_code(self, invite_code: str, user_id: str) -> Listing:
+        """Works for private listings too. The admin still has to approve the request."""
+        rows = (
+            self.client.table("listings")
+            .select(LISTING_SELECT)
+            .eq("invite_code", invite_code.strip().upper())
+            .limit(1)
+            .execute()
+            .data
+        )
+        if not rows:
+            raise ValueError("Invalid invite code")
+        listing = listing_from_row(rows[0])
+        self.insert_request(listing.id, user_id)
+        return listing
 
-def delete_listing_by_id(listing_id: str):
-    delete_messages_by_listing(listing_id)
+    def insert_request(self, listing_id: str, user_id: str):
+        if self.get_role(listing_id, user_id) is not None:
+            raise ValueError("Already a member or request already sent")
+        self.client.table("listing_members").insert(
+            {"listing_id": listing_id, "user_id": user_id, "role": MemberRole.requestPending.value}
+        ).execute()
 
-    rows = (
-        client.table("listing_members")
-        .select("user_id, role")
-        .eq("listing_id", listing_id)
-        .execute()
-        .data
-    )
-    # Admins last, so the database doesn't promote a new admin while members are being removed
-    rows.sort(key=lambda row: row["role"] == MemberRole.admin.value)
-    for row in rows:
-        delete_listing_member_by_user_id_and_listing_id(row["user_id"], listing_id)
+    def approve_request(self, listing_id: str, user_id: str, admin_id: str):
+        self.require_admin(listing_id, admin_id)
+        updated = (
+            self.client.table("listing_members")
+            .update({"role": MemberRole.member.value})
+            .eq("listing_id", listing_id)
+            .eq("user_id", user_id)
+            .eq("role", MemberRole.requestPending.value)
+            .execute()
+            .data
+        )
+        if not updated:
+            raise ValueError("No pending request from this user")
 
-    client.table("listings").delete().eq("id", listing_id).execute()
+    def set_member_role(self, listing_id: str, user_id: str, role: MemberRole, admin_id: str):
+        """Promote a member to admin or demote an admin to member.
+        If the last admin is demoted, the database assigns a new one."""
+        self.require_admin(listing_id, admin_id)
+        if role == MemberRole.requestPending:
+            raise ValueError("Use remove_member to remove someone")
+        updated = (
+            self.client.table("listing_members")
+            .update({"role": role.value})
+            .eq("listing_id", listing_id)
+            .eq("user_id", user_id)
+            .in_("role", [MemberRole.admin.value, MemberRole.member.value])
+            .execute()
+            .data
+        )
+        if not updated:
+            raise ValueError("User is not a member of this listing")
 
-def delete_listing_member_by_user_id_and_listing_id(user_id: str, listing_id: str):
-    # Removes a member/admin or declines a pending request
-    # If the last admin is removed, the database assigns a new one (or deletes the empty listing)
-    (
-        client.table("listing_members")
-        .delete()
-        .eq("user_id", user_id)
-        .eq("listing_id", listing_id)
-        .execute()
-    )
+    def remove_member(self, listing_id: str, user_id: str, admin_id: str):
+        """Reject a pending request or kick a member/admin."""
+        self.require_admin(listing_id, admin_id)
+        self.client.table("listing_members").delete().eq("listing_id", listing_id).eq("user_id", user_id).execute()
 
-def delete_messages_by_listing(listing_id: str):
-    client.table("messages").delete().eq("listing_id", listing_id).execute()
+    def leave_listing(self, listing_id: str, user_id: str):
+        """Leave a listing or cancel an own pending request.
+        If the last admin leaves, the database assigns a new one (or deletes the empty listing)."""
+        self.client.table("listing_members").delete().eq("listing_id", listing_id).eq("user_id", user_id).execute()
+
+    # ===== Messages =====
+
+    def get_messages_by_listing(self, listing_id: str) -> list[Message]:
+        """Oldest message first."""
+        rows = (
+            self.client.table("messages")
+            .select("*, users(*)")
+            .eq("listing_id", listing_id)
+            .order("sent_at")
+            .execute()
+            .data
+        )
+        return [message_from_row(row) for row in rows]
+
+    def send_message(self, listing_id: str, user_id: str, message: MessageForCreate) -> Message:
+        if not self.is_listing_member(listing_id, user_id):
+            raise PermissionError("Only members of this listing can write in the chat")
+        row = (
+            self.client.table("messages")
+            .insert(
+                {
+                    "listing_id": listing_id,
+                    "user_id": user_id,
+                    "content": message.content,
+                }
+            )
+            .execute()
+            .data[0]
+        )
+        row["users"] = self.client.table("users").select("*").eq("id", user_id).execute().data[0]
+        return message_from_row(row)

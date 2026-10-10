@@ -1,0 +1,31 @@
+.event-page__header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
+.event-page__heading { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
+.event-page__title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.event-page__title-row h1 { margin: 0; }
+.event-page__private { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; color: #5144bd; background: #eeecff; font-size: .8rem; font-weight: 700; }
+.event-page__card { gap: 0; padding: 0; overflow: hidden; }
+.event-page__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.event-page__detail { padding: 20px 24px; border-bottom: 1px solid #edf0f5; }
+.event-page__detail:nth-child(odd):not(:last-child) { border-right: 1px solid #edf0f5; }
+.event-page__detail dt, .event-page__section h2 { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--form-muted); font-size: .78rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.event-page__detail dd { margin: 7px 0 0; font-size: .98rem; font-weight: 600; }
+.event-page__section { padding: 23px 24px; border-bottom: 1px solid #edf0f5; }
+.event-page__section:last-child { border-bottom: 0; }
+.event-page__section p { margin: 10px 0 0; color: #444c60; line-height: 1.55; white-space: pre-wrap; }
+.event-page__tags, .event-page__preferences { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.event-page__tags li, .event-page__preferences li { border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .84rem; }
+.event-page__preferences li { color: #4e5568; background: #f4f5f8; text-transform: capitalize; }
+
+@media (max-width: 560px) {
+  .event-page__detail, .event-page__section { padding-right: 16px; padding-left: 16px; }
+}
+
+@media (max-width: 420px) {
+  .event-page__details { grid-template-columns: 1fr; }
+  .event-page__detail:nth-child(odd):not(:last-child) { border-right: 0; }
+}
+
+.event-page__join { margin-left: auto; max-width: 100%; align-items: flex-end; }
+.event-page__join-status, .event-page__join-error { max-width: 280px; text-align: right; }
+.event-page__join-status { margin: 0; color: var(--form-muted); }
+.event-page__join-error { margin: 0; color: #b83242; }

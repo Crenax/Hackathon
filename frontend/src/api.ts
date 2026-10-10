@@ -83,12 +83,17 @@ export interface ListingForCreate {
 }
 
 export interface Message {
-  id: string,
-  listingId: string,
-  author: User,
-  sentAt: Date,
-  subject: string,
-  content: string
+  id: string;
+  listingId: string;
+  author: User | null;
+  sentAt: string;
+  subject: string | null;
+  content: string;
+}
+
+export interface MessageForCreate {
+  subject?: string | null;
+  content: string;
 }
 
 export interface TodoItem {
@@ -157,6 +162,21 @@ export function createListing(listing: ListingForCreate): Promise<Listing> {
   return request<Listing>(`/api/listings`, "POST", listing);
 }
 
+export function getListings(): Promise<Listing[]> {
+  return request<Listing[]>(`/api/listings`, "GET");
+}
+
+export function getMyListings(): Promise<Listing[]> {
+  return request<Listing[]>(`/api/me/listings`, "GET");
+}
+
+export function getListing(listingId: string): Promise<Listing> {
+  return request<Listing>(
+    `/api/listings/${encodeURIComponent(listingId)}`,
+    "GET",
+  );
+}
+
 export function getTodos(): Promise<TodoItem[]> {
   return request<TodoItem[]>(`/api/todos`, "GET").then((todos) =>
     todos.map(parseDeadline),
@@ -197,4 +217,30 @@ export function subscribeToTodoChanges(onChange: () => void): () => void {
     }
   };
   return () => events.close();
+}
+
+export function getMessages(listingId: string): Promise<Message[]> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "GET");
+}
+
+export function sendMessage(listingId: string, message: MessageForCreate): Promise<Message> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "POST", message);
+}
+
+export interface PendingRequest {
+  listing: Listing;
+  user: User;
+  requestedAt: string;
+}
+
+export function getMyRequests(): Promise<PendingRequest[]> {
+  return request("/api/me/requests", "GET");
+}
+
+export function hasPendingJoinRequest(listingId: string): Promise<boolean> {
+  return getMyRequests().then((requests) => requests.some((item) => item.listing.id === listingId));
+}
+
+export function requestToJoin(listingId: string): Promise<void> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "POST");
 }
