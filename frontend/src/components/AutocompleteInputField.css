@@ -1,0 +1,52 @@
+.course-autocomplete {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.course-autocomplete-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  border: 1px solid #d6dbe6;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgb(25 35 55 / 14%);
+}
+
+.course-autocomplete-menu ul {
+  overflow-y: auto;
+  max-height: 240px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+
+.course-autocomplete-menu li {
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: #20263a;
+  font-size: 0.9rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.course-autocomplete-menu li.is-highlighted {
+  color: #3730a3;
+  background: #eeecff;
+}
+
+.course-autocomplete-status {
+  margin: 0;
+  padding: 10px 12px;
+  color: #697187;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.course-autocomplete-error {
+  color: #b83242;
+}

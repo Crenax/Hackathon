@@ -114,9 +114,15 @@ export default function EventsList() {
                                 <div className="form-inline-entry">
                                     <AutocompleteInputField
                                         id="study-event-courses"
-                                        expValue={newCourse}
-                                        expOnChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewCourse(event.target.value)}
-                                        expPlaceholder="e.g. CS101, MATH202"
+                                        value={newCourse}
+                                        onValueChange={setNewCourse}
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter") {
+                                                event.preventDefault();
+                                                addCourse();
+                                            }
+                                        }}
+                                        placeholder="Start typing a course name"
                                     />
                                     <button className="form-secondary-button" type="button" onClick={addCourse}>Add course</button>
                                 </div>

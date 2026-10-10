@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 import "../FormLayout.css";
+import AutocompleteInputField from "../components/AutocompleteInputField";
 import "./UserSettings.css";
 
 export default function UserSettings() {
@@ -96,18 +97,17 @@ export default function UserSettings() {
                     <div className="form-field">
                         <label htmlFor="course-input">Courses you take</label>
                         <div className="form-inline-entry">
-                            <input
+                            <AutocompleteInputField
                                 id="course-input"
-                                type="text"
                                 value={courseInput}
-                                onChange={(event) => setCourseInput(event.target.value)}
+                                onValueChange={setCourseInput}
                                 onKeyDown={(event) => {
                                     if (event.key === "Enter") {
                                         event.preventDefault();
                                         addCourse();
                                     }
                                 }}
-                                placeholder="For example, Biology 101"
+                                placeholder="Start typing a course name"
                             />
                             <button className="form-secondary-button" type="button" onClick={addCourse}>Add course</button>
                         </div>
