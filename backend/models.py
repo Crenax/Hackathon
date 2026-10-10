@@ -5,6 +5,9 @@ from enum import Enum
 from pydantic import BaseModel
 from pydantic import BaseModel, Field, AliasChoices
 
+from courses import Course
+from pydantic import BaseModel, Field, AliasChoices
+
 
 
 # Enums
@@ -25,9 +28,15 @@ class Degree(str, Enum):
     PHD = "phd"
 
 
-class Course(str, Enum):
-    linearAlgebra = "linear_algebra"
+class FilterType(str, Enum):
+    gender = "gender"
+    degree = "degree"
 
+
+class MemberRole(str, Enum):
+    admin = "admin"
+    member = "member"
+    requestPending = "request_pending"
 
 
 class User(BaseModel):
@@ -45,13 +54,83 @@ class User(BaseModel):
     description: str = ""
 
 
+class UserForUpdate(BaseModel):
+    # Only the fields that are sent get updated
+    firstName: str | None = None
+    lastName: str | None = None
+    dateOfBirth: date | None = None
+    gender: Gender | None = None
+    major: Major | None = None
+    degree: Degree | None = None
+    pfp: str | None = None
+    description: str | None = None
+
+
+class ListingFilter(BaseModel):
+    filterType: FilterType
+    value: str  # e.g. "female" for gender, "master" for degree
+
+
 class Listing(BaseModel):
     id: str
-    startTime: datetime
-    endTime: datetime
-    location: str
-    members: list[User]
-    admin: User
+    createdBy: str | None = None
+    subject: str
+    description: str = ""
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] = []
+    isPrivate: bool = False
+    inviteCode: str | None = None
+    filters: list[ListingFilter] = []
+
+
+class ListingForCreate(BaseModel):
+    subject: str
+    description: str = ""
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] = []
+    isPrivate: bool = False
+    filters: list[ListingFilter] = []
+
+
+class ListingForUpdate(BaseModel):
+    # Only the fields that are sent get updated; send null to unset start/end time or location
+    subject: str | None = None
+    description: str | None = None
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] | None = None
+    isPrivate: bool | None = None
+
+
+class ListingMember(BaseModel):
+    user: User
+    role: MemberRole
+    joinedAt: datetime
+
+
+class PendingRequest(BaseModel):
+    listing: Listing
+    user: User
+    requestedAt: datetime
+
+
+class Message(BaseModel):
+    id: str
+    listingId: str
+    author: User | None = None  # None if the author deleted their account
+    sentAt: datetime
+    subject: str | None = None
+    content: str
+
+
+class MessageForCreate(BaseModel):
+    subject: str | None = None
+    content: str
 
 
 class TodoItem(BaseModel):
