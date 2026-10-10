@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+    ArrowLeft,
     Book,
     Calendar3,
     Clock,
@@ -9,11 +10,11 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getListingMembers, getMyListings, getMyRequests } from "../api";
-import type { Listing } from "../api";
-import { getEventTitle } from "../eventTitle";
+import { getListing, getListingMembers, getMyListings, getMyRequests, MemberRole } from "../api";
+import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
+import OutlookCalendarButton from "../components/OutlookCalendarButton";
 import "../FormLayout.css";
 import "./EventPage.css";
 
@@ -33,6 +34,8 @@ interface EventLoadState {
     listingId: string;
     event?: Listing;
     creatorName?: string;
+    members?: ListingMember[];
+    membersError?: string;
     hasJoined?: boolean;
     pending?: boolean;
     error?: string;
@@ -59,17 +62,26 @@ export default function EventPage() {
                     pending: requests.some((request) => request.listing.id === listingId),
                 });
 
-                if (hasJoined && event.createdBy) {
-                    const creatorName = await getListingMembers(listingId)
-                        .then((members) => {
-                            const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
-                            return creator ? creator.fullName : "";
-                        })
-                        .catch(() => "");
-                    if (active) setLoadState((current) => ({
-                        ...current,
-                        creatorName: creatorName || "Name unavailable",
-                    }));
+                if (hasJoined) {
+                    try {
+                        const members = (await getListingMembers(listingId)).filter(
+                            (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
+                        );
+                        const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
+                        if (active) setLoadState((current) => ({
+                            ...current,
+                            members,
+                            creatorName: creator
+                                ? `${creator.firstName} ${creator.lastName}`.trim() || "Name unavailable"
+                                : "Name unavailable",
+                        }));
+                    } catch {
+                        if (active) setLoadState((current) => ({
+                            ...current,
+                            creatorName: "Name unavailable",
+                            membersError: "Could not load members. Please try refreshing.",
+                        }));
+                    }
                 }
             })
             .catch((error: unknown) => {
@@ -102,6 +114,8 @@ export default function EventPage() {
     return <EventPageContent
         event={loadState.event}
         creatorName={loadState.creatorName}
+        members={loadState.members}
+        membersError={loadState.membersError}
         hasJoined={loadState.hasJoined === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
@@ -110,10 +124,29 @@ export default function EventPage() {
     />;
 }
 
+function EventBackButton() {
+    const navigate = useNavigate();
+
+    function goBack() {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate("/", { replace: true });
+        }
+    }
+
+    return (
+        <button className="event-page__back" type="button" onClick={goBack} aria-label="Go back to the previous page" title="Back">
+            <ArrowLeft aria-hidden="true" />
+        </button>
+    );
+}
+
 function EventPageStatus({ children, role }: { children: string; role: "alert" | "status" }) {
     return (
         <main className="form-page event-page">
             <div className="form-container">
+                <EventBackButton />
                 <p className="form-card" role={role}>{children}</p>
             </div>
         </main>
@@ -123,41 +156,51 @@ function EventPageStatus({ children, role }: { children: string; role: "alert" |
 interface EventPageContentProps {
     event: Listing;
     creatorName?: string;
+    members?: ListingMember[];
+    membersError?: string;
     hasJoined: boolean;
     pending: boolean;
     onRequested: () => void;
 }
 
-function EventPageContent({ event, creatorName, hasJoined, pending, onRequested }: EventPageContentProps) {
+function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
-                <header className="form-page-header event-page__header">
-                    <div className="event-page__heading">
-                        <p className="form-eyebrow">Study session</p>
-                        <div className="event-page__title-row">
-                            <h1 id="event-title">{getEventTitle(event.courses)}</h1>
-                            {event.isPrivate && (
-                                <span className="event-page__private" title="Private event" aria-label="Private event">
-                                    <LockFill aria-hidden="true" />
-                                    <span>Private</span>
-                                </span>
-                            )}
+                <div className="event-page__header-row">
+                    <EventBackButton />
+                    <header className="form-page-header event-page__header">
+                        <div className="event-page__heading">
+                            <p className="form-eyebrow">Study session</p>
+                            <div className="event-page__title-row">
+                                <h1 id="event-title">{event.description.trim() || "Study event"}</h1>
+                                {event.isPrivate && (
+                                    <span className="event-page__private" title="Private event" aria-label="Private event">
+                                        <LockFill aria-hidden="true" />
+                                        <span>Private</span>
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
-                </header>
+                        {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
+                    </header>
+                </div>
 
                 <section className="form-card event-page__card" aria-label="Event details">
+                    <section className="event-page__detail event-page__schedule" aria-label="Schedule">
+                        <dl className="event-page__times">
+                            <div>
+                                <dt><Calendar3 aria-hidden="true" /> Starts</dt>
+                                <dd>{formatDateTime(event.startTime)}</dd>
+                            </div>
+                            <div>
+                                <dt><Clock aria-hidden="true" /> Ends</dt>
+                                <dd>{formatDateTime(event.endTime)}</dd>
+                            </div>
+                        </dl>
+                        {hasJoined && <OutlookCalendarButton key={event.id} listingId={event.id} />}
+                    </section>
                     <dl className="event-page__details">
-                        <div className="event-page__detail">
-                            <dt><Calendar3 aria-hidden="true" /> Starts</dt>
-                            <dd>{formatDateTime(event.startTime)}</dd>
-                        </div>
-                        <div className="event-page__detail">
-                            <dt><Clock aria-hidden="true" /> Ends</dt>
-                            <dd>{formatDateTime(event.endTime)}</dd>
-                        </div>
                         {hasJoined && event.location && (
                             <div className="event-page__detail">
                                 <dt><GeoAltFill aria-hidden="true" /> Location</dt>
@@ -172,23 +215,54 @@ function EventPageContent({ event, creatorName, hasJoined, pending, onRequested 
                         )}
                     </dl>
 
-                    {event.description && (
-                        <section className="event-page__section" aria-labelledby="event-description-heading">
-                            <h2 id="event-description-heading">About this session</h2>
-                            <p>{event.description}</p>
-                        </section>
-                    )}
-
                     {event.courses.length > 0 && (
                         <section className="event-page__section" aria-labelledby="event-courses-heading">
-                            <h2 id="event-courses-heading"><Book aria-hidden="true" /> Courses</h2>
-                            <ul className="event-page__tags">
-                                {event.courses.map((course) => <li key={course}>{course}</li>)}
-                            </ul>
+                            <div className="event-page__courses-row">
+                                <div className="event-page__courses">
+                                    <h2 id="event-courses-heading"><Book aria-hidden="true" /> Courses</h2>
+                                    <ul className="event-page__tags">
+                                        {event.courses.map((course) => <li key={course}>{course}</li>)}
+                                    </ul>
+                                </div>
+                            </div>
                         </section>
                     )}
 
                 </section>
+                {hasJoined && (
+                    <section className="form-card event-page__section" aria-labelledby="event-members-heading">
+                        <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
+                        {membersError ? (
+                            <p role="alert">{membersError}</p>
+                        ) : members === undefined ? (
+                            <p role="status">Loading members…</p>
+                        ) : members.length === 0 ? (
+                            <p>No accepted members yet.</p>
+                        ) : (
+                            <div className="event-page__member-groups">
+                                {[MemberRole.admin, MemberRole.member].map((groupRole) => {
+                                    const group = members.filter(({ role }) => role === groupRole);
+                                    if (group.length === 0) return null;
+                                    return (
+                                        <ul className="event-page__members" key={groupRole}
+                                            aria-label={groupRole === MemberRole.admin ? "Admins" : "Members"}>
+                                            {group.map(({ user, role }) => (
+                                                <li className="event-page__member" key={user.id}>
+                                                    <span className="event-page__member-name">
+                                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                                                    </span>
+                                                    <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
+                                                        {role === MemberRole.admin ? "Admin" : "Member"}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+                )}
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>

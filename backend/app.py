@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 import calanderManager
 import databaseManager as db
+from campus_schedule import availability
 from courses import Course
 from models import *
 
@@ -162,6 +163,14 @@ def get_me(user: CurrentUser):
 @app.patch("/api/me", response_model=User)
 def update_me(update: UserForUpdate, user: CurrentUser):
     return db.update_user_by_id(user.id, update)
+
+
+@app.get("/api/lecture-halls")
+def get_lecture_halls(building: str):
+    try:
+        return availability(building.strip().upper().removeprefix("ETH."))
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
 
 
 @app.get("/api/courses", response_model=list[Course])

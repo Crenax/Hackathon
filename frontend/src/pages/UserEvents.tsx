@@ -19,19 +19,8 @@ interface UserEvent {
     relationship: EventRelationship;
 }
 
-function validTimestamp(value: string | null): number | undefined {
-    if (!value) return undefined;
-    const timestamp = new Date(value).getTime();
-    return Number.isNaN(timestamp) ? undefined : timestamp;
-}
-
-function eventEndTimestamp(event: Listing): number | undefined {
-    return validTimestamp(event.endTime) ?? validTimestamp(event.startTime);
-}
-
 export default function UserEvents() {
     const [events, setEvents] = useState<UserEvent[]>([]);
-    const [referenceTime, setReferenceTime] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
 
@@ -56,7 +45,6 @@ export default function UserEvents() {
                 });
 
                 setEvents([...userEvents.values()]);
-                setReferenceTime(Date.now());
                 setLoadError("");
             })
             .catch((error: unknown) => {
@@ -73,30 +61,29 @@ export default function UserEvents() {
         };
     }, []);
 
-    const { currentEvents, pastEvents, relationships } = useMemo(() => {
-        const current: UserEvent[] = [];
-        const past: UserEvent[] = [];
+    const { membershipEvents, requestedEvents, relationships } = useMemo(() => {
+        const memberships: UserEvent[] = [];
+        const requests: UserEvent[] = [];
         const labels = new Map<string, EventRelationship>();
 
         events.forEach((event) => {
             labels.set(event.listing.id, event.relationship);
-            const endsAt = eventEndTimestamp(event.listing);
-            if (endsAt !== undefined && endsAt < referenceTime) {
-                past.push(event);
+            if (event.relationship === "Requested") {
+                requests.push(event);
             } else {
-                current.push(event);
+                memberships.push(event);
             }
         });
 
-        current.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
-        past.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
+        memberships.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
+        requests.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
 
         return {
-            currentEvents: current.map(({ listing }) => listing),
-            pastEvents: past.map(({ listing }) => listing),
+            membershipEvents: memberships.map(({ listing }) => listing),
+            requestedEvents: requests.map(({ listing }) => listing),
             relationships: labels,
         };
-    }, [events, referenceTime]);
+    }, [events]);
 
     const getStatusLabel = (event: Listing) => relationships.get(event.id);
 
@@ -119,26 +106,26 @@ export default function UserEvents() {
                     </p>
                 ) : (
                     <>
-                        <section className="form-card" aria-labelledby="current-events-heading">
+                        <section className="form-card" aria-labelledby="membership-events-heading">
                             <div className="form-section-header">
-                                <h2 id="current-events-heading">Current and upcoming</h2>
-                                <span className="event-count">{currentEvents.length}</span>
+                                <h2 id="membership-events-heading">Published and joined events</h2>
+                                <span className="event-count">{membershipEvents.length}</span>
                             </div>
                             <EventList
-                                events={currentEvents}
-                                emptyMessage="You have no current or upcoming events."
+                                events={membershipEvents}
+                                emptyMessage="You have not published or joined any events."
                                 getStatusLabel={getStatusLabel}
                             />
                         </section>
 
-                        <section className="form-card" aria-labelledby="past-events-heading">
+                        <section className="form-card" aria-labelledby="requested-events-heading">
                             <div className="form-section-header">
-                                <h2 id="past-events-heading">Past events</h2>
-                                <span className="event-count">{pastEvents.length}</span>
+                                <h2 id="requested-events-heading">Requested to join</h2>
+                                <span className="event-count">{requestedEvents.length}</span>
                             </div>
                             <EventList
-                                events={pastEvents}
-                                emptyMessage="You have no past events."
+                                events={requestedEvents}
+                                emptyMessage="You have no pending join requests."
                                 getStatusLabel={getStatusLabel}
                             />
                         </section>

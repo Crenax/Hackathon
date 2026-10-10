@@ -1,12 +1,16 @@
+.event-page__header-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; gap: 12px; }
 .event-page__header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
-.event-page__heading { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
+.event-page__heading { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.event-page__back { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; flex: 0 0 auto; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border: 1px solid var(--form-border); border-radius: 50%; color: var(--form-accent); background: #fff; box-shadow: 0 3px 10px rgb(25 35 55 / 8%); font: inherit; font-size: 1.2rem; cursor: pointer; }
+.event-page__back:hover { border-color: #bbb5ea; background: #f5f3ff; }
+.event-page__back:focus-visible { outline: 2px solid var(--form-accent); outline-offset: 3px; }
 .event-page__title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-.event-page__title-row h1 { margin: 0; }
+.event-page__title-row h1 { min-width: 0; margin: 0; white-space: pre-wrap; }
 .event-page__private { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; color: #5144bd; background: #eeecff; font-size: .8rem; font-weight: 700; }
 .event-page__card { gap: 0; padding: 0; overflow: hidden; }
 .event-page__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
 .event-page__detail { padding: 20px 24px; border-bottom: 1px solid #edf0f5; }
-.event-page__detail:nth-child(odd):not(:last-child) { border-right: 1px solid #edf0f5; }
+.event-page__details > .event-page__detail:nth-child(odd):not(:last-child) { border-right: 1px solid #edf0f5; }
 .event-page__detail dt, .event-page__section h2 { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--form-muted); font-size: .78rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
 .event-page__detail dd { margin: 7px 0 0; font-size: .98rem; font-weight: 600; }
 .event-page__section { padding: 23px 24px; border-bottom: 1px solid #edf0f5; }
@@ -21,10 +25,28 @@
 
 @media (max-width: 420px) {
   .event-page__details { grid-template-columns: 1fr; }
-  .event-page__detail:nth-child(odd):not(:last-child) { border-right: 0; }
+  .event-page__details > .event-page__detail:nth-child(odd):not(:last-child) { border-right: 0; }
 }
 
 .event-page__join { margin-left: auto; max-width: 100%; align-items: flex-end; }
 .event-page__join-status, .event-page__join-error { max-width: 280px; text-align: right; }
 .event-page__join-status { margin: 0; color: var(--form-muted); }
 .event-page__join-error { margin: 0; color: #b83242; }
+
+.event-page__courses-row { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.event-page__courses { min-width: 0; max-width: 100%; }
+.event-page__calendar { max-width: 100%; }
+.event-page__calendar button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 7px 11px; font-size: .82rem; border-radius: 6px; }
+.event-page__calendar p { max-width: 280px; color: #b83242; font-size: .85rem; }
+
+.event-page__members { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.event-page__members + .event-page__members { border-top: 1px solid #e1e5ee; padding-top: 16px; }
+.event-page__member { display: flex; flex: 0 1 auto; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 16px 18px; border: 1px solid #e1e5ee; border-radius: 8px; background: #f7f8fa; }
+.event-page__member-name { color: #242b3d; font-size: 1.05rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.event-page__member-role { color: #7040b5; font-size: .78rem; font-weight: 600; line-height: 1.4; }
+.event-page__member-role--admin { color: #b83242; }
+
+.event-page__schedule { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+.event-page__times { display: flex; flex: 1 1 280px; flex-wrap: wrap; gap: 20px 32px; min-width: 0; margin: 0; }
+.event-page__times > div { min-width: 0; overflow-wrap: anywhere; }
+.event-page__schedule .event-page__calendar { flex: 0 0 auto; margin-left: auto; }

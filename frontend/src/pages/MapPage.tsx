@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { GeoAlt, Map as MapIcon, ArrowRight, Crosshair, Plus, Dash } from 'react-bootstrap-icons';
 import { buildingOf, floorName, loadCampus, roomName } from '../map/campus';
 import type { Availability, Dataset, Feature, Point, Router, RouteResult } from '../map/campus';
+import locationsTsv from '../map/locations.tsv?raw';
 import './MapPage.css';
+
+const locationRooms = [...new Set(locationsTsv.trim().split(/\r?\n/).slice(1)
+  .map(row => row.split('\t')[0].trim()).filter(Boolean))];
 
 export default function MapPage() {
   const [campus, setCampus] = useState<{ data: Dataset; router: Router }>();
@@ -50,7 +54,7 @@ export default function MapPage() {
   const router = campus?.router;
   const buildings = [...new Set(router?.rooms.map(buildingOf))].sort();
   const levels = router?.levels.filter(item => item.startsWith(building + '.')) ?? [];
-  const rooms = router?.rooms.filter(item => buildingOf(item) === building) ?? [];
+  const rooms = locationRooms.filter(room => room.split(/\s+/)[0] === building.replace('ETH.', ''));
 
   async function findRoute(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,7 +127,7 @@ export default function MapPage() {
           {destination === 'toilet' && <label>Toilet preference<select value={toilet} onChange={event => { clear(); setToilet(event.target.value); }}><option value="any">Any toilet</option><option value="Women's Toilet">Women’s toilet</option><option value="Men's Toilet">Men’s toilet</option></select></label>}
           {destination === 'lecture' && <p className="campus-hint">We check ETH bookings for rooms free for at least the next 30 minutes.</p>}
           <label>How would you like to go?<select value={mode} onChange={event => { clear(); setMode(event.target.value); }}><option value="fastest">Fastest route</option><option value="stairs">Use stairs</option><option value="elevator">Use elevators</option></select></label>
-          <datalist id="campus-rooms">{rooms.map(room => <option key={room.id} value={router!.label(room)} />)}</datalist>
+          <datalist id="campus-rooms">{rooms.map(room => <option key={room} value={room} />)}</datalist>
           <button className="campus-primary" disabled={busy} type="submit">{busy ? 'Finding your route…' : 'Get directions'}<ArrowRight /></button>
           {(busy || route) && <button className="campus-text-button" type="button" onClick={clear}>{busy ? 'Cancel' : 'Clear directions'}</button>}
         </form>

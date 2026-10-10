@@ -1,0 +1,17 @@
+- vertauschen Title und Description
+- Nachrichten
+	- Requesten akzeptieren
+	- generell: Knöpfe und Infos unterscheiden nach Berechtigung
+	- Events löschen
+	- Events früher terminieren
+- Freunden
+- öffentliche Profilseite -> Linus
+- separate Add-Seite -> Eliseo
+- empfehlene Räume in Add-Seite -> Eliseo
+- Rückkehrknopf -> Louis
+- Blog erweitern
+
+- Profilbild
+- Logo erstellen
+- Suspence mit logo
+- Gamification
