@@ -7,8 +7,7 @@ from models import *
 
 # Model field name -> database column name
 USER_COLUMNS = {
-    "firstName": "first_name",
-    "lastName": "last_name",
+    "fullName": "full_name",
     "dateOfBirth": "date_of_birth",
     "gender": "gender",
     "major": "major",
@@ -44,8 +43,7 @@ def initDatabaseManager():
 def user_from_row(row: dict) -> User:
     return User(
         id=row["id"],
-        firstName=row["first_name"] or "",
-        lastName=row["last_name"] or "",
+        fullName=row["full_name"] or "",
         emailAddress=row["email"] or "",
         dateOfBirth=row["date_of_birth"],
         gender=row["gender"],
@@ -215,12 +213,11 @@ def get_pending_requests_by_user_id(user_id: str) -> list[ListingMember]:
 
 
 #create
-def create_user_From_External_Info(firstName: str, lastName: str, email: str) -> User:
+def create_user_From_External_Info(fullName: str, email: str) -> User:
     row = (
         client.table("users")
         .insert({
-            "first_name": firstName,
-            "last_name": lastName,
+            "full_name": fullName.strip(),
             "email": email.strip().lower(),
         })
         .execute()

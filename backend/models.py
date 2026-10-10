@@ -34,8 +34,7 @@ class MemberRole(str, Enum):
 #Base Models:
 class User(BaseModel):
     id: str
-    firstName: str = ""
-    lastName: str = ""
+    fullName: str = ""
     emailAddress: str = ""
     dateOfBirth: date | None = None
     gender: Gender | None = None
@@ -69,8 +68,7 @@ class ListingMember(BaseModel):
 
 #Models for interaction with db:
 class UserForCreate(BaseModel):
-    firstName: str = ""
-    lastName: str = ""
+    fullName: str = ""
     emailAddress: str = ""
     dateOfBirth: date | None = None
     gender: Gender | None = None
@@ -80,8 +78,7 @@ class UserForCreate(BaseModel):
 
 class UserForUpdate(BaseModel):
     # Only the fields that are sent get updated
-    firstName: str | None = None
-    lastName: str | None = None
+    fullName: str | None = None
     dateOfBirth: date | None = None
     gender: Gender | None = None
     major: Major | None = None

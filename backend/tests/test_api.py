@@ -18,7 +18,7 @@ HEADERS = {"X-User-Id": "einstein@ethz.ch", "X-User-Name": "Albert Einstein"}
 
 class APITests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.user = User(id="database-user-id", firstName="Albert", lastName="Einstein")
+        self.user = User(id="database-user-id", fullName="Albert Einstein")
         self.listing = Listing(id="listing-1", subject="Linear Algebra", inviteCode="SECRET")
         self.db = DatabaseManager.__new__(DatabaseManager)
         self.db.client = MagicMock()
@@ -257,7 +257,7 @@ class APITests(unittest.IsolatedAsyncioTestCase):
             {"id": "msg-1", "listing_id": "listing-1", "content": "Hello", "sent_at": now}
         ]
         self.db.client.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
-            {"id": self.user.id, "first_name": "Albert", "last_name": "Einstein"}
+            {"id": self.user.id, "full_name": "Albert Einstein"}
         ]
         response = await self.client.post("/api/listings/listing-1/messages", headers=HEADERS, json={"content": "Hello", "user_id": "attacker"})
         self.assertEqual(response.status_code, 201)
@@ -335,7 +335,7 @@ class MappingTests(unittest.TestCase):
         db = DatabaseManager.__new__(DatabaseManager)
         db.client = MagicMock()
         db.client.table.return_value.insert.return_value.execute.return_value.data = [
-            {"id": "user-1", "first_name": "Guest", "last_name": "", "email": "guest@ethz.ch"}
+            {"id": "user-1", "full_name": "Guest", "email": "guest@ethz.ch"}
         ]
         db.create_user(" GUEST@ETHZ.CH ", "Guest")
         payload = db.client.table.return_value.insert.call_args.args[0]

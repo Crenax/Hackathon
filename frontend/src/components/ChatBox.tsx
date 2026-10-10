@@ -74,7 +74,7 @@ export default function ChatBox({ listingId }: { listingId: string }) {
                     <article className="chat-box__message" key={message.id}>
                         <header>
                             <strong>{message.author
-                                ? `${message.author.firstName} ${message.author.lastName}`.trim()
+                                ? message.author.fullName
                                 : "Deleted user"}</strong>
                             <time dateTime={message.sentAt}>{new Date(message.sentAt).toLocaleString()}</time>
                         </header>
