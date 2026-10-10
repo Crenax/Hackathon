@@ -26,7 +26,7 @@ export default App;
 
 const AppContent = () => {
   return (
-    <div style={{paddingBottom: "5rem"}}>
+    <div className="app-content">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
