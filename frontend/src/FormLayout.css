@@ -1,0 +1,57 @@
+.form-page {
+  --form-accent: #5748c8;
+  --form-accent-hover: #4335ad;
+  --form-text: #20263a;
+  --form-muted: #697187;
+  --form-border: #e2e6ed;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 32px 16px 56px;
+  color: var(--form-text);
+}
+
+.form-container { display: flex; width: 100%; max-width: 760px; margin: 0 auto; flex-direction: column; gap: 18px; }
+.form-page-header { padding: 8px 2px 4px; }
+.form-eyebrow { margin: 0 0 6px; color: var(--form-accent); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.form-heading-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.form-page-header h1 { margin: 0; font-size: clamp(1.65rem, 7vw, 2.125rem); line-height: 1.2; }
+.form-page-description, .form-section-description { color: var(--form-muted); }
+.form-page-description { margin: 9px 0 0; }
+.form-card { display: flex; flex-direction: column; gap: 18px; padding: 24px; border: 1px solid var(--form-border); border-radius: 14px; background: #fff; box-shadow: 0 6px 20px rgb(25 35 55 / 6%); }
+.form-section-header { display: flex; align-items: center; gap: 10px; }
+.form-section-header h2 { margin: 0; font-size: 1.2rem; }
+.form-section-description { margin: -10px 0 0; font-size: .9rem; }
+.form-stack { display: flex; flex-direction: column; gap: 17px; }
+.form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.form-field { display: flex; flex-direction: column; gap: 7px; color: #343b50; font-size: .9rem; font-weight: 600; }
+.form-field input, .form-field textarea { box-sizing: border-box; width: 100%; padding: 11px 13px; border: 1px solid #d6dbe6; border-radius: 8px; color: var(--form-text); background: #fff; font: inherit; font-weight: 400; }
+.form-field textarea { min-height: 100px; resize: vertical; }
+.form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--form-accent); box-shadow: 0 0 0 3px rgb(87 72 200 / 14%); }
+.form-field input::placeholder, .form-field textarea::placeholder { color: #989eac; }
+.form-field small, .form-optional { color: #8990a2; font-size: .78rem; font-weight: 400; }
+.form-required { color: #b83242; }
+.form-inline-entry, .form-actions { display: flex; align-items: center; gap: 10px; }
+.form-inline-entry > :first-child { min-width: 0; flex: 1; }
+.form-primary-button, .form-secondary-button, .form-icon-button, .form-link-button { font: inherit; cursor: pointer; }
+.form-primary-button, .form-secondary-button { min-height: 42px; border-radius: 8px; padding: 10px 16px; font-weight: 650; }
+.form-primary-button { border: 0; color: #fff; background: var(--form-accent); }
+.form-primary-button:hover { background: var(--form-accent-hover); }
+.form-secondary-button { flex: 0 0 auto; border: 1px solid #d6dbe6; color: var(--form-text); background: #f9fafb; }
+.form-secondary-button:hover { border-color: #bbb5ea; background: #f5f3ff; }
+.form-link-button { border: 0; padding: 4px; color: var(--form-accent); background: transparent; text-decoration: underline; }
+.form-icon-button { display: inline-grid; flex: 0 0 auto; place-items: center; border: 0; padding: 2px; color: var(--form-accent); background: transparent; font-size: 2.25rem; line-height: 1; }
+.form-icon-button:hover { color: var(--form-accent-hover); }
+.course-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
+.course-tags li { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .8rem; font-weight: 400; }
+.course-tags button { border: 0; padding: 0; color: #4338ca; background: transparent; font: inherit; text-decoration: underline; cursor: pointer; }
+
+@media (max-width: 560px) {
+  .form-page { padding: 22px 12px 44px; }
+  .form-card { padding: 20px 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-heading-row { align-items: center; }
+}
+
+@media (max-width: 420px) {
+  .form-inline-entry { align-items: stretch; flex-direction: column; }
+}

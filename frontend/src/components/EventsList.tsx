@@ -1,7 +1,8 @@
-import { use, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { PlusCircleFill } from "react-bootstrap-icons";
+
+import "../FormLayout.css";
 import "./EventsList.css";
-import "../index.css";
-import { BorderStyle, PlusCircleFill } from 'react-bootstrap-icons';
 import AutocompleteInputField from "./AutocompleteInputField";
 
 interface StudyEvent {
@@ -30,7 +31,7 @@ function today(): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-export default function CreateEvent() {
+export default function EventsList() {
     const [events, setEvents] = useState<StudyEvent[]>(readEvents);
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
@@ -38,26 +39,19 @@ export default function CreateEvent() {
     const [courses, setCourses] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
-
     const [newCourse, setNewCourse] = useState("");
-    function addCourse() {
-        console.log("Adding course:", newCourse);
-        const trimmedCourse = newCourse.trim();
-        if (trimmedCourse && !courses.includes(trimmedCourse)) {
-            setCourses((current) => [...current, trimmedCourse]);
-            console.log("Added course:", trimmedCourse);
-            console.log("Current courses:", [...courses, trimmedCourse]);
-        }
-        setNewCourse("");
-    }
+    const [isAdding, setIsAdding] = useState(false);
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     }, [events]);
 
-    const [adding, setAdding] = useState(0);
-    function addButtonClicked() {
-        setAdding((adding + 1) % 2);
+    function addCourse() {
+        const trimmedCourse = newCourse.trim();
+        if (trimmedCourse && !courses.some((course) => course.toLowerCase() === trimmedCourse.toLowerCase())) {
+            setCourses((current) => [...current, trimmedCourse]);
+        }
+        setNewCourse("");
     }
 
     function addEvent(submitEvent: FormEvent<HTMLFormElement>) {
@@ -84,122 +78,136 @@ export default function CreateEvent() {
         setDescription("");
         setCourses([]);
         setNewCourse("");
-
-        addButtonClicked();
+        setIsAdding(false);
     }
 
-
-    if (adding) {
+    if (isAdding) {
         return (
-            <main className="create-event-page">
-                <section className="create-event-card" aria-labelledby="create-event-heading">
-                    <h2 id="create-event-heading">Create a study event</h2>
-                    <p className="create-event-intro">Set up a session and share the details with your group.</p>
+            <main className="form-page">
+                <div className="form-container">
+                    <header className="form-page-header">
+                        <p className="form-eyebrow">Study sessions</p>
+                        <h1 id="create-event-heading">Create a study event</h1>
+                        <p className="form-page-description">Set up a session and share the details with your group.</p>
+                    </header>
 
-                    <form className="create-event-form" onSubmit={addEvent}>
-                        <div className="create-event-field">
-                            <label htmlFor="study-event-title">Event name</label>
-                            <input id="study-event-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Exam prep session" maxLength={80} required />
-                        </div>
+                    <section className="form-card" aria-labelledby="create-event-heading">
+                        <form className="form-stack" onSubmit={addEvent}>
+                            <label className="form-field" htmlFor="study-event-title">
+                                <span>Event name <span className="form-required">*</span></span>
+                                <input id="study-event-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Exam prep session" maxLength={80} required />
+                            </label>
 
-                        <div className="create-event-row">
-                            <div className="create-event-field">
-                                <label htmlFor="study-event-date">Date</label>
-                                <input id="study-event-date" type="date" min={today()} value={date} onChange={(e) => setDate(e.target.value)} required />
+                            <div className="form-row">
+                                <label className="form-field" htmlFor="study-event-date">
+                                    <span>Date <span className="form-required">*</span></span>
+                                    <input id="study-event-date" type="date" min={today()} value={date} onChange={(event) => setDate(event.target.value)} required />
+                                </label>
+                                <label className="form-field" htmlFor="study-event-time">
+                                    <span>Start time <span className="form-required">*</span></span>
+                                    <input id="study-event-time" type="time" value={time} onChange={(event) => setTime(event.target.value)} required />
+                                </label>
                             </div>
-                            <div className="create-event-field">
-                                <label htmlFor="study-event-time">Start time</label>
-                                <input id="study-event-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+
+                            <div className="form-field">
+                                <label htmlFor="study-event-courses">Courses</label>
+                                <div className="form-inline-entry">
+                                    <AutocompleteInputField
+                                        id="study-event-courses"
+                                        expValue={newCourse}
+                                        expOnChange={(event: React.ChangeEvent<HTMLInputElement>) => setNewCourse(event.target.value)}
+                                        expPlaceholder="e.g. CS101, MATH202"
+                                    />
+                                    <button className="form-secondary-button" type="button" onClick={addCourse}>Add course</button>
+                                </div>
+                                {courses.length > 0 && (
+                                    <ul className="course-tags" aria-label="Added courses">
+                                        {courses.map((course) => (
+                                            <li key={course}>
+                                                {course}
+                                                <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>Remove</button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
-                        </div>
 
-                        <div className="create-event-field">
-                            <label htmlFor="study-event-courses">Courses</label>
-                            <div style={{height:"100&", display:"flex", alignItems:"center", justifyContent:'start', gap:"1rem"}}>
-                                <AutocompleteInputField id="study-event-courses" value={newCourse} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCourse(e.target.value)} placeholder="e.g. CS101, MATH202" />
-                                <button className="create-event-add-course" type="button" onClick={addCourse}>Add course</button>
+                            <label className="form-field" htmlFor="study-event-location">
+                                <span>Location <span className="form-required">*</span></span>
+                                <input id="study-event-location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Room or meeting link" maxLength={120} required />
+                            </label>
+
+                            <label className="form-field" htmlFor="study-event-description">
+                                <span>Description <span className="form-optional">(optional)</span></span>
+                                <textarea id="study-event-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will you work on?" rows={3} maxLength={500} />
+                            </label>
+
+                            <div className="form-actions">
+                                <button className="form-primary-button" type="submit">Add event</button>
+                                <button className="form-link-button" type="button" onClick={() => setIsAdding(false)}>Cancel</button>
                             </div>
-                        </div>
-
-                        <div className="create-event-field">
-                            <label htmlFor="study-event-location">Location</label>
-                            <input id="study-event-location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Room or meeting link" maxLength={120} required />
-                        </div>
-
-                        <div className="create-event-field">
-                            <label htmlFor="study-event-description">Description <span>(optional)</span></label>
-                            <textarea id="study-event-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What will you work on?" rows={3} maxLength={500} />
-                        </div>
-
-                        <div style={{display:"flex", alignItems:"center", justifyContent:"start", gap:"1rem"}}>
-                            <button className="create-event-submit" type="submit">Add event</button>
-                            <i style={{textDecoration:"underline", cursor:"pointer"}} onClick={addButtonClicked}>or abort</i>
-                        </div>
-                    </form>
-                </section>
+                        </form>
+                    </section>
+                </div>
             </main>
         );
-    } else {
-        return (
-            <main className="create-event-page">
-                <section className="create-event-list" aria-labelledby="upcoming-events-heading">
-                    <div style={{display:"flex", justifyContent:"space-between"}}>
-                        <div className="create-event-list-heading">
-                            <h2 id="upcoming-events-heading">Upcoming events</h2>
-                            <span>{events.length}</span>
-                        </div>
-                        
-                        <AddButton onClick={addButtonClicked} />
-                    </div>
-                    {events.length === 0 ? (
-                        <p className="create-event-empty">No events yet. You can be the first!</p>
-                    ) : (
+    }
+
+    return (
+        <main className="form-page">
+            <div className="form-container">
+                <header className="form-page-header">
+                    <p className="form-eyebrow">Study sessions</p>
+                    <div className="form-heading-row">
                         <div>
+                            <h1 id="upcoming-events-heading">Upcoming events</h1>
+                            <p className="form-page-description">Find your next study session or create a new one.</p>
+                        </div>
+                        <button className="form-icon-button" type="button" onClick={() => setIsAdding(true)} aria-label="Create a study event">
+                            <PlusCircleFill aria-hidden="true" />
+                        </button>
+                    </div>
+                </header>
+
+                <section className="form-card" aria-labelledby="upcoming-events-heading">
+                    <div className="form-section-header">
+                        <h2>Events</h2>
+                        <span className="event-count">{events.length}</span>
+                    </div>
+
+                    {events.length === 0 ? (
+                        <p className="event-empty">No events yet. You can be the first!</p>
+                    ) : (
+                        <div className="event-list">
                             {events.map((studyEvent) => {
                                 const eventDate = new Date(`${studyEvent.date}T12:00:00`);
 
                                 return (
-                                    <article className="create-event-item" key={studyEvent.id}>
-
-                                        <div className="create-event-date-badge">
+                                    <article className="event-item" key={studyEvent.id}>
+                                        <div className="event-date-badge">
                                             <span>{eventDate.toLocaleDateString(undefined, { month: "short" })}</span>
                                             <strong>{eventDate.getDate()}</strong>
                                         </div>
-
-                                        <div className="create-event-details">
+                                        <div className="event-details">
                                             <h3>{studyEvent.title}</h3>
-                                            <p className="create-event-meta">{studyEvent.time} | {studyEvent.location}</p>
-                                            {studyEvent.description && <p className="create-event-description">{studyEvent.description}</p>}
+                                            <p className="event-meta">{studyEvent.time} | {studyEvent.location}</p>
+                                            {studyEvent.description && <p className="event-description">{studyEvent.description}</p>}
                                         </div>
-
                                         <button
-                                            className="create-event-delete"
+                                            className="event-delete"
                                             type="button"
                                             onClick={() => setEvents((current) => current.filter((item) => item.id !== studyEvent.id))}
                                             aria-label={`Delete ${studyEvent.title}`}
                                         >
                                             Delete
                                         </button>
-
                                     </article>
                                 );
                             })}
                         </div>
                     )}
                 </section>
-            </main>
-        );
-    }
-}
-
-
-
-
-
-function AddButton({ onClick }: { onClick: () => void }) {
-    return (
-        <a type="button" onClick={onClick} style={{color: "#5748c8", fontSize: "2.5rem"}}>
-            <PlusCircleFill />
-        </a>
+            </div>
+        </main>
     );
 }
