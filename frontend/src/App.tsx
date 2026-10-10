@@ -9,6 +9,7 @@ import { scienceIconAttribution } from "../icons";
 import UserSettings from "./pages/UserSettings.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import UserEvents from "./pages/UserEvents.tsx";
+import EventPage from "./pages/EventPage.tsx";
 
 
 const MapPage = lazy(() => import("./pages/MapPage"));
@@ -35,6 +36,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/my-events" element={<UserEvents />} />
+          <Route path="/event" element={<EventPage />} />
           <Route path="/map" element={<Suspense fallback={<p style={{ textAlign: "center" }}>Loading campus map…</p>}><MapPage /></Suspense>} />
           <Route path="/my-profile" element={<UserSettings />} />
         </Routes>
