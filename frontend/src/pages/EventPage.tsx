@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+    ArrowLeft,
     Book,
     Calendar3,
     Clock,
@@ -123,10 +124,30 @@ export default function EventPage() {
     />;
 }
 
+function EventBackButton() {
+    const navigate = useNavigate();
+
+    function goBack() {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate("/", { replace: true });
+        }
+    }
+
+    return (
+        <button className="event-page__back" type="button" onClick={goBack} aria-label="Go back to the previous page">
+            <ArrowLeft aria-hidden="true" />
+            Back
+        </button>
+    );
+}
+
 function EventPageStatus({ children, role }: { children: string; role: "alert" | "status" }) {
     return (
         <main className="form-page event-page">
             <div className="form-container">
+                <EventBackButton />
                 <p className="form-card" role={role}>{children}</p>
             </div>
         </main>
@@ -148,16 +169,19 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
                 <header className="form-page-header event-page__header">
-                    <div className="event-page__heading">
-                        <p className="form-eyebrow">Study session</p>
-                        <div className="event-page__title-row">
-                            <h1 id="event-title">{event.description.trim() || "Study event"}</h1>
-                            {event.isPrivate && (
-                                <span className="event-page__private" title="Private event" aria-label="Private event">
-                                    <LockFill aria-hidden="true" />
-                                    <span>Private</span>
-                                </span>
-                            )}
+                    <div className="event-page__heading-group">
+                        <EventBackButton />
+                        <div className="event-page__heading">
+                            <p className="form-eyebrow">Study session</p>
+                            <div className="event-page__title-row">
+                                <h1 id="event-title">{event.description.trim() || "Study event"}</h1>
+                                {event.isPrivate && (
+                                    <span className="event-page__private" title="Private event" aria-label="Private event">
+                                        <LockFill aria-hidden="true" />
+                                        <span>Private</span>
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
