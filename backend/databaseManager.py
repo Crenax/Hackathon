@@ -188,17 +188,13 @@ class DatabaseManager:
         return listing_from_row(rows[0]) if rows else None
 
     def get_listings_by_course(
-        self, course: Course, filters: list[ListingFilter] | None = None
+        self, course: Course | None = None, filters: list[ListingFilter] | None = None
     ) -> list[Listing]:
-        """Non-private listings for a course that have every given filter."""
-        rows = (
-            self.client.table("listings")
-            .select(LISTING_SELECT)
-            .eq("subject", course.value)
-            .eq("is_private", False)
-            .execute()
-            .data
-        )
+        """Public listings, optionally limited to a course, with every given filter."""
+        query = self.client.table("listings").select(LISTING_SELECT)
+        if course is not None:
+            query = query.eq("subject", course.value)
+        rows = query.eq("is_private", False).execute().data
         listings = [listing_from_row(row) for row in rows]
         return [
             listing

@@ -75,43 +75,327 @@ curl http://localhost:8000/api/me \
   -H 'X-User-Name: Albert Einstein'
 ```
 
-Listing `subject` is the actual class name and must exactly match a value returned
-by `GET /api/courses`, for example `{"subject": "Linear Algebra"}`. Creation
-requires it; updates may omit it but cannot set it to NULL. Unknown names return
-`422`. Public course searches match `subject`. The optional `courses` array is
-retained for compatibility and does not determine a listing's subject.
+### Conventions and shared formats
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| GET / PATCH | `/api/me` | Read or update the authenticated user's profile |
-| GET | `/api/courses` | List course names |
-| GET | `/api/me/listings` | List the user's memberships |
-| GET | `/api/me/requests` | List the user's pending requests |
-| GET | `/api/listings?course=Linear%20Algebra` | Search public listings; optional `gender` and `degree` filters |
-| POST | `/api/listings` | Create a listing; current user becomes admin |
-| GET / PATCH / DELETE | `/api/listings/{listing_id}` | Read, update, or delete a listing |
-| PUT | `/api/listings/{listing_id}/filters` | Replace filters with an array of `{filterType, value}` objects |
-| POST | `/api/join-by-invite` | Request membership using `{ "inviteCode": "..." }` |
-| GET | `/api/listings/{listing_id}/members` | List members |
-| GET / POST | `/api/listings/{listing_id}/requests` | List pending requests or submit the current user's request |
-| POST | `/api/listings/{listing_id}/requests/{user_id}/approve` | Approve a request |
-| PATCH | `/api/listings/{listing_id}/members/{user_id}` | Set `{ "role": "admin" }` or `{ "role": "member" }` |
-| DELETE | `/api/listings/{listing_id}/members/{user_id}` | Reject a request or remove a member |
-| DELETE | `/api/listings/{listing_id}/members/me` | Leave or cancel the current user's pending request |
-| GET / POST | `/api/listings/{listing_id}/messages` | Read chat or send `{ "content": "..." }` |
+Events/study sessions are called **listings** in this API. Paths below are
+relative to the backend origin, e.g. `http://localhost:8000`. Every request needs
+both identity headers. Send `Content-Type: application/json` for JSON bodies.
+IDs in paths are database ID strings, not email addresses. Response fields use
+camelCase. Dates use `YYYY-MM-DD`; timestamps use ISO 8601.
 
-All endpoints require authentication. Private listings are visible only to
-members/admins; an invite can submit a request but does not immediately grant
-membership. Invite codes are returned only to listing admins. Members and chat
-are visible only to members/admins. Listing changes, request approval, member
-removal, role changes, and pending-request lists require admin membership.
-Users can update only their own profile, send requests/messages as themselves,
-and leave/cancel only their own membership/request.
-
-A missing or inaccessible listing returns `404`; a denied action returns `403`;
-invalid request data returns `422`; invalid/conflicting database operations
-return `400`. Database failures return sanitized `502`/`503` errors.
+Responses are plain objects or arrays, without an envelope or pagination.
+An empty collection is `[]`. A `204` response has no body. GET and DELETE
+requests have no body. No query parameters are needed unless documented below.
 Authenticated responses use `Cache-Control: no-store`.
+
+**User** (also nested in members, requests, and messages):
+
+```json
+{
+  "id": "user-1",
+  "firstName": "Albert",
+  "lastName": "Einstein",
+  "emailAddress": "einstein@ethz.ch",
+  "dateOfBirth": null,
+  "gender": null,
+  "major": "computer_science",
+  "degree": "master",
+  "pfp": null,
+  "description": "Looking for a study group."
+}
+```
+
+| Field | JSON type / accepted values |
+| --- | --- |
+| `id` | string; database user ID |
+| `firstName`, `lastName`, `description` | string; last name and description default to `""` |
+| `emailAddress` | string or null; proxy identity email |
+| `dateOfBirth` | date string or null |
+| `gender` | `prefer_not_to_say`, `male`, `female`, `non_binary`, or null |
+| `major` | `computer_science` or null |
+| `degree` | `bachelor`, `master`, `phd`, or null |
+| `pfp` | string or null; profile picture reference |
+
+**ListingFilter** requires both fields:
+
+```json
+{"filterType": "degree", "value": "master"}
+```
+
+`filterType` is `gender` or `degree`. `value` is a string; stored values are not
+enum-validated, so use the corresponding values above to make them searchable.
+Identical duplicate filters are removed.
+
+**Listing**:
+
+```json
+{
+  "id": "listing-1",
+  "createdBy": "user-1",
+  "subject": "Linear Algebra",
+  "description": "Weekly problem-solving session",
+  "startTime": "2026-10-10T14:00:00Z",
+  "endTime": "2026-10-10T16:00:00Z",
+  "location": "ETH Library",
+  "courses": [],
+  "isPrivate": false,
+  "inviteCode": null,
+  "filters": [{"filterType": "degree", "value": "master"}]
+}
+```
+
+| Field | JSON type / meaning |
+| --- | --- |
+| `id` | string; database listing ID |
+| `createdBy` | string or null; creator's database user ID |
+| `subject` | string; exact course name from `GET /api/courses` |
+| `description` | string; defaults to `""` |
+| `startTime`, `endTime` | timestamp string or null; default null |
+| `location` | string or null; default null |
+| `courses` | array of exact course-name strings; default `[]`; compatibility field, does not control search |
+| `isPrivate` | boolean; default false |
+| `inviteCode` | string or null; disclosed only to listing admins |
+| `filters` | array of ListingFilter objects; default `[]` |
+
+**ListingMember**, **PendingRequest**, and **Message** have these shapes. Angle
+brackets stand for the full shared objects above, not literal JSON values:
+
+```text
+ListingMember:
+{
+  "user": <User>,
+  "role": "member",
+  "joinedAt": "2026-10-10T12:00:00Z"
+}
+
+PendingRequest:
+{
+  "listing": <Listing>,
+  "user": <User>,
+  "requestedAt": "2026-10-10T12:00:00Z"
+}
+
+Message:
+{
+  "id": "message-1",
+  "listingId": "listing-1",
+  "author": <User or null>,
+  "sentAt": "2026-10-10T14:05:00Z",
+  "subject": null,
+  "content": "Meet at the entrance."
+}
+```
+
+Member-list roles are `admin` or `member`; pending memberships use
+`request_pending` internally and appear through request endpoints. Message IDs,
+listing IDs, and content are strings. `author` is null if the account was deleted.
+Message `subject` currently returns null; only content is persisted.
+
+### Permissions
+
+All endpoints require authentication. Public listings are visible to any
+authenticated user; private listings only to approved members/admins. Pending
+requests do not grant membership. An invite permits a request to a private
+listing but still requires approval. Members and chat require membership/admin
+status. Listing changes, pending-request lists, approval, removal of other
+users, and role changes require listing admin status. Invite codes are null for
+nonadmins, including inside nested listings. Users update only their own profile
+and submit requests/messages as themselves.
+
+### Profile and courses
+
+| Method and endpoint | Request | Success response |
+| --- | --- | --- |
+| `GET /api/me` | No body | `200` User; account is created from proxy identity if needed |
+| `PATCH /api/me` | Profile update object below | `200` updated User |
+| `GET /api/courses` | No body | `200` array of all course-name strings |
+| `GET /api/me/listings` | No body | `200` array of Listing objects where caller is member/admin, including private listings |
+| `GET /api/me/requests` | No body | `200` array of caller's PendingRequest objects, oldest first, including private listings |
+
+`PATCH /api/me` accepts `firstName`, `lastName`, `dateOfBirth`, `gender`, `major`,
+`degree`, `pfp`, and `description` using the User types/enums above. All fields
+are optional; omitted fields remain unchanged and `{}` is allowed. Nullable
+profile fields can be cleared with null. Use strings for names/description
+(`""` clears text). The request model accepts null names/description too, but
+null names may fail storage validation. `id` and `emailAddress` are not writable.
+
+```json
+{"degree": "master", "description": "Interested in algebra", "pfp": null}
+```
+
+Course response excerpt (the actual response contains the complete catalogue):
+
+```json
+["3D Vision", "A Sampler of Histories and Philosophies of Mathematics"]
+```
+
+### Search listings/events
+
+`GET /api/listings` returns `200` with an array of Listing objects. All query
+parameters are optional:
+
+| Parameter | Accepted value | If omitted |
+| --- | --- | --- |
+| `course` | Exact string from `GET /api/courses` | Search across all courses |
+| `gender` | `prefer_not_to_say`, `male`, `female`, `non_binary` | No gender filter |
+| `degree` | `bachelor`, `master`, `phd` | No degree filter |
+
+Search returns only public listings, even if the caller belongs to a private
+listing. Use `/api/me/listings` for memberships. Course search matches `subject`,
+not `courses`. A listing must contain every supplied gender/degree filter with
+its exact value; listings missing those filters do not match. Invalid enum
+values, including an empty course string, return `422`. Omit `course` to get all.
+
+```http
+GET /api/listings
+GET /api/listings?degree=master
+GET /api/listings?course=Linear%20Algebra&gender=female&degree=master
+```
+
+Example request for all public events:
+
+```sh
+curl http://localhost:8000/api/listings \
+  -H 'X-User-Id: einstein@ethz.ch' \
+  -H 'X-User-Name: Albert Einstein'
+```
+
+### Listing creation and management
+
+| Method and endpoint | Request | Success response | Permission |
+| --- | --- | --- | --- |
+| `POST /api/listings` | Creation object below | `201` Listing with generated invite code | Any authenticated user; creator becomes admin |
+| `GET /api/listings/{listing_id}` | No body | `200` Listing | Public listing, or member/admin of private listing |
+| `PATCH /api/listings/{listing_id}` | Update object below | `200` updated Listing | Admin |
+| `DELETE /api/listings/{listing_id}` | No body | `204`, empty body | Admin; also deletes filters, memberships, requests, and messages |
+| `PUT /api/listings/{listing_id}/filters` | JSON array of ListingFilter objects | `200` updated Listing | Admin; replaces all filters |
+
+Creation requires `subject`, exactly matching a course name. Optional fields
+are `description`, `startTime`, `endTime`, `location`, `courses`, `isPrivate`,
+and `filters`, with the Listing types/defaults above. `id`, `createdBy`, and
+`inviteCode` are assigned by the server. Unknown or null subjects return `422`.
+
+```json
+{
+  "subject": "Linear Algebra",
+  "description": "Weekly problem-solving session",
+  "startTime": "2026-10-10T14:00:00Z",
+  "endTime": "2026-10-10T16:00:00Z",
+  "location": "ETH Library",
+  "isPrivate": false,
+  "filters": [{"filterType": "degree", "value": "master"}]
+}
+```
+
+Updates accept `subject`, `description`, `startTime`, `endTime`, `location`,
+`courses`, and `isPrivate`. Every field is optional; omitted fields remain
+unchanged and `{}` is allowed. Subject cannot be null. Send null to clear
+timestamps/location, `""` to clear description, and `[]` to clear courses.
+Although the update model accepts null description/courses/isPrivate, clients
+should use the Listing types; null privacy may fail storage validation.
+Use the filters endpoint to change filters.
+
+```json
+{"location": "HG E 1.1", "endTime": null}
+```
+
+Filter replacement example (send `[]` to clear all filters):
+
+```json
+[
+  {"filterType": "gender", "value": "female"},
+  {"filterType": "degree", "value": "master"}
+]
+```
+
+### Memberships and join requests
+
+`{user_id}` is the target user's database ID. Acting identity always comes from
+authentication.
+
+| Method and endpoint | Request | Success response | Permission/behavior |
+| --- | --- | --- | --- |
+| `POST /api/join-by-invite` | `{"inviteCode":"ABC123"}` | `201` Listing with null invite code | Creates caller's pending request, including for private listings |
+| `GET /api/listings/{listing_id}/members` | No body | `200` array of ListingMember objects, oldest membership first | Member/admin; excludes pending users |
+| `GET /api/listings/{listing_id}/requests` | No body | `200` array of PendingRequest objects, oldest first | Admin |
+| `POST /api/listings/{listing_id}/requests` | No body | `204`, empty body | Caller requests to join a public listing |
+| `POST /api/listings/{listing_id}/requests/{user_id}/approve` | No body | `204`, empty body | Admin; approves an existing pending request |
+| `PATCH /api/listings/{listing_id}/members/{user_id}` | `{"role":"admin"}` or `{"role":"member"}` | `204`, empty body | Admin; promotes/demotes an existing member/admin |
+| `DELETE /api/listings/{listing_id}/members/{user_id}` | No body | `204`, empty body | Admin; rejects a request or removes member/admin |
+| `DELETE /api/listings/{listing_id}/members/me` | No body | `204`, empty body | Caller leaves or cancels their request, including for private listings |
+
+Invite codes must contain 1–128 characters; lookup trims whitespace and ignores
+case. Invalid codes and duplicate membership/join requests return `400`.
+Approval requires an existing pending request (`400` otherwise). Role updates
+require an existing member/admin (`400` otherwise); missing role or a role of
+`request_pending` returns `422`. A nonmember requesting a private listing without
+an invite normally receives `404`. Leaving without a membership/request returns
+`404`. Removing a nonexistent target is a no-op returning `204`.
+
+If the last admin leaves, is removed, or is demoted, another member becomes admin.
+If no approved members remain after leaving/removal, the listing is deleted.
+Supabase implements this lifecycle with its configured triggers/cascades.
+
+### Chat messages
+
+| Method and endpoint | Request | Success response | Permission |
+| --- | --- | --- | --- |
+| `GET /api/listings/{listing_id}/messages` | No body | `200` array of Message objects, oldest first | Member/admin |
+| `POST /api/listings/{listing_id}/messages` | Message object below | `201` Message | Member/admin |
+
+```json
+{"content": "Meet at the entrance."}
+```
+
+`content` is required and must be a string (empty strings are currently accepted).
+`subject` is an optional string or null accepted for compatibility but is not
+persisted and returns null. The server sets author, listing ID, message ID, and
+timestamp.
+
+### Documentation endpoints
+
+| Method and endpoint | Request | Success response |
+| --- | --- | --- |
+| `GET /api/docs` | No body | `200` HTML Swagger UI |
+| `GET /api/openapi.json` | No body | `200` JSON OpenAPI schema with `openapi`, `info`, `paths`, and `components` |
+
+Both endpoints require proxy headers, including the UI's schema/API requests.
+Use the authenticated portal/proxy or a client that supplies them. Swagger UI
+may load assets from a CDN.
+
+### Errors
+
+Most errors return a string `detail`:
+
+```json
+{"detail": "Listing not found"}
+```
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid/conflicting operation; detail: `Invalid operation or conflicting resource state` |
+| `401` | Missing, blank, duplicated, or invalid proxy identity headers |
+| `403` | Required membership/admin permission denied |
+| `404` | Listing missing or inaccessible, no membership/request when leaving, or unknown route |
+| `405` | HTTP method not supported |
+| `422` | Invalid JSON/body/query data, missing required fields, or invalid enum values |
+| `502` | Supabase operation failed; detail: `Database operation failed` |
+| `503` | Database transport unavailable; detail: `Database is unavailable` |
+
+Validation errors instead return an array of details. Creating a listing without
+subject, for example:
+
+```json
+{
+  "detail": [
+    {"type": "missing", "loc": ["body", "subject"], "msg": "Field required", "input": {}}
+  ]
+}
+```
+
+Each entry includes `type`, `loc` (source/field), and `msg`; `input` and `ctx`
+may also appear. Unknown body fields are ignored. They cannot override acting
+identity or server-assigned fields.
 
 The old todo endpoints are not part of this API. The existing frontend API client
 still contains todo calls and needs to use these listing endpoints.

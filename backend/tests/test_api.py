@@ -163,6 +163,25 @@ class APITests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(response.status_code, 403)
         self.db.client.table.assert_not_called()
 
+    async def test_search_without_course_accepts_optional_filters(self):
+        self.db.get_listings_by_course = MagicMock(return_value=[self.listing])
+        for params in ({}, {"degree": "master"}, {"gender": "female", "degree": "master"}):
+            with self.subTest(params=params):
+                response = await self.client.get("/api/listings", headers=HEADERS, params=params)
+                self.assertEqual(response.status_code, 200)
+                self.assertIsNone(response.json()[0]["inviteCode"])
+                course, filters = self.db.get_listings_by_course.call_args.args
+                self.assertIsNone(course)
+                self.assertEqual({item.filterType.value: item.value for item in filters}, params)
+
+    async def test_search_rejects_invalid_course_and_filter_values(self):
+        self.db.get_listings_by_course = MagicMock()
+        for params in ({"course": ""}, {"course": "unknown"}, {"gender": "unknown"}, {"degree": "unknown"}):
+            with self.subTest(params=params):
+                response = await self.client.get("/api/listings", headers=HEADERS, params=params)
+                self.assertEqual(response.status_code, 422)
+        self.db.get_listings_by_course.assert_not_called()
+
     async def test_admin_update_preserves_subject_mapping(self):
         self.db.get_role.return_value = MemberRole.admin
         response = await self.client.patch("/api/listings/listing-1", headers=HEADERS, json={"subject": "Analysis I"})
@@ -248,6 +267,14 @@ class MappingTests(unittest.TestCase):
         from scripts.generate_subject_migration import ROOT, render_migration
         migration = (ROOT / "migrations" / "20261010_listing_subject_course.sql").read_text()
         self.assertEqual(migration, render_migration())
+
+    def test_supabase_search_without_course_still_excludes_private_listings(self):
+        db = DatabaseManager.__new__(DatabaseManager)
+        db.client = MagicMock()
+        query = db.client.table.return_value.select.return_value
+        query.eq.return_value.execute.return_value.data = []
+        self.assertEqual(db.get_listings_by_course(), [])
+        query.eq.assert_called_once_with("is_private", False)
 
     def test_listing_subject_roundtrip(self):
         listing = ListingForCreate(subject="Linear Algebra")

@@ -175,7 +175,7 @@ def get_my_requests(user: CurrentUser, db: Database):
 
 @app.get("/api/listings", response_model=list[Listing])
 def get_listings(
-    course: Course, user: CurrentUser, db: Database,
+    user: CurrentUser, db: Database, course: Course | None = None,
     gender: Gender | None = None, degree: Degree | None = None,
 ):
     filters = []

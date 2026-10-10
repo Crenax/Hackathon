@@ -77,6 +77,27 @@ class StartupTests(unittest.TestCase):
 
 
 class MemoryDatabaseTests(unittest.TestCase):
+    def test_api_search_across_courses_preserves_filters_and_privacy(self):
+        db = MemoryDatabaseManager()
+        api.app.dependency_overrides[api.get_database] = lambda: db
+        self.addCleanup(api.app.dependency_overrides.clear)
+        headers = {"X-User-Id": "reader@example.com", "X-User-Name": "Reader"}
+        owner = db.create_user("owner@example.com", "Owner")
+        from models import FilterType, ListingFilter
+        wanted = ListingFilter(filterType=FilterType.degree, value="master")
+        first = db.create_listing(owner.id, ListingForCreate(subject=Course.linearAlgebra, filters=[wanted]))
+        second = db.create_listing(owner.id, ListingForCreate(subject=Course.analysisI))
+        db.create_listing(owner.id, ListingForCreate(subject=Course.analysisI, isPrivate=True, filters=[wanted]))
+        with TestClient(api.app) as client:
+            response = client.get("/api/listings", headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual({item["id"] for item in response.json()}, {first.id, second.id})
+            self.assertTrue(all(item["inviteCode"] is None for item in response.json()))
+            response = client.get("/api/listings", headers=headers, params={"degree": "master"})
+            self.assertEqual([item["id"] for item in response.json()], [first.id])
+            response = client.get("/api/listings", headers=headers, params={"course": "Analysis I"})
+            self.assertEqual([item["id"] for item in response.json()], [second.id])
+
     def test_public_search_filters_updates_and_cascade(self):
         db = MemoryDatabaseManager()
         owner = db.create_user("owner@example.com", "Owner")
