@@ -1,3 +1,5 @@
+.event-page__header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
+.event-page__heading { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
 .event-page__title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .event-page__title-row h1 { margin: 0; }
 .event-page__private { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; color: #5144bd; background: #eeecff; font-size: .8rem; font-weight: 700; }
@@ -23,6 +25,7 @@
   .event-page__detail:nth-child(odd):not(:last-child) { border-right: 0; }
 }
 
-.event-page__join { margin-top: 20px; }
+.event-page__join { margin-left: auto; max-width: 100%; align-items: flex-end; }
+.event-page__join-status, .event-page__join-error { max-width: 280px; text-align: right; }
 .event-page__join-status { margin: 0; color: var(--form-muted); }
 .event-page__join-error { margin: 0; color: #b83242; }

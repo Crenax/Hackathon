@@ -9,7 +9,7 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getMyRequests } from "../api";
+import { hasPendingJoinRequest } from "../api";
 import type { Listing } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -47,9 +47,9 @@ function PrivateEventAccess({ event }: { event: Listing }) {
 
     useEffect(() => {
         let active = true;
-        getMyRequests()
-            .then((requests) => {
-                if (active) setAccess(requests.some((request) => request.listing.id === event.id) ? "allowed" : "denied");
+        hasPendingJoinRequest(event.id)
+            .then((pending) => {
+                if (active) setAccess(pending ? "allowed" : "denied");
             })
             .catch(() => {
                 if (active) setAccess("error");
@@ -76,16 +76,18 @@ function EventPageContent({ event, hasJoined = false }: EventPageProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
-                <header className="form-page-header">
-                    <p className="form-eyebrow">Study session</p>
-                    <div className="event-page__title-row">
-                        <h1 id="event-title">{event.subject}</h1>
-                        {event.isPrivate && (
-                            <span className="event-page__private" title="Private event" aria-label="Private event">
-                                <LockFill aria-hidden="true" />
-                                <span>Private</span>
-                            </span>
-                        )}
+                <header className="form-page-header event-page__header">
+                    <div className="event-page__heading">
+                        <p className="form-eyebrow">Study session</p>
+                        <div className="event-page__title-row">
+                            <h1 id="event-title">{event.subject}</h1>
+                            {event.isPrivate && (
+                                <span className="event-page__private" title="Private event" aria-label="Private event">
+                                    <LockFill aria-hidden="true" />
+                                    <span>Private</span>
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {!hasJoined && <JoinEventButton key={event.id} event={event} />}
                 </header>

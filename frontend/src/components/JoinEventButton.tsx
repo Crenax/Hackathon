@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
-import { getMyRequests, requestToJoin } from "../api";
+import { hasPendingJoinRequest, requestToJoin } from "../api";
 import type { Listing } from "../api";
 
 export default function JoinEventButton({ event }: { event: Listing }) {
@@ -14,9 +14,9 @@ export default function JoinEventButton({ event }: { event: Listing }) {
     useEffect(() => {
         if (event.isPrivate) return;
         let active = true;
-        getMyRequests()
-            .then((requests) => {
-                if (active) setPending(requests.some((request) => request.listing.id === event.id));
+        hasPendingJoinRequest(event.id)
+            .then((hasPendingRequest) => {
+                if (active) setPending(hasPendingRequest);
             })
             .catch(() => {
                 if (active) setError("Could not check existing requests. You can still try joining.");
@@ -52,7 +52,7 @@ export default function JoinEventButton({ event }: { event: Listing }) {
                     {checking ? "Checking request…" : pending ? "Request pending" : sending ? "Requesting…" : "Join event"}
                 </button>
             </div>
-            {pending && <p className="event-page__join-status" role="status">Your request is awaiting organizer approval.</p>}
+            {pending && <p className="event-page__join-status" role="status">Your request is awaiting approval.</p>}
             {error && <p className="event-page__join-error" role="alert">{error}</p>}
         </form>
     );
