@@ -306,7 +306,6 @@ export default function EventsList() {
                     <EventList
                         events={events}
                         emptyMessage={isLoading ? "Loading events…" : loadError || "No events yet. You can be the first to publish one!"}
-                        onDelete={(event) => setEvents((current) => current.filter((item) => item.id !== event.id))}
                     />
                 </section>
             </div>

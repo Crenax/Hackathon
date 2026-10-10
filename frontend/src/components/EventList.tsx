@@ -1,4 +1,3 @@
-import { Trash3 } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
 
 import type { Listing } from "../api";
@@ -9,14 +8,12 @@ export interface EventListProps {
     events: Listing[];
     emptyMessage?: string;
     getStatusLabel?: (event: Listing) => string | undefined;
-    onDelete?: (event: Listing) => void;
 }
 
 export default function EventList({
     events,
     emptyMessage = "No events found.",
     getStatusLabel,
-    onDelete,
 }: EventListProps) {
     if (events.length === 0) {
         return <p className="event-empty">{emptyMessage}</p>;
@@ -53,17 +50,6 @@ export default function EventList({
                                 {event.description && <p className="event-description">{event.description}</p>}
                             </div>
                         </Link>
-
-                        {onDelete && (
-                            <button
-                                className="event-delete"
-                                type="button"
-                                onClick={() => onDelete(event)}
-                                aria-label={`Delete ${eventTitle}`}
-                            >
-                                <Trash3 aria-hidden="true" />
-                            </button>
-                        )}
                     </article>
                 );
             })}
