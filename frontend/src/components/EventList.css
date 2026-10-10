@@ -11,10 +11,12 @@
 .event-item__link:focus-visible { border-radius: 7px; outline: 2px solid #7568d6; outline-offset: 3px; }
 .event-details { min-width: 0; flex: 1; }
 .event-title-row { display: flex; align-items: flex-start; gap: 8px; }
-.event-details h3 { min-width: 0; margin: 0; color: #20263a; font-size: 1rem; white-space: pre-wrap; }
+.event-details h3 { min-width: 0; margin: 0; color: #171c2c; font-size: 1.15rem; font-weight: 750; line-height: 1.35; white-space: pre-wrap; }
 .event-status { flex: 0 0 auto; border-radius: 999px; padding: 2px 8px; color: #5144bd; background: #eeecff; font-size: .7rem; font-weight: 700; }
-.event-course-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0 0; padding: 0; list-style: none; }
-.event-course-tags li { border-radius: 999px; padding: 6px 9px; color: #3730a3; background: #eef2ff; font-size: .78rem; }
+.event-course-viewport { position: relative; width: 100%; max-width: 100%; overflow: hidden; }
+.event-course-viewport::after { position: absolute; top: 9px; right: 0; bottom: 0; width: 32px; background: linear-gradient(90deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 96%)); content: ""; pointer-events: none; }
+.event-course-tags { display: flex; width: 100%; overflow-x: auto; flex-wrap: nowrap; gap: 6px; box-sizing: border-box; margin: 9px 0 0; padding: 0 28px 3px 0; list-style: none; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+.event-course-tags li { flex: 0 0 auto; border-radius: 999px; padding: 5px 9px; color: #4338a2; background: #eef2ff; font-size: .76rem; font-weight: 500; white-space: nowrap; }
 .event-location, .event-schedule { margin: 9px 0 0; color: #697187; font-size: .9rem; }
 .event-location { color: #343b50; font-weight: 600; }
 .event-schedule { margin-top: 4px; }

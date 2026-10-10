@@ -52,9 +52,11 @@ export default function EventList({
                                     {statusLabel && <span className="event-status">{statusLabel}</span>}
                                 </div>
                                 {event.courses.length > 0 && (
-                                    <ul className="event-course-tags" aria-label="Courses">
-                                        {event.courses.map((course) => <li key={course}>{course}</li>)}
-                                    </ul>
+                                    <div className="event-course-viewport">
+                                        <ul className="event-course-tags" aria-label="Courses">
+                                            {event.courses.map((course) => <li key={course}>{course}</li>)}
+                                        </ul>
+                                    </div>
                                 )}
                                 <p className="event-location">{event.location?.trim() || "Location to be confirmed"}</p>
                                 <p className="event-schedule">{formatEventSchedule(event.startTime, event.endTime)}</p>
