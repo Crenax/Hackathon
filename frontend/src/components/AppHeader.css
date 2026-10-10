@@ -89,9 +89,3 @@
 .app-sidebar-navigation a:focus-visible {
   background-color: #3a404b;
 }
-
-@media (max-width: 560px) {
-  .app-header-menu {
-    display: none;
-  }
-}

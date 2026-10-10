@@ -32,6 +32,20 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         await self.client.aclose()
         api.app.dependency_overrides.clear()
 
+    async def test_lecture_halls_normalizes_building_and_returns_schedules(self):
+        payload = {"rooms": [{"name": "HG F 5", "status": "free"}]}
+        with patch.object(api, "availability", return_value=payload) as availability:
+            response = await self.client.get("/api/lecture-halls?building=eth.hg", headers=HEADERS)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), payload)
+        availability.assert_called_once_with("HG")
+
+    async def test_lecture_halls_requires_building_and_handles_unknown_building(self):
+        response = await self.client.get("/api/lecture-halls", headers=HEADERS)
+        self.assertEqual(response.status_code, 422)
+        response = await self.client.get("/api/lecture-halls?building=MISSING", headers=HEADERS)
+        self.assertEqual(response.status_code, 404)
+
     async def test_every_endpoint_rejects_missing_auth_before_database(self):
         for route in api.app.routes:
             path = route.path.replace("{listing_id}", "listing-1").replace("{user_id}", "other-user")

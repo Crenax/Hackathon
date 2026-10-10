@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { House, List, PersonBadge } from "react-bootstrap-icons";
+import { House, List, Map, PersonBadge } from "react-bootstrap-icons";
 import "./AppHeader.css";
 
 const AppHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   function goToHome() {
@@ -47,15 +48,15 @@ const AppHeader = () => {
         </strong>
       </div>
 
-      <div className="app-header-menu">
+      <div className="app-header-menu" ref={menuRef}>
         <button
+          ref={menuButtonRef}
           className="app-header-menu-button"
           type="button"
           aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-controls="app-header-navigation"
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-          onMouseEnter={() => setIsMenuOpen(true)}
         >
           <List aria-hidden="true" />
         </button>
@@ -65,13 +66,13 @@ const AppHeader = () => {
             id="app-header-navigation"
             className="app-sidebar"
             aria-label="Main navigation"
-            onMouseLeave={() => setIsMenuOpen(false)}
           >
             <nav className="app-sidebar-navigation">
               <a href="/">
                 <House aria-hidden="true" />
                 Home
               </a>
+              <a href="/map"><Map aria-hidden="true" />Map</a>
               <a href="/profile">
                 <PersonBadge aria-hidden="true" />
                 Profile

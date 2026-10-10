@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import AppHeader from "./components/AppHeader";
@@ -9,6 +10,8 @@ import UserSettings from "./pages/UserSettings.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import EventPage from "./pages/EventPage.tsx";
 
+
+const MapPage = lazy(() => import("./pages/MapPage"));
 
 const App = () => {
   return (
@@ -32,6 +35,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/event" element={<EventPage />} />
+          <Route path="/map" element={<Suspense fallback={<p style={{ textAlign: "center" }}>Loading campus map…</p>}><MapPage /></Suspense>} />
           <Route path="/profile" element={<UserSettings />} />
         </Routes>
       </BrowserRouter>

@@ -427,3 +427,13 @@ Supabase schema/triggers need integration testing against a configured project.
 
 The API uses FastAPI [middleware](https://fastapi.tiangolo.com/tutorial/middleware/)
 to enforce the header requirement before route handling.
+
+
+Campus map: `GET /api/lecture-halls?building=HG` checks the requested building's
+known lecture rooms against ETH bookings. It returns `checkedAt`, `windowEndsAt`,
+`timeZone`, and `rooms` with `name`, `status` (`free`, `busy`, `unknown`),
+`freeUntil`, and `freeForRestOfDay`. Free means no booking overlaps the next
+30 minutes; failed checks stay unknown. Four concurrent requests with 12-second
+timeouts check schedules covering yesterday through tomorrow. The frontend
+compares indoor travel times to verified free rooms in the starting building.
+The endpoint uses the same authentication as the rest of the API.
