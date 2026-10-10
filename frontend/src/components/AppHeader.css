@@ -5,6 +5,9 @@
   color: white;
   background-color: #282c34;
 
+  position: sticky;
+  top: 0;
+
   h2 {
     margin: 0;
   }
