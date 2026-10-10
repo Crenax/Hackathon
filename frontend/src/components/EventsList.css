@@ -13,6 +13,23 @@
 .event-description { margin-top: 8px; white-space: pre-wrap; }
 .event-delete { border: 0; border-radius: 6px; padding: 6px 8px; color: #71798b; background: transparent; font: inherit; font-size: .85rem; cursor: pointer; }
 .event-delete:hover { color: #b83242; background: #fff0f1; }
+.event-visibility-fieldset { display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; border: 0; color: #343b50; }
+.event-visibility-fieldset legend { margin-bottom: 7px; padding: 0; font-size: .9rem; font-weight: 600; }
+.event-visibility-options { display: flex; flex-direction: column; gap: 10px; }
+.event-visibility-option { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid #e2e6ed; border-radius: 10px; cursor: pointer; }
+.event-visibility-option:has(input:checked) { border-color: #bbb5ea; background: #f8f7ff; }
+.event-visibility-option input { margin: 3px 0 0; accent-color: #5748c8; }
+.event-visibility-option span { display: flex; flex-direction: column; gap: 4px; }
+.event-visibility-option small { color: #697187; font-size: .78rem; font-weight: 400; line-height: 1.4; }
+.event-filters { overflow: hidden; border: 1px solid #d6dbe6; border-radius: 10px; background: #fff; }
+.event-filters summary { display: flex; align-items: center; gap: 9px; padding: 12px 14px; color: #343b50; font-size: .9rem; font-weight: 650; cursor: pointer; list-style: none; }
+.event-filters summary::-webkit-details-marker { display: none; }
+.event-filters summary::after { margin-left: auto; color: #697187; content: "+"; font-size: 1.15rem; font-weight: 400; }
+.event-filters[open] summary::after { content: "−"; }
+.event-filter-count { display: inline-grid; min-width: 20px; min-height: 20px; place-items: center; border-radius: 999px; color: #5144bd; background: #eeecff; font-size: .72rem; }
+.event-filters-content { display: flex; flex-direction: column; gap: 14px; padding: 0 14px 14px; border-top: 1px solid #edf0f5; }
+.event-filters-content > p { margin: 12px 0 0; color: #697187; font-size: .82rem; }
+.event-submit-error { margin: 0; padding: 10px 12px; border: 1px solid #f2c8ce; border-radius: 8px; color: #9f2635; background: #fff5f6; font-size: .9rem; }
 @media (max-width: 420px) {
   .event-item { gap: 10px; }
   .event-delete { padding-right: 0; }
