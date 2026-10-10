@@ -1,21 +1,19 @@
-import { Trash3 } from "react-bootstrap-icons";
 import { Link } from "react-router-dom";
 
 import type { Listing } from "../api";
+import { getEventTitle } from "../eventTitle";
 import "./EventList.css";
 
 export interface EventListProps {
     events: Listing[];
     emptyMessage?: string;
     getStatusLabel?: (event: Listing) => string | undefined;
-    onDelete?: (event: Listing) => void;
 }
 
 export default function EventList({
     events,
     emptyMessage = "No events found.",
     getStatusLabel,
-    onDelete,
 }: EventListProps) {
     if (events.length === 0) {
         return <p className="event-empty">{emptyMessage}</p>;
@@ -24,6 +22,7 @@ export default function EventList({
     return (
         <div className="event-list">
             {events.map((event) => {
+                const eventTitle = getEventTitle(event.courses);
                 const eventDate = new Date(event.startTime ?? "");
                 const hasValidDate = !Number.isNaN(eventDate.getTime());
                 const statusLabel = getStatusLabel?.(event);
@@ -36,7 +35,7 @@ export default function EventList({
                         <Link
                             className="event-item__link"
                             to={`/event?id=${encodeURIComponent(event.id)}`}
-                            aria-label={`Open ${event.subject}`}
+                            aria-label={`Open ${eventTitle}`}
                         >
                             <div className="event-date-badge">
                                 <span>{hasValidDate ? eventDate.toLocaleDateString(undefined, { month: "short" }) : "TBD"}</span>
@@ -44,24 +43,13 @@ export default function EventList({
                             </div>
                             <div className="event-details">
                                 <div className="event-title-row">
-                                    <h3>{event.subject}</h3>
+                                    <h3>{eventTitle}</h3>
                                     {statusLabel && <span className="event-status">{statusLabel}</span>}
                                 </div>
                                 <p className="event-meta">{eventTime} | {event.location}</p>
                                 {event.description && <p className="event-description">{event.description}</p>}
                             </div>
                         </Link>
-
-                        {onDelete && (
-                            <button
-                                className="event-delete"
-                                type="button"
-                                onClick={() => onDelete(event)}
-                                aria-label={`Delete ${event.subject}`}
-                            >
-                                <Trash3 aria-hidden="true" />
-                            </button>
-                        )}
                     </article>
                 );
             })}

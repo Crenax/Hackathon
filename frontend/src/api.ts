@@ -60,7 +60,6 @@ export interface ListingFilter {
 export interface Listing {
   id: string;
   createdBy: string | null;
-  subject: string;
   description: string;
   startTime: string | null;
   endTime: string | null;
@@ -72,7 +71,6 @@ export interface Listing {
 }
 
 export interface ListingForCreate {
-  subject: string;
   description: string;
   startTime: string;
   endTime: string;
@@ -87,12 +85,10 @@ export interface Message {
   listingId: string;
   author: User | null;
   sentAt: string;
-  subject: string | null;
   content: string;
 }
 
 export interface MessageForCreate {
-  subject?: string | null;
   content: string;
 }
 
@@ -159,7 +155,10 @@ export function getMe(): Promise<User> {
 }
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {
-  return request<Listing>(`/api/listings`, "POST", listing);
+  return request<Listing>(`/api/listings`, "POST", {
+    ...listing,
+    subject: listing.courses[0],
+  });
 }
 
 export function getListings(): Promise<Listing[]> {
@@ -200,11 +199,11 @@ export function generateTodo(prompt: string): Promise<TodoItemForCreate> {
     `/api/todos/generate?prompt=${encodeURIComponent(prompt)}`,
     "GET",
   ).then(parseDeadline);
-} 
+}
 
 export function deleteTodo(id: number): Promise<void> {
   return request(`/api/todos/${id}`, "DELETE");
-} 
+}
 
 // Calls onChange whenever the todos change, e.g. in another tab.
 // Returns a function that stops listening (use it as the useEffect cleanup).

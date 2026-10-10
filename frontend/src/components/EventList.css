@@ -16,10 +16,7 @@
 .event-status { flex: 0 0 auto; border-radius: 999px; padding: 2px 8px; color: #5144bd; background: #eeecff; font-size: .7rem; font-weight: 700; }
 .event-meta, .event-description { margin: 0; color: #697187; font-size: .9rem; }
 .event-description { margin-top: 8px; white-space: pre-wrap; }
-.event-delete { align-self: center; margin-left: 15px; border: 0; border-radius: 6px; padding: 6px 8px; color: #71798b; background: transparent; font: inherit; font-size: .85rem; cursor: pointer; }
-.event-delete:hover { color: #b83242; background: #fff0f1; }
 
 @media (max-width: 420px) {
   .event-item__link { gap: 10px; }
-  .event-delete { margin-left: 6px; padding-right: 0; }
 }
