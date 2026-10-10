@@ -1,4 +1,5 @@
 from os import getenv
+from uuid import uuid4
 
 from supabase import Client, create_client
 
@@ -30,7 +31,6 @@ USER_COLUMNS = {
 }
 
 LISTING_COLUMNS = {
-    "subject": "subject",
     "description": "description",
     "startTime": "start_time",
     "endTime": "end_time",
@@ -46,6 +46,11 @@ REQUEST_SELECT = f"joined_at, users(*), listings({LISTING_SELECT})"
 
 def to_columns(data: dict, mapping: dict[str, str]) -> dict:
     return {mapping[key]: value for key, value in data.items() if key in mapping}
+
+
+def listing_courses(subject: str, courses: list[str] | None) -> list[str]:
+    """Keep the API's primary subject first in the database course array."""
+    return list(dict.fromkeys([subject, *(courses or [])]))
 
 
 def user_from_row(row: dict) -> User:
@@ -67,7 +72,7 @@ def listing_from_row(row: dict) -> Listing:
     return Listing(
         id=row["id"],
         createdBy=row.get("created_by"),
-        subject=row["subject"],
+        subject=(row.get("courses") or [None])[0],
         description=row.get("description") or "",
         startTime=row.get("start_time"),
         endTime=row.get("end_time"),
@@ -135,7 +140,7 @@ class DatabaseManager:
     def create_user(self, email: str, first_name: str, last_name: str = "") -> User:
         row = (
             self.client.table("users")
-            .insert({"email": email.strip().lower(), "first_name": first_name, "last_name": last_name})
+            .insert({"id": str(uuid4()), "email": email.strip().lower(), "first_name": first_name, "last_name": last_name})
             .execute()
             .data[0]
         )
@@ -193,7 +198,7 @@ class DatabaseManager:
         """Public listings, optionally limited to a course, with every given filter."""
         query = self.client.table("listings").select(LISTING_SELECT)
         if course is not None:
-            query = query.eq("subject", course.value)
+            query = query.contains("courses", [course.value])
         rows = query.eq("is_private", False).execute().data
         listings = [listing_from_row(row) for row in rows]
         return [
@@ -217,6 +222,7 @@ class DatabaseManager:
     def create_listing(self, creator_id: str, listing: ListingForCreate) -> Listing:
         """The creator becomes admin automatically (database trigger)."""
         columns = to_columns(listing.model_dump(mode="json"), LISTING_COLUMNS)
+        columns["courses"] = listing_courses(listing.subject.value, columns.get("courses"))
         columns["created_by"] = creator_id
         row = self.client.table("listings").insert(columns).execute().data[0]
         self.insert_filters(row["id"], listing.filters)
@@ -225,6 +231,11 @@ class DatabaseManager:
     def update_listing(self, listing_id: str, admin_id: str, update: ListingForUpdate) -> Listing:
         self.require_admin(listing_id, admin_id)
         columns = to_columns(update.model_dump(mode="json", exclude_unset=True), LISTING_COLUMNS)
+        if "subject" in update.model_fields_set or "courses" in update.model_fields_set:
+            existing = self.get_listing_by_id(listing_id)
+            subject = update.subject or existing.subject
+            courses = columns.get("courses") if "courses" in update.model_fields_set else existing.courses[1:]
+            columns["courses"] = listing_courses(subject.value, courses)
         if columns:
             self.client.table("listings").update(columns).eq("id", listing_id).execute()
         return self.get_listing_by_id(listing_id)

@@ -6,7 +6,7 @@ from threading import RLock
 from uuid import uuid4
 
 from courses import Course
-from databaseManager import DatabaseManager
+from databaseManager import DatabaseManager, listing_courses
 from models import (
     Listing, ListingFilter, ListingForCreate, ListingForUpdate, ListingMember,
     MemberRole, Message, MessageForCreate, PendingRequest, User, UserForUpdate,
@@ -79,7 +79,7 @@ class MemoryDatabaseManager(DatabaseManager):
     @locked
     def get_listings_by_course(self, course: Course | None = None, filters: list[ListingFilter] | None = None) -> list[Listing]:
         return [item.model_copy(deep=True) for item in self._listings.values()
-                if not item.isPrivate and (course is None or course == item.subject)
+                if not item.isPrivate and (course is None or course in item.courses)
                 and all(f in item.filters for f in filters or [])]
 
     @locked
@@ -93,6 +93,7 @@ class MemoryDatabaseManager(DatabaseManager):
             raise ValueError("User not found")
         item = Listing(id=str(uuid4()), createdBy=creator_id,
                        inviteCode=uuid4().hex.upper(), **listing.model_dump(exclude={"filters"}))
+        item.courses = listing_courses(item.subject, item.courses)
         self._listings[item.id] = item
         self._members[item.id, creator_id] = (MemberRole.admin, datetime.now(timezone.utc))
         self.insert_filters(item.id, listing.filters)
@@ -102,9 +103,11 @@ class MemoryDatabaseManager(DatabaseManager):
     def update_listing(self, listing_id: str, admin_id: str, update: ListingForUpdate) -> Listing:
         self.require_admin(listing_id, admin_id)
         data = self._listings[listing_id].model_dump()
+        if "subject" in update.model_fields_set and "courses" not in update.model_fields_set:
+            data["courses"] = data["courses"][1:]
         data.update(update.model_dump(exclude_unset=True))
         data["description"] = data["description"] or ""
-        data["courses"] = data["courses"] or []
+        data["courses"] = listing_courses(data["subject"], data["courses"])
         self._listings[listing_id] = Listing.model_validate(data)
         return self.get_listing_by_id(listing_id)
 
