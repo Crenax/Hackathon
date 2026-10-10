@@ -1,11 +1,13 @@
-from datetime import datetime
+
+from datetime import date, datetime
+from enum import Enum
 
 from pydantic import BaseModel
-<<<<<<< Updated upstream
-=======
 from pydantic import BaseModel, Field, AliasChoices
 
 from courses import Course
+from pydantic import BaseModel, Field, AliasChoices
+
 
 
 # Enums
@@ -36,14 +38,9 @@ class MemberRole(str, Enum):
     member = "member"
     requestPending = "request_pending"
 
->>>>>>> Stashed changes
-
 
 class User(BaseModel):
     id: str
-<<<<<<< Updated upstream
-    name: str
-=======
     firstName: str = Field(
         validation_alias=AliasChoices("firstName", "name")
     )
@@ -134,7 +131,6 @@ class Message(BaseModel):
 class MessageForCreate(BaseModel):
     subject: str | None = None
     content: str
->>>>>>> Stashed changes
 
 
 class TodoItem(BaseModel):
@@ -148,3 +144,4 @@ class TodoItemForCreate(BaseModel):
     title: str
     description: str
     deadline: datetime
+
