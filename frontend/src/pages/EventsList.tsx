@@ -4,7 +4,7 @@ import { PlusCircleFill, XCircle, Trash3 } from "react-bootstrap-icons";
 import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
 import "../FormLayout.css";
 import "./EventsList.css";
-import AutocompleteInputField from "./AutocompleteInputField";
+import AutocompleteInputField from "../components/AutocompleteInputField";
 
 type DegreeFilter = "" | "bachelor" | "master" | "phd";
 type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
@@ -278,8 +278,6 @@ export default function EventsList() {
                                                 <option value="">Any gender</option>
                                                 <option value="female">Female</option>
                                                 <option value="male">Male</option>
-                                                <option value="non_binary">Non-binary</option>
-                                                <option value="prefer_not_to_say">Prefer not to say</option>
                                             </select>
                                         </label>
                                     </div>
@@ -309,8 +307,8 @@ export default function EventsList() {
                             <h1 id="upcoming-events-heading">Upcoming events</h1>
                             <p className="form-page-description">Find your next study session or create a new one.</p>
                         </div>
-                        <button className="form-icon-button" type="button" onClick={openEventForm} aria-label="Create a study event">
-                            <PlusCircleFill aria-hidden="true" />
+                        <button className="form-primary-button" type="button" onClick={openEventForm} aria-label="Create a study event">
+                            Add Event
                         </button>
                     </div>
                 </header>
@@ -323,7 +321,7 @@ export default function EventsList() {
 
                     {events.length === 0 ? (
                         <p className="event-empty">
-                            {isLoading ? "Loading events…" : loadError || "No events yet. You can be the first!"}
+                            {isLoading ? "Loading events…" : loadError || "No events yet. You can be the first to publish one!"}
                         </p>
                     ) : (
                         <div className="event-list">
