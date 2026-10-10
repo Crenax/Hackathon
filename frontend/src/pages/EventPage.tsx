@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
     Book,
     Calendar3,
@@ -8,7 +9,10 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
+import { getMyRequests } from "../api";
 import type { Listing } from "../api";
+import ChatBox from "../components/ChatBox";
+import JoinEventButton from "../components/JoinEventButton";
 import "../FormLayout.css";
 import "./EventPage.css";
 
@@ -32,6 +36,43 @@ function formatDateTime(value: string | null): string {
 }
 
 export default function EventPage({ event, hasJoined = false }: EventPageProps) {
+    if (event.isPrivate && !hasJoined) {
+        return <PrivateEventAccess key={event.id} event={event} />;
+    }
+    return <EventPageContent event={event} hasJoined={hasJoined} />;
+}
+
+function PrivateEventAccess({ event }: { event: Listing }) {
+    const [access, setAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
+
+    useEffect(() => {
+        let active = true;
+        getMyRequests()
+            .then((requests) => {
+                if (active) setAccess(requests.some((request) => request.listing.id === event.id) ? "allowed" : "denied");
+            })
+            .catch(() => {
+                if (active) setAccess("error");
+            });
+        return () => { active = false; };
+    }, [event.id]);
+
+    if (access === "allowed") return <EventPageContent event={event} hasJoined={false} />;
+
+    return (
+        <main className="form-page event-page">
+            <div className="form-container">
+                <p className="form-card" role={access === "error" ? "alert" : "status"}>
+                    {access === "checking" ? "Checking event access…"
+                        : access === "error" ? "Could not verify event access. Please refresh to try again."
+                        : "Event unavailable. Enter a valid invitation key to access a private event."}
+                </p>
+            </div>
+        </main>
+    );
+}
+
+function EventPageContent({ event, hasJoined = false }: EventPageProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -46,6 +87,7 @@ export default function EventPage({ event, hasJoined = false }: EventPageProps) 
                             </span>
                         )}
                     </div>
+                    {!hasJoined && <JoinEventButton key={event.id} event={event} />}
                 </header>
 
                 <section className="form-card event-page__card" aria-label="Event details">
@@ -101,6 +143,7 @@ export default function EventPage({ event, hasJoined = false }: EventPageProps) 
                         </section>
                     )}
                 </section>
+                {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>
     );

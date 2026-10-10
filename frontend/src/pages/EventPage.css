@@ -22,3 +22,7 @@
   .event-page__details { grid-template-columns: 1fr; }
   .event-page__detail:nth-child(odd):not(:last-child) { border-right: 0; }
 }
+
+.event-page__join { margin-top: 20px; }
+.event-page__join-status { margin: 0; color: var(--form-muted); }
+.event-page__join-error { margin: 0; color: #b83242; }
