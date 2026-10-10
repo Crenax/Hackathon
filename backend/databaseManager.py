@@ -30,6 +30,7 @@ USER_COLUMNS = {
 }
 
 LISTING_COLUMNS = {
+    "subject": "subject",
     "description": "description",
     "startTime": "start_time",
     "endTime": "end_time",
@@ -66,6 +67,7 @@ def listing_from_row(row: dict) -> Listing:
     return Listing(
         id=row["id"],
         createdBy=row.get("created_by"),
+        subject=row["subject"],
         description=row.get("description") or "",
         startTime=row.get("start_time"),
         endTime=row.get("end_time"),

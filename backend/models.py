@@ -2,11 +2,9 @@
 from datetime import date, datetime
 from enum import Enum
 
-from pydantic import BaseModel
-from pydantic import BaseModel, Field, AliasChoices
+from pydantic import AliasChoices, BaseModel, Field
 
 from courses import Course
-from pydantic import BaseModel, Field, AliasChoices
 
 
 
