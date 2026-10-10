@@ -132,17 +132,15 @@ async function request<T>(
 }
 
 
-// JSON has no date type, so the backend sends deadlines as strings
-function parseDeadline<T extends { deadline: Date }>(todo: T): T {
-  return { ...todo, deadline: new Date(todo.deadline) };
-}
-
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
 }
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {
-  return request<Listing>(`/api/listings`, "POST", listing);
+  return request<Listing>(`/api/listings`, "POST", {
+    ...listing,
+    subject: listing.courses[0],
+  });
 }
 
 export function getListings(): Promise<Listing[]> {

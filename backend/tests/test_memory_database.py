@@ -77,6 +77,41 @@ class StartupTests(unittest.TestCase):
 
 
 class MemoryDatabaseTests(unittest.TestCase):
+    def test_legacy_listing_updates_and_nulls_match_supabase_behavior(self):
+        db = MemoryDatabaseManager()
+        owner = db.create_user("owner@example.com", "Owner")
+        listing = db.create_listing(owner.id, ListingForCreate(subject=Course.linearAlgebra, isPrivate=True))
+        update = ListingForUpdate.model_validate({
+            "newDescription": None, "newIsPrivate": None,
+            "newEndTime": "2026-10-10T16:00:00Z", "newCourses": ["Analysis I"],
+        })
+        updated = db.update_listing(listing.id, owner.id, update)
+        self.assertEqual(updated.subject, Course.linearAlgebra)
+        self.assertEqual(updated.courses, [Course.linearAlgebra, Course.analysisI])
+        self.assertTrue(updated.isPrivate)
+        self.assertEqual(updated.description, "")
+        self.assertEqual(updated.endTime.isoformat(), "2026-10-10T16:00:00+00:00")
+        cleared = db.update_listing(listing.id, owner.id, ListingForUpdate.model_validate({"newEndTime": None}))
+        self.assertIsNone(cleared.endTime)
+
+    def test_membership_endpoints_distinguish_pending_and_approved_users(self):
+        db = MemoryDatabaseManager()
+        api.app.dependency_overrides[api.get_database] = lambda: db
+        self.addCleanup(api.app.dependency_overrides.clear)
+        headers = {"X-User-Id": "member@example.com", "X-User-Name": "Member"}
+        owner = db.create_user("owner@example.com", "Owner")
+        member = db.create_user("member@example.com", "Member")
+        listing = db.create_listing(owner.id, ListingForCreate(subject=Course.linearAlgebra))
+        with TestClient(api.app) as client:
+            self.assertEqual(client.get("/api/me/listings", headers=headers).json(), [])
+            self.assertEqual(client.get("/api/me/requests", headers=headers).json(), [])
+            self.assertEqual(client.post(f"/api/listings/{listing.id}/requests", headers=headers).status_code, 204)
+            self.assertEqual(client.get("/api/me/listings", headers=headers).json(), [])
+            self.assertEqual(client.get("/api/me/requests", headers=headers).json()[0]["listing"]["id"], listing.id)
+            db.approve_request(listing.id, member.id, owner.id)
+            self.assertEqual(client.get("/api/me/requests", headers=headers).json(), [])
+            self.assertEqual(client.get("/api/me/listings", headers=headers).json()[0]["id"], listing.id)
+
     def test_api_search_across_courses_preserves_filters_and_privacy(self):
         db = MemoryDatabaseManager()
         api.app.dependency_overrides[api.get_database] = lambda: db

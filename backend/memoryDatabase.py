@@ -106,6 +106,9 @@ class MemoryDatabaseManager(DatabaseManager):
         if "subject" in update.model_fields_set and "courses" not in update.model_fields_set:
             data["courses"] = data["courses"][1:]
         data.update(update.model_dump(exclude_unset=True))
+        # Match Supabase updates: null leaves these required fields unchanged.
+        if data["isPrivate"] is None:
+            data["isPrivate"] = self._listings[listing_id].isPrivate
         data["description"] = data["description"] or ""
         data["courses"] = listing_courses(data["subject"], data["courses"])
         self._listings[listing_id] = Listing.model_validate(data)

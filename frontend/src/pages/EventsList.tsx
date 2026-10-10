@@ -105,6 +105,10 @@ export default function EventsList() {
         if (isSubmitting) return;
 
         setSubmitError("");
+        if (courses.length === 0) {
+            setSubmitError("Add at least one course before creating an event.");
+            return;
+        }
         const startsAt = new Date(startTime);
         const endsAt = new Date(endTime);
         if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
@@ -177,7 +181,7 @@ export default function EventsList() {
                             </div>
 
                             <div className="form-field">
-                                <label htmlFor="study-event-courses">Courses <span className="form-optional">(optional)</span></label>
+                                <label htmlFor="study-event-courses">Courses <span className="form-required">*</span></label>
                                 <div className="form-inline-entry">
                                     <AutocompleteInputField
                                         id="study-event-courses"
