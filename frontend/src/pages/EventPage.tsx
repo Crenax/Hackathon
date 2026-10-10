@@ -212,18 +212,27 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                         ) : members.length === 0 ? (
                             <p>No accepted members yet.</p>
                         ) : (
-                            <ul className="event-page__members">
-                                {members.map(({ user, role }) => (
-                                    <li className="event-page__member" key={user.id}>
-                                        <span className="event-page__member-name">
-                                            {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
-                                        </span>
-                                        <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
-                                            {role === MemberRole.admin ? "Admin" : "Member"}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="event-page__member-groups">
+                                {[MemberRole.admin, MemberRole.member].map((groupRole) => {
+                                    const group = members.filter(({ role }) => role === groupRole);
+                                    if (group.length === 0) return null;
+                                    return (
+                                        <ul className="event-page__members" key={groupRole}
+                                            aria-label={groupRole === MemberRole.admin ? "Admins" : "Members"}>
+                                            {group.map(({ user, role }) => (
+                                                <li className="event-page__member" key={user.id}>
+                                                    <span className="event-page__member-name">
+                                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                                                    </span>
+                                                    <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
+                                                        {role === MemberRole.admin ? "Admin" : "Member"}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                })}
+                            </div>
                         )}
                     </section>
                 )}
