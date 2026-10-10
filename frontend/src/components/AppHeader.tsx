@@ -56,7 +56,6 @@ const AppHeader = () => {
                     aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                     aria-controls="app-header-navigation"
                     aria-expanded={isMenuOpen}
-                    onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
                     onMouseEnter={() =>setIsMenuOpen(true)}
                 >
                     <List aria-hidden="true" />
