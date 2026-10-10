@@ -286,10 +286,10 @@ def get_messages(listing_id: str, user: CurrentUser):
 
 @app.post("/api/listings/{listing_id}/messages", response_model=Message, status_code=201)
 def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser):
-	listing = require_member(listing_id, user)
+    listing = require_member(listing_id, user)
     return db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
 
 
 if __name__ == "__main__":
-	initDatabaseManager()
-	uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    # The database is initialised in lifespan when the server starts
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
