@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from postgrest.exceptions import APIError
 from pydantic import BaseModel
 
+import calanderManager
 import databaseManager as db
 from courses import Course
 from models import *
@@ -150,6 +151,10 @@ class RoleUpdate(BaseModel):
     role: Literal[MemberRole.admin, MemberRole.member]
 
 
+class CalendarLink(BaseModel):
+    url: str
+
+
 @app.get("/api/me", response_model=User)
 def get_me(user: CurrentUser):
     return user
@@ -188,6 +193,13 @@ def create_listing(listing: ListingForCreate, user: CurrentUser):
 @app.get("/api/listings/{listing_id}", response_model=Listing)
 def get_listing(listing_id: str, user: CurrentUser):
     return visible_listing(listing_id, user)
+
+
+@app.get("/api/listings/{listing_id}/calendar", response_model=CalendarLink)
+def get_calendar_link(listing_id: str, user: CurrentUser):
+    # Outlook deep link that opens a prefilled "new event" form for the listing
+    listing = visible_listing(listing_id, user)
+    return CalendarLink(url=calanderManager.get_outlook_calendar_link(listing))
 
 
 @app.patch("/api/listings/{listing_id}", response_model=Listing)
