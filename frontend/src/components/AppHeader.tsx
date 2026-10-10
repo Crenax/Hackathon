@@ -4,8 +4,11 @@ import "./AppHeader.css";
 
 const AppHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  function goToHome() {
+    window.location.href = "/";
+  }
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -34,16 +37,25 @@ const AppHeader = () => {
 
   return (
     <header className="app-header">
-      <h2>App-Title</h2>
-      <div className="app-header-menu" ref={menuRef}>
+
+      <div>
+        <strong
+          onClick={goToHome}
+          style={{cursor: "pointer"}}
+        >
+          App-Title
+        </strong>
+      </div>
+
+      <div className="app-header-menu">
         <button
-          ref={menuButtonRef}
           className="app-header-menu-button"
           type="button"
           aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-controls="app-header-navigation"
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+          onMouseEnter={() => setIsMenuOpen(true)}
         >
           <List aria-hidden="true" />
         </button>
@@ -53,6 +65,7 @@ const AppHeader = () => {
             id="app-header-navigation"
             className="app-sidebar"
             aria-label="Main navigation"
+            onMouseLeave={() => setIsMenuOpen(false)}
           >
             <nav className="app-sidebar-navigation">
               <a href="/">
