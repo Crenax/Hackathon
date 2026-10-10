@@ -43,7 +43,7 @@ async function request<T>(
   // If the response is not OK (e.g., 404, 500), throw a custom error.
   if (!response.ok) {
     const error = new ApiError(response.status, response.statusText);
-    alert(`${error.name}: ${error.message}`);
+    console.log(`${error.name}: ${error.message}`);
     throw error;
   }
 
