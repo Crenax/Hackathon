@@ -96,19 +96,6 @@ export interface MessageForCreate {
   content: string;
 }
 
-export interface TodoItem {
-  id: number;
-  title: string;
-  description: string;
-  deadline: Date;
-}
-
-export interface TodoItemForCreate {
-  title: string;
-  description: string;
-  deadline: Date;
-}
-
 export class ApiError extends Error {
   constructor(status: number, message: string) {
     super(`${status} / ${message}`);
@@ -175,48 +162,6 @@ export function getListing(listingId: string): Promise<Listing> {
     `/api/listings/${encodeURIComponent(listingId)}`,
     "GET",
   );
-}
-
-export function getTodos(): Promise<TodoItem[]> {
-  return request<TodoItem[]>(`/api/todos`, "GET").then((todos) =>
-    todos.map(parseDeadline),
-  );
-}
-
-export function createTodo(
-  title: string,
-  description: string,
-  deadline: Date,
-): Promise<TodoItem> {
-  return request<TodoItem>(`/api/todos`, "POST", {
-    title,
-    description,
-    deadline,
-  }).then(parseDeadline);
-}
-
-export function generateTodo(prompt: string): Promise<TodoItemForCreate> {
-  return request<TodoItemForCreate>(
-    `/api/todos/generate?prompt=${encodeURIComponent(prompt)}`,
-    "GET",
-  ).then(parseDeadline);
-} 
-
-export function deleteTodo(id: number): Promise<void> {
-  return request(`/api/todos/${id}`, "DELETE");
-} 
-
-// Calls onChange whenever the todos change, e.g. in another tab.
-// Returns a function that stops listening (use it as the useEffect cleanup).
-export function subscribeToTodoChanges(onChange: () => void): () => void {
-  // Server-Sent Events: the browser keeps the request open and reconnects by itself
-  const events = new EventSource("/api/todos/events");
-  events.onmessage = (event) => {
-    if (JSON.parse(event.data).type === "todos_changed") {
-      onChange();
-    }
-  };
-  return () => events.close();
 }
 
 export function getMessages(listingId: string): Promise<Message[]> {
