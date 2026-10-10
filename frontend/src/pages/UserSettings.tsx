@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { XCircle } from "react-bootstrap-icons";
 
 import "../FormLayout.css";
 import AutocompleteInputField from "../components/AutocompleteInputField";
@@ -60,7 +61,9 @@ export default function UserSettings() {
                                 />
                             </label>
                             {profilePicture && (
-                                <button className="form-link-button remove-picture" type="button" onClick={() => setProfilePicture(null)}>Remove picture</button>
+                                <button className="form-link-button remove-picture" type="button" onClick={() => setProfilePicture(null)} aria-label="Remove picture">
+                                    <XCircle aria-hidden="true" />
+                                </button>
                             )}
                             <small>Choose an image from your device.</small>
                         </div>
@@ -117,7 +120,9 @@ export default function UserSettings() {
                                 {courses.map((course) => (
                                     <li key={course}>
                                         {course}
-                                        <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>Remove</button>
+                                        <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>
+                                            <XCircle aria-hidden="true" />
+                                        </button>
                                     </li>
                                 ))}
                             </ul>

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { PlusCircleFill } from "react-bootstrap-icons";
+import { PlusCircleFill, XCircle, Trash3 } from "react-bootstrap-icons";
 
 import "../FormLayout.css";
 import "./EventsList.css";
@@ -131,7 +131,9 @@ export default function EventsList() {
                                         {courses.map((course) => (
                                             <li key={course}>
                                                 {course}
-                                                <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>Remove</button>
+                                                <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>
+                                                    <XCircle aria-hidden="true" />
+                                                </button>
                                             </li>
                                         ))}
                                     </ul>
@@ -199,14 +201,18 @@ export default function EventsList() {
                                             <p className="event-meta">{studyEvent.time} | {studyEvent.location}</p>
                                             {studyEvent.description && <p className="event-description">{studyEvent.description}</p>}
                                         </div>
-                                        <button
-                                            className="event-delete"
-                                            type="button"
-                                            onClick={() => setEvents((current) => current.filter((item) => item.id !== studyEvent.id))}
-                                            aria-label={`Delete ${studyEvent.title}`}
-                                        >
-                                            Delete
-                                        </button>
+                                        <div
+                                            style={{ display: "flex", alignItems: "space-around", justifyContent: "space-around", fontSize: "1.2rem", height: "auto", padding: "0 0.5rem", color: "#dc3545", background: "none", border: "none", cursor: "pointer" }}
+                                        >                                     
+                                            <button
+                                                className="event-delete"
+                                                type="button"
+                                                onClick={() => setEvents((current) => current.filter((item) => item.id !== studyEvent.id))}
+                                                aria-label={`Delete ${studyEvent.title}`}
+                                            >
+                                                <Trash3 aria-hidden="true" />
+                                            </button>
+                                        </div>
                                     </article>
                                 );
                             })}

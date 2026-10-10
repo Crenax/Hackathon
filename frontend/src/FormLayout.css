@@ -43,7 +43,7 @@
 .form-icon-button:hover { color: var(--form-accent-hover); }
 .course-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
 .course-tags li { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .8rem; font-weight: 400; }
-.course-tags button { border: 0; padding: 0; color: #4338ca; background: transparent; font: inherit; text-decoration: underline; cursor: pointer; }
+.course-tags button { display: inline-grid; place-items: center; border: 0; padding: 1px; color: #4338ca; background: transparent; font: inherit; font-size: 1rem; line-height: 1; cursor: pointer; }
 
 @media (max-width: 560px) {
   .form-page { padding: 22px 12px 44px; }

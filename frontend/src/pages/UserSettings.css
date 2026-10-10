@@ -6,7 +6,7 @@
 .picture-upload { display: inline-flex; align-items: center; box-sizing: border-box; cursor: pointer; }
 .picture-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 .picture-upload:focus-within { border-color: #5748c8; box-shadow: 0 0 0 3px rgb(87 72 200 / 14%); }
-.remove-picture { padding: 0; font-size: .82rem; }
+.remove-picture { display: inline-grid; place-items: center; padding: 2px; font-size: 1.05rem; line-height: 1; text-decoration: none; }
 .picture-controls small { color: #697187; font-size: .75rem; }
 .visibility-options { display: flex; flex-direction: column; gap: 10px; }
 .visibility-option { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid #e2e6ed; border-radius: 10px; cursor: pointer; }
