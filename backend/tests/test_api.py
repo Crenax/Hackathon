@@ -152,6 +152,18 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status_code, 200)
         self.db.client.table.return_value.update.assert_called_once_with({"location": "Library"})
 
+    async def test_patch_end_time_and_legacy_alias_reach_database(self):
+        self.db.get_role.return_value = MemberRole.admin
+        for field in ("endTime", "newEndTime"):
+            for value in ("2026-10-10T16:00:00Z", None):
+                with self.subTest(field=field, value=value):
+                    self.db.client.reset_mock()
+                    response = await self.client.patch(
+                        "/api/listings/listing-1", headers=HEADERS, json={field: value},
+                    )
+                    self.assertEqual(response.status_code, 200)
+                    self.db.client.table.return_value.update.assert_called_once_with({"end_time": value})
+
     async def test_profile_updates_only_authenticated_user(self):
         self.db.update_user = MagicMock(return_value=self.user)
         response = await self.client.patch("/api/me", headers=HEADERS, json={"description": "Physics"})
