@@ -32,6 +32,7 @@ function readCourseName(course: unknown): string | null {
     return null;
 }
 
+
 function loadCourseSuggestions(): Promise<string[]> {
     if (!courseSuggestionsRequest) {
         courseSuggestionsRequest = fetch("/api/courses")
