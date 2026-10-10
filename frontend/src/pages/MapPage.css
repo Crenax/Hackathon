@@ -246,7 +246,8 @@
 .campus-map-viewport {
   position:relative;
   height:570px;
-  background:#f7f8fc;
+  background:radial-gradient(ellipse at center, #fff 0%, #f1f3f9 100%);
+  overscroll-behavior:contain;
 }
 
 .campus-map-viewport svg {
@@ -261,32 +262,48 @@
 }
 
 .campus-shape {
-  stroke:#bdc6d6;
-  stroke-width:.7px;
+  stroke:#cbd0df;
+  stroke-width:.6px;
+  stroke-linejoin:round;
+  stroke-linecap:round;
   vector-effect:non-scaling-stroke;
 }
 
 .campus-shape.room {
-  fill:#e8e6f4;
+  fill:#eeecf8;
 }
 
 .campus-shape.hallway {
-  fill:white;
+  fill:#fcfcff;
 }
 
-.campus-shape.connector {
-  fill:#fce9d3;
+.campus-shape.stairs {
+  fill:#f8dfb8;
+}
+
+.campus-shape.elevator {
+  fill:#d5e5fb;
 }
 
 .campus-shape.toilet {
-  fill:#c9e9df;
+  fill:#d1ebe1;
 }
 
-.campus-shape.detail {
+.campus-shape.wall {
   fill:none;
-  stroke:#7e899d;
-  stroke-width:.65px;
+  stroke:#929db2;
+  stroke-width:1.1px;
 }
+
+.campus-shape.door {
+  fill:none;
+  stroke:#9eabc1;
+  stroke-width:.8px;
+}
+
+.campus-floor-doors { opacity:0; transition:opacity .18s ease; }
+.campus-floor-doors.visible { opacity:.7; }
+
 
 .campus-shape.selected {
   fill:#c4bcf3;
@@ -295,7 +312,11 @@
 }
 
 .campus-room-label {
-  fill:#5e667a;
+  fill:#626880;
+  font-weight:550;
+  paint-order:stroke;
+  stroke:#ffffffb3;
+  stroke-width:.35px;
   pointer-events:none;
 }
 
@@ -307,6 +328,11 @@
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
 }
+
+.campus-room-label.stairs { fill:#96651f; font-weight:750; }
+.campus-room-label.elevator { fill:#3e6fa8; font-weight:750; }
+.campus-room-label.toilet { fill:#387762; }
+.campus-route-line.halo { stroke:white; stroke-width:8px; }
 
 .campus-route-end {
   fill:#5748c8;
@@ -387,6 +413,9 @@
 .campus-dot.toilet {
   background:#8bcdb6;
 }
+
+.campus-dot.stairs { background:#eac38d; }
+.campus-dot.elevator { background:#a8c9ef; }
 
 .campus-dot.path {
   background:#5748c8;

@@ -1,9 +1,12 @@
 """Chromium checks for the map UI. Run with Vite on MAP_URL (default localhost:5174)."""
 import json
 import os
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
@@ -17,6 +20,24 @@ try:
     driver.get(os.getenv('MAP_URL', 'http://127.0.0.1:5174') + '/map')
     wait.until(lambda d: d.find_elements(By.CSS_SELECTOR, '.campus-shape'))
     assert driver.find_element(By.CSS_SELECTOR, 'h1').text == 'A little help finding your way.'
+    legend = driver.find_element(By.CSS_SELECTOR, '.campus-map-caption').text
+    assert 'Stairs' in legend and 'Elevators' in legend
+    assert driver.find_elements(By.CSS_SELECTOR, '.campus-shape.stairs')
+    assert driver.find_elements(By.CSS_SELECTOR, '.campus-shape.elevator')
+    map_svg = driver.find_element(By.CSS_SELECTOR, '.campus-map-viewport svg')
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"})', map_svg)
+    scroll_y = driver.execute_script('return scrollY')
+    previous_view = map_svg.get_dom_attribute('viewBox')
+    ActionChains(driver).scroll_from_origin(ScrollOrigin.from_element(map_svg), 0, -240).perform()
+    wait.until(lambda d: map_svg.get_dom_attribute('viewBox') != previous_view)
+    print('Wheel zoom changed the SVG view', flush=True)
+    time.sleep(.25)
+    assert driver.execute_script('return scrollY') == scroll_y, 'Map wheel zoom scrolled the page'
+    driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Zoom in"]').click()
+    driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Zoom in"]').click()
+    assert driver.find_element(By.CSS_SELECTOR, '.campus-floor-doors').get_attribute('class').endswith('visible')
+    driver.save_screenshot('/tmp/campus-map-detail.png')
+    driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Reset map view"]').click()
     fields = driver.find_elements(By.CSS_SELECTOR, '.campus-directions input')
     fields[0].send_keys('HG E26.1')
     fields[1].send_keys('HG F5')
@@ -70,7 +91,7 @@ try:
     driver.find_element(By.CSS_SELECTOR, '.campus-locate').click()
     assert not driver.find_elements(By.CSS_SELECTOR, '.campus-position')
     driver.set_window_size(390, 844)
-    driver.find_element(By.CSS_SELECTOR, '.app-header-menu-button').click()
+    driver.execute_script("arguments[0].click()", driver.find_element(By.CSS_SELECTOR, '.app-header-menu-button'))
     assert driver.find_element(By.CSS_SELECTOR, '.app-sidebar a[href="/map"]').is_displayed()
     driver.find_element(By.CSS_SELECTOR, '.app-header-menu-button').click()
     driver.save_screenshot('/tmp/campus-map-mobile.png')
@@ -78,5 +99,9 @@ try:
     errors = [entry for entry in driver.get_log('browser') if entry['level'] == 'SEVERE']
     assert not errors, errors
     print('PASS: room, elevator, toilet, free lecture room, GPS routes, tracking cleanup, floors, and mobile navigation')
+except Exception:
+    driver.save_screenshot('/tmp/campus-map-failure.png')
+    print(driver.get_log('browser'))
+    raise
 finally:
     driver.quit()

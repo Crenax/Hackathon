@@ -141,7 +141,7 @@ export default function MapPage() {
         }}><GeoAlt />{tracking ? 'Stop locating' : 'Locate me'}</button></div>
         <FloorMap data={campus.data} router={router!} level={level} route={route} selected={selected} select={setSelected} position={tracking && level === locationLevel ? point : undefined} accuracy={position?.coords.accuracy} heading={heading} />
         {selected && <div className="campus-selection"><div><strong>{router!.label(selected)}</strong><small>{selected.attributes.USE_TYPE}</small></div><button onClick={() => { clear(); setUseLocation(false); setFrom(router!.label(selected)); }}>Start here</button><button onClick={() => { clear(); setDestination('room'); setTo(router!.label(selected)); }}>Go here</button><button aria-label="Close room selection" onClick={() => setSelected(undefined)}>×</button></div>}
-        <div className="campus-map-caption"><span><i className="campus-dot room" />Rooms</span><span><i className="campus-dot toilet" />Toilets</span><span><i className="campus-dot path" />Your route</span><span>Tap a room to choose it</span></div>
+        <div className="campus-map-caption"><span><i className="campus-dot room" />Rooms</span><span><i className="campus-dot toilet" />Toilets</span><span><i className="campus-dot stairs" />Stairs</span><span><i className="campus-dot elevator" />Elevators</span><span><i className="campus-dot path" />Your route</span><span>Scroll to zoom · drag to move</span></div>
         {locationStatus && <p className="campus-location-status" role="status">{locationStatus}</p>}
         <p className="campus-hint campus-map-note">Indoor GPS can be approximate. Choose a room if the blue dot is misplaced. Routes are estimates based on available floor plans; elevator routes do not guarantee accessibility.</p>
       </section>
@@ -154,6 +154,33 @@ function FloorMap({ data, router, level, route, selected, select, position, accu
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const [camera, setCamera] = useState<{ level: string; zoom: number; x: number; y: number }>({ level, zoom: 1, x: 0, y: 0 });
   const view = camera.level === level ? camera : { level, zoom: 1, x: 0, y: 0 };
+  useEffect(() => {
+    const map = svg.current;
+    if (!map) return;
+    // React's delegated wheel listener is passive; use a native listener so
+    // zooming consumes the wheel gesture before the browser scrolls the page.
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.deltaY) return;
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? map.clientHeight : 1);
+      const factor = Math.exp(-Math.max(-100, Math.min(100, delta)) * 0.002);
+      setCamera(previous => {
+        const current = previous.level === level ? previous : { level, zoom: 1, x: 0, y: 0 };
+        const zoom = Math.max(0.7, Math.min(10, current.zoom * factor));
+        const matrix = map.getScreenCTM();
+        if (!matrix) return { ...current, zoom };
+        const anchor = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+        const box = map.viewBox.baseVal;
+        const ratio = current.zoom / zoom;
+        return { level, zoom,
+          x: current.x + (anchor.x - box.x - box.width / 2) * (1 - ratio),
+          y: current.y + (anchor.y - box.y - box.height / 2) * (1 - ratio) };
+      });
+    };
+    map.addEventListener('wheel', handleWheel, { passive: false });
+    return () => map.removeEventListener('wheel', handleWheel);
+  }, [level]);
   const shapes = data.layers.filter(layer => /^Units|^Details/.test(layer.name)).flatMap(layer => layer.features).filter(item => item.geometry && item.attributes.LEVEL_ID === level);
   const units = shapes.filter(item => item.geometry.type === 3);
   const bounds = units.reduce((b, item) => [Math.min(b[0], item.geometry.bounds[0]), Math.min(b[1], item.geometry.bounds[1]), Math.max(b[2], item.geometry.bounds[2]), Math.max(b[3], item.geometry.bounds[3])], [Infinity, Infinity, -Infinity, -Infinity]);
@@ -165,7 +192,6 @@ function FloorMap({ data, router, level, route, selected, select, position, accu
   const zoom = (factor: number) => setCamera({ ...view, zoom: Math.max(0.7, Math.min(10, view.zoom * factor)) });
   const segments = route?.segments.filter(segment => segment.level === level) ?? [];
   return <div className="campus-map-viewport"><svg ref={svg} viewBox={`${cx - width / 2} ${cy - height / 2} ${width} ${height}`} role="img" aria-label={`Floor ${floorName(level)} map. Use room fields for keyboard directions.`}
-    onWheel={event => { zoom(event.deltaY < 0 ? 1.12 : 1 / 1.12); }}
     onPointerDown={event => { drag.current = { x: event.clientX, y: event.clientY, moved: false }; event.currentTarget.setPointerCapture(event.pointerId); }}
     onPointerMove={event => {
       if (!drag.current || !svg.current) return;
@@ -186,12 +212,22 @@ function FloorMap({ data, router, level, route, selected, select, position, accu
       }
       drag.current = null;
     }} onPointerCancel={() => { drag.current = null; }}>
-    {shapes.map(item => <path key={item.id} d={path(item.geometry.parts, item.geometry.type === 3)} fillRule="evenodd" className={`campus-shape ${item.geometry.type !== 3 ? 'detail' : /Toilet/.test(item.attributes.USE_TYPE) ? 'toilet' : ['Hallway', 'Entrance and Exit', 'Common Room'].includes(item.attributes.USE_TYPE) ? 'hallway' : ['Stairs', 'Elevator'].includes(item.attributes.USE_TYPE) ? 'connector' : 'room'} ${selected === item ? 'selected' : ''}`} />)}
-    {units.filter(item => (item.geometry.bounds[2] - item.geometry.bounds[0]) > width / 35).map(item => <text key={item.id} x={(item.geometry.bounds[0] + item.geometry.bounds[2]) / 2} y={-(item.geometry.bounds[1] + item.geometry.bounds[3]) / 2} fontSize={Math.min(2.4, width / 85)} textAnchor="middle" className="campus-room-label">{/Toilet/.test(item.attributes.USE_TYPE) ? 'WC' : item.attributes.Suchfeld1 || ''}</text>)}
-    {segments.map((segment, index) => <path key={index} d={path([segment.points], false)} className="campus-route-line" />)}
+    <g className="campus-floor-rooms">{units.map(item => <path key={item.id} d={path(item.geometry.parts, true)} fillRule="evenodd" className={`campus-shape ${shapeKind(item)} ${selected === item ? 'selected' : ''}`}><title>{router.label(item)} · {item.attributes.USE_TYPE}</title></path>)}</g>
+    <g className="campus-floor-walls">{shapes.filter(item => item.geometry.type !== 3 && /^WAND/.test(item.attributes.USE_TYPE)).map(item => <path key={item.id} d={path(item.geometry.parts, false)} className="campus-shape wall" />)}</g>
+    <g className={`campus-floor-doors ${view.zoom >= 1.6 ? 'visible' : ''}`}>{shapes.filter(item => item.attributes.USE_TYPE === 'TUER').map(item => <path key={item.id} d={path(item.geometry.parts, false)} className="campus-shape door" />)}</g>
+    {units.filter(item => !['Hallway', 'Entrance and Exit', 'Common Room', 'Ramp', 'Exhibition', 'Service Room', 'Storage Room'].includes(item.attributes.USE_TYPE) && (item.geometry.bounds[2] - item.geometry.bounds[0]) > width / 28 && (item.geometry.bounds[3] - item.geometry.bounds[1]) > height / 90).map(item => <text key={item.id} x={(item.geometry.bounds[0] + item.geometry.bounds[2]) / 2} y={-(item.geometry.bounds[1] + item.geometry.bounds[3]) / 2} fontSize={Math.min(2.4, width / 85)} textAnchor="middle" dominantBaseline="middle" className={`campus-room-label ${shapeKind(item)}`}>{/Toilet/.test(item.attributes.USE_TYPE) ? 'WC' : item.attributes.USE_TYPE === 'Stairs' ? '↗' : item.attributes.USE_TYPE === 'Elevator' ? '↕' : item.attributes.Suchfeld1 || ''}</text>)}
+    {segments.map((segment, index) => <g key={index}><path d={path([segment.points], false)} className="campus-route-line halo" /><path d={path([segment.points], false)} className="campus-route-line" /></g>)}
     {segments.flatMap((segment, index) => [segment.points[0], segment.points.at(-1)!].map((p, endpoint) => <circle key={`${index}-${endpoint}`} cx={p[0]} cy={-p[1]} r={width / 95} className="campus-route-end" />))}
     {position && <g transform={`translate(${position[0]} ${-position[1]})`}><circle r={Math.min(accuracy ?? 0, 100) * Math.cosh(position[1] / 6378137)} className="campus-accuracy" />{heading !== undefined && <path d={`M0,${-width / 22} l${width / 70},${width / 35} h${-width / 35} Z`} transform={`rotate(${heading})`} fill="#007bff" />}<circle r={width / 85} className="campus-position" /></g>}
   </svg><div className="campus-zoom"><button aria-label="Zoom in" onClick={() => zoom(1.3)}><Plus /></button><button aria-label="Zoom out" onClick={() => zoom(1 / 1.3)}><Dash /></button><button aria-label="Reset map view" onClick={() => setCamera({ level, zoom: 1, x: 0, y: 0 })}><Crosshair /></button></div></div>;
+}
+function shapeKind(item: Feature) {
+  const kind = item.attributes.USE_TYPE;
+  if (/Toilet/.test(kind)) return 'toilet';
+  if (kind === 'Stairs') return 'stairs';
+  if (kind === 'Elevator') return 'elevator';
+  if (['Hallway', 'Entrance and Exit', 'Common Room', 'Ramp', 'Exhibition'].includes(kind)) return 'hallway';
+  return 'room';
 }
 function inside(point: Point, parts: Point[][]) {
   let hit = false;
