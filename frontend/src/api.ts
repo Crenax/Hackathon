@@ -158,6 +158,16 @@ export function getListing(listingId: string): Promise<Listing> {
   );
 }
 
+export interface ListingMember {
+  user: User;
+  role: MemberRole;
+  joinedAt: string;
+}
+
+export function getListingMembers(listingId: string): Promise<ListingMember[]> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/members`, "GET");
+}
+
 export function getMessages(listingId: string): Promise<Message[]> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "GET");
 }

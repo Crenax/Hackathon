@@ -10,7 +10,7 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getMyListings, getMyRequests } from "../api";
+import { getListing, getListingMembers, getMyListings, getMyRequests } from "../api";
 import type { Listing } from "../api";
 import { getEventTitle } from "../eventTitle";
 import ChatBox from "../components/ChatBox";
@@ -33,6 +33,7 @@ function formatDateTime(value: string | null): string {
 interface EventLoadState {
     listingId: string;
     event?: Listing;
+    creatorName?: string;
     hasJoined?: boolean;
     pending?: boolean;
     error?: string;
@@ -49,13 +50,28 @@ export default function EventPage() {
         let active = true;
         // Both /me endpoints resolve the authenticated user's ID on the server.
         Promise.all([getListing(listingId), getMyListings(), getMyRequests()])
-            .then(([event, memberships, requests]) => {
-                if (active) setLoadState({
+            .then(async ([event, memberships, requests]) => {
+                if (!active) return;
+                const hasJoined = memberships.some((listing) => listing.id === listingId);
+                setLoadState({
                     listingId,
                     event,
-                    hasJoined: memberships.some((listing) => listing.id === listingId),
+                    hasJoined,
                     pending: requests.some((request) => request.listing.id === listingId),
                 });
+
+                if (hasJoined && event.createdBy) {
+                    const creatorName = await getListingMembers(listingId)
+                        .then((members) => {
+                            const creator = members.find((member) => member.user.id === event.createdBy)?.user;
+                            return creator ? `${creator.firstName} ${creator.lastName}`.trim() : "";
+                        })
+                        .catch(() => "");
+                    if (active) setLoadState((current) => ({
+                        ...current,
+                        creatorName: creatorName || "Name unavailable",
+                    }));
+                }
             })
             .catch((error: unknown) => {
                 if (!active) return;
@@ -86,6 +102,7 @@ export default function EventPage() {
 
     return <EventPageContent
         event={loadState.event}
+        creatorName={loadState.creatorName}
         hasJoined={loadState.hasJoined === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
@@ -106,12 +123,13 @@ function EventPageStatus({ children, role }: { children: string; role: "alert" |
 
 interface EventPageContentProps {
     event: Listing;
+    creatorName?: string;
     hasJoined: boolean;
     pending: boolean;
     onRequested: () => void;
 }
 
-function EventPageContent({ event, hasJoined, pending, onRequested }: EventPageContentProps) {
+function EventPageContent({ event, creatorName, hasJoined, pending, onRequested }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -150,7 +168,7 @@ function EventPageContent({ event, hasJoined, pending, onRequested }: EventPageC
                         {hasJoined && event.createdBy && (
                             <div className="event-page__detail">
                                 <dt><PersonCircle aria-hidden="true" /> Created by</dt>
-                                <dd>{event.createdBy}</dd>
+                                <dd>{creatorName ?? "Loading name…"}</dd>
                             </div>
                         )}
                     </dl>
