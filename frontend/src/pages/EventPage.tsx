@@ -11,7 +11,6 @@ import {
 
 import { getListing, getListingMembers, getMyListings, getMyRequests, MemberRole } from "../api";
 import type { Listing, ListingMember } from "../api";
-import { getEventTitle } from "../eventTitle";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
@@ -152,7 +151,7 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                     <div className="event-page__heading">
                         <p className="form-eyebrow">Study session</p>
                         <div className="event-page__title-row">
-                            <h1 id="event-title">{getEventTitle(event.courses)}</h1>
+                            <h1 id="event-title">{event.description.trim() || "Study event"}</h1>
                             {event.isPrivate && (
                                 <span className="event-page__private" title="Private event" aria-label="Private event">
                                     <LockFill aria-hidden="true" />
@@ -187,13 +186,6 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                             </div>
                         )}
                     </dl>
-
-                    {event.description && (
-                        <section className="event-page__section" aria-labelledby="event-description-heading">
-                            <h2 id="event-description-heading">About this session</h2>
-                            <p>{event.description}</p>
-                        </section>
-                    )}
 
                     {event.courses.length > 0 && (
                         <section className="event-page__section" aria-labelledby="event-courses-heading">
