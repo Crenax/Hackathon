@@ -1,269 +1,134 @@
-import React from 'react';
-
-const settingsSections = [
-    { title: 'Profile', fields: ['Full name', 'Username', 'Email'] },
-    { title: 'Preferences', fields: ['Language', 'Timezone', 'Theme'] },
-    { title: 'Notifications', fields: ['Email alerts', 'Push notifications', 'SMS updates'] },
-];
+import { FormEvent, useState } from 'react';
 
 export default function UserSettings() {
+    const [courses, setCourses] = useState<string[]>([]);
+    const [courseInput, setCourseInput] = useState('');
+    const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+
+    function addCourse() {
+        const course = courseInput.trim();
+        if (course && !courses.some((item) => item.toLowerCase() === course.toLowerCase())) {
+            setCourses((current) => [...current, course]);
+        }
+        setCourseInput('');
+    }
+
+    function submitProfile(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        // Profile persistence can be connected to the account API when available.
+    }
+
     return (
-        <div style={styles.page}>
-            <div style={styles.container}>
-                <header style={styles.header}>
-                    <div>
-                        <p style={styles.eyebrow}>Account</p>
-                        <h1 style={styles.title}>Profile settings</h1>
-                    </div>
-                    <button style={styles.primaryButton}>Save changes</button>
+        <main className="profile-page">
+            <form className="profile-form" onSubmit={submitProfile}>
+                <header className="profile-heading">
+                    <p className="profile-eyebrow">Your account</p>
+                    <h1>Create your profile</h1>
+                    <p>Introduce yourself and choose what other people can see.</p>
                 </header>
 
-                <aside style={styles.sidebar}>
-                    <div style={styles.avatarWrap}>
-                        <div style={styles.avatar}>JD</div>
+                <section className="profile-section" aria-labelledby="personal-heading">
+                    <h2 id="personal-heading">Personal information</h2>
+                    <label className="profile-field">
+                        <span>Full name <span className="required">*</span></span>
+                        <input name="name" type="text" autoComplete="name" placeholder="Your name" required />
+                    </label>
+                    <label className="profile-field">
+                        <span>Email address <span className="required">*</span></span>
+                        <input name="email" type="email" autoComplete="email" placeholder="you@example.com" required />
+                    </label>
+                    <label className="profile-field">
+                        <span>Username <span className="required">*</span></span>
+                        <input name="username" type="text" autoComplete="username" placeholder="Choose a username" required />
+                    </label>
+                </section>
+
+                <section className="profile-section" aria-labelledby="about-heading">
+                    <h2 id="about-heading">About you</h2>
+                    <label className="profile-field">
+                        <span>Description</span>
+                        <textarea name="description" rows={4} maxLength={300} placeholder="A little about yourself (optional)" />
+                        <small>Up to 300 characters.</small>
+                    </label>
+                    <div className="profile-field">
+                        <label htmlFor="course-input">Courses you take</label>
+                        <div className="course-entry">
+                            <input
+                                id="course-input"
+                                type="text"
+                                value={courseInput}
+                                onChange={(event) => setCourseInput(event.target.value)}
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.preventDefault();
+                                        addCourse();
+                                    }
+                                }}
+                                placeholder="For example, Biology 101"
+                            />
+                            <button className="add-course" type="button" onClick={addCourse}>Add course</button>
+                        </div>
+                        <small>Add each course separately.</small>
+                        {courses.length > 0 && (
+                            <ul className="course-list" aria-label="Added courses">
+                                {courses.map((course) => (
+                                    <li key={course}>
+                                        {course}
+                                        <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>Remove</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
-                    <h2 style={styles.name}>John Doe</h2>
-                    <p style={styles.subtitle}>Administrator</p>
+                </section>
 
-                    <nav style={styles.nav}>
-                        {settingsSections.map((section) => (
-                            <button key={section.title} style={styles.navButton}>
-                                {section.title}
-                            </button>
-                        ))}
-                    </nav>
-                </aside>
+                <section className="profile-section" aria-labelledby="privacy-heading">
+                    <h2 id="privacy-heading">Profile visibility</h2>
+                    <p className="section-description">Choose who can view your profile.</p>
+                    <div className="visibility-options">
+                        <label className="visibility-option">
+                            <input type="radio" name="visibility" value="public" checked={visibility === 'public'} onChange={() => setVisibility('public')} />
+                            <span><strong>Public</strong><small>Other members can see your profile and courses.</small></span>
+                        </label>
+                        <label className="visibility-option">
+                            <input type="radio" name="visibility" value="private" checked={visibility === 'private'} onChange={() => setVisibility('private')} />
+                            <span><strong>Private</strong><small>Only you can see your profile details.</small></span>
+                        </label>
+                    </div>
+                </section>
 
-                <main style={styles.mainPanel}>
-                    <SettingsSection />
-                </main>
-            </div>
-        </div>
+                <button className="save-profile" type="submit">Create profile</button>
+            </form>
+
+            <style>{`
+                .profile-page { min-height: 100vh; box-sizing: border-box; padding: 32px 16px; background: #f3f4f6; color: #111827; }
+                .profile-form { width: 100%; max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+                .profile-heading { padding: 8px 2px 4px; }
+                .profile-eyebrow { margin: 0 0 6px; color: #4f46e5; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+                .profile-heading h1 { margin: 0; font-size: clamp(26px, 7vw, 34px); line-height: 1.2; }
+                .profile-heading > p:last-child { margin: 9px 0 0; color: #6b7280; }
+                .profile-section { display: flex; flex-direction: column; gap: 18px; padding: 22px; border: 1px solid #e5e7eb; border-radius: 16px; background: white; box-shadow: 0 4px 14px rgba(15, 23, 42, .03); }
+                .profile-section h2 { margin: 0; font-size: 19px; }
+                .section-description { margin: -12px 0 0; color: #6b7280; font-size: 14px; }
+                .profile-field { display: flex; flex-direction: column; gap: 8px; color: #374151; font-size: 14px; font-weight: 600; }
+                .profile-field input, .profile-field textarea, .course-entry input { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; background: #fff; color: #111827; font: inherit; font-weight: 400; }
+                .profile-field textarea { resize: vertical; min-height: 100px; }
+                .profile-field input:focus, .profile-field textarea:focus, .course-entry input:focus { outline: 3px solid #c7d2fe; border-color: #6366f1; }
+                .profile-field small { color: #6b7280; font-size: 12px; font-weight: 400; }
+                .required { color: #b91c1c; }
+                .course-entry { display: flex; gap: 8px; }
+                .add-course { flex: 0 0 auto; border: 1px solid #d1d5db; border-radius: 10px; padding: 0 14px; background: #f9fafb; color: #111827; font: inherit; font-weight: 600; cursor: pointer; }
+                .course-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+                .course-list li { display: flex; align-items: center; gap: 8px; border-radius: 999px; padding: 7px 10px; background: #eef2ff; color: #3730a3; font-size: 13px; }
+                .course-list button { border: 0; padding: 0; background: transparent; color: #4338ca; font: inherit; text-decoration: underline; cursor: pointer; }
+                .visibility-options { display: flex; flex-direction: column; gap: 10px; }
+                .visibility-option { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; }
+                .visibility-option input { margin: 3px 0 0; accent-color: #4f46e5; }
+                .visibility-option span { display: flex; flex-direction: column; gap: 4px; }
+                .visibility-option small { color: #6b7280; line-height: 1.4; }
+                .save-profile { width: 100%; min-height: 48px; border: 0; border-radius: 10px; background: #312e81; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+                @media (max-width: 420px) { .profile-page { padding: 22px 12px; } .profile-section { padding: 18px 16px; } .course-entry { flex-direction: column; } .add-course { min-height: 44px; } }
+            `}</style>
+        </main>
     );
 }
-
-
-
-
-
-
-
-
-
-function SettingsSection() {
-    return (
-        <>  
-            <section style={styles.section}>
-                <h3 style={styles.sectionTitle}>Personal information</h3>
-
-                <div style={styles.formGrid}>
-                    <label style={styles.field}>
-                        <span style={styles.label}>Full name</span>
-                        <input style={styles.input} type="text" defaultValue="John Doe" />
-                    </label>
-
-                    <label style={styles.field}>
-                        <span style={styles.label}>Username</span>
-                        <input style={styles.input} type="text" defaultValue="johndoe" />
-                    </label>
-
-                    <label style={styles.field}>
-                        <span style={styles.label}>Email address</span>
-                        <input style={styles.input} type="email" defaultValue="john@example.com" />
-                    </label>
-                </div>
-            </section>
-
-            <section style={styles.section}>
-                <h3 style={styles.sectionTitle}>Preferences</h3>
-
-                <div style={styles.formGrid}>
-                    <label style={styles.field}>
-                        <span style={styles.label}>Language</span>
-                        <select style={styles.input} defaultValue="en">
-                            <option value="en">English</option>
-                            <option value="es">Spanish</option>
-                            <option value="fr">French</option>
-                        </select>
-                    </label>
-                </div>
-            </section>
-
-
-            <div style={styles.footerActions}>
-                <button type="button" style={styles.secondaryButton}>Cancel</button>
-                <button type="button" style={styles.primaryButton}>Update profile</button>
-            </div>
-        </>
-    )
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const styles: Record<string, React.CSSProperties> = {
-    page: {
-        minHeight: '100vh',
-        background: '#f3f4f6',
-        padding: '32px 20px',
-        fontFamily: 'Arial, sans-serif',
-        color: '#111827',
-    },
-    container: {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        background: '#ffffff',
-        borderRadius: '18px',
-        boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
-        overflow: 'hidden',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '28px 32px',
-        borderBottom: '1px solid #e5e7eb',
-    },
-    eyebrow: {
-        margin: 0,
-        textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-        fontSize: '12px',
-        color: '#6b7280',
-    },
-    title: {
-        margin: '8px 0 0',
-        fontSize: '32px',
-    },
-    primaryButton: {
-        border: 'none',
-        borderRadius: '10px',
-        background: '#111827',
-        color: '#ffffff',
-        cursor: 'pointer',
-        fontWeight: 600,
-        padding: '12px 18px',
-    },
-    content: {
-        display: 'flex',
-        gap: '24px',
-        padding: '24px 32px 32px',
-    },
-    sidebar: {
-        width: '280px',
-        background: '#f9fafb',
-        border: '1px solid #e5e7eb',
-        borderRadius: '16px',
-        padding: '24px 20px',
-        textAlign: 'center',
-    },
-    avatarWrap: {
-        display: 'flex',
-        justifyContent: 'center',
-        marginBottom: '16px',
-    },
-    avatar: {
-        width: '88px',
-        height: '88px',
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #111827, #4b5563)',
-        color: '#fff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '28px',
-        fontWeight: 700,
-    },
-    name: {
-        margin: '0 0 6px',
-        fontSize: '24px',
-    },
-    subtitle: {
-        margin: 0,
-        color: '#6b7280',
-    },
-    nav: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        marginTop: '28px',
-    },
-    navButton: {
-        background: '#ffffff',
-        border: '1px solid #e5e7eb',
-        borderRadius: '10px',
-        padding: '12px 14px',
-        textAlign: 'left',
-        cursor: 'pointer',
-        fontSize: '14px',
-        color: '#374151',
-    },
-    mainPanel: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-    },
-    section: {
-        border: '1px solid #e5e7eb',
-        borderRadius: '16px',
-        padding: '22px',
-        background: '#ffffff',
-    },
-    sectionTitle: {
-        margin: '0 0 20px',
-        fontSize: '20px',
-    },
-    formGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, minmax(220px, 1fr))',
-        gap: '18px 20px',
-    },
-    field: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        fontSize: '14px',
-        color: '#374151',
-    },
-    label: {
-        fontWeight: 600,
-    },
-    input: {
-        width: '100%',
-        border: '1px solid #d1d5db',
-        borderRadius: '10px',
-        padding: '11px 12px',
-        fontSize: '14px',
-        background: '#fff',
-        color: '#111827',
-        boxSizing: 'border-box',
-    },
-    secondaryButton: {
-        border: '1px solid #d1d5db',
-        borderRadius: '10px',
-        background: '#ffffff',
-        color: '#111827',
-        cursor: 'pointer',
-        fontWeight: 600,
-        padding: '12px 18px',
-    },
-    footerActions: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '12px',
-        paddingTop: '8px',
-    },
-};
