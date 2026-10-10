@@ -1,4 +1,5 @@
-.event-page__header-row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: start; gap: 12px; }
+.event-page__header-row { position: relative; }
+.event-page__header-row > .event-page__back { position: absolute; top: 0; left: -56px; }
 .event-page__header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
 .event-page__heading { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
 .event-page__back { display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; flex: 0 0 auto; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border: 1px solid var(--form-border); border-radius: 50%; color: var(--form-accent); background: #fff; box-shadow: 0 3px 10px rgb(25 35 55 / 8%); font: inherit; font-size: 1.2rem; cursor: pointer; }
@@ -18,6 +19,12 @@
 .event-page__section p { margin: 10px 0 0; color: #444c60; line-height: 1.55; white-space: pre-wrap; }
 .event-page__tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
 .event-page__tags li { border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .84rem; }
+
+/* Keep the full-width header and the button on-screen when the margin is narrow. */
+@media (max-width: 903px) {
+  .event-page__header-row { padding-top: 56px; }
+  .event-page__header-row > .event-page__back { left: 0; }
+}
 
 @media (max-width: 560px) {
   .event-page__detail, .event-page__section { padding-right: 16px; padding-left: 16px; }
