@@ -6,6 +6,7 @@
   background-color: #282c34;
 
   position: sticky;
+  z-index: 1;
   top: 0;
 
   h2 {
