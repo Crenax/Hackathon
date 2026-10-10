@@ -60,7 +60,6 @@ export interface ListingFilter {
 export interface Listing {
   id: string;
   createdBy: string | null;
-  subject: string;
   description: string;
   startTime: string | null;
   endTime: string | null;
@@ -72,7 +71,6 @@ export interface Listing {
 }
 
 export interface ListingForCreate {
-  subject: string;
   description: string;
   startTime: string;
   endTime: string;
@@ -87,12 +85,10 @@ export interface Message {
   listingId: string;
   author: User | null;
   sentAt: string;
-  subject: string | null;
   content: string;
 }
 
 export interface MessageForCreate {
-  subject?: string | null;
   content: string;
 }
 

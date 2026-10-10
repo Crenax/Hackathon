@@ -22,7 +22,6 @@ function formatLocalDateTime(date: Date): string {
 
 export default function EventsList() {
     const [events, setEvents] = useState<Listing[]>([]);
-    const [subject, setSubject] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [courses, setCourses] = useState<string[]>([]);
@@ -122,7 +121,6 @@ export default function EventsList() {
         if (genderFilter) filters.push({ filterType: "gender", value: genderFilter });
 
         const newEvent: ListingForCreate = {
-            subject: subject.trim(),
             description: description.trim(),
             startTime: startsAt.toISOString(),
             endTime: endsAt.toISOString(),
@@ -138,7 +136,6 @@ export default function EventsList() {
             setEvents((current) =>
                 sortListings([...current.filter((event) => event.id !== createdEvent.id), createdEvent]),
             );
-            setSubject("");
             setStartTime("");
             setEndTime("");
             setLocation("");
@@ -168,20 +165,6 @@ export default function EventsList() {
 
                     <section className="form-card" aria-labelledby="create-event-heading">
                         <form className="form-stack" onSubmit={addEvent}>
-                            <div className="form-field">
-                                <label htmlFor="study-event-subject">
-                                    Subject <span className="form-required">*</span>
-                                </label>
-                                <AutocompleteInputField
-                                    id="study-event-subject"
-                                    value={subject}
-                                    onValueChange={setSubject}
-                                    placeholder="Start typing a course name"
-                                    required
-                                />
-                                <small>Must exactly match a course from the suggestions.</small>
-                            </div>
-
                             <div className="form-row">
                                 <label className="form-field" htmlFor="study-event-start-time">
                                     <span>Starts <span className="form-required">*</span></span>
@@ -194,7 +177,7 @@ export default function EventsList() {
                             </div>
 
                             <div className="form-field">
-                                <label htmlFor="study-event-courses">Additional courses <span className="form-optional">(optional)</span></label>
+                                <label htmlFor="study-event-courses">Courses <span className="form-optional">(optional)</span></label>
                                 <div className="form-inline-entry">
                                     <AutocompleteInputField
                                         id="study-event-courses"

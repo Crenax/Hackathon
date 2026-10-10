@@ -78,7 +78,6 @@ export default function ChatBox({ listingId }: { listingId: string }) {
                                 : "Deleted user"}</strong>
                             <time dateTime={message.sentAt}>{new Date(message.sentAt).toLocaleString()}</time>
                         </header>
-                        {message.subject && <h3>{message.subject}</h3>}
                         <p>{message.content}</p>
                     </article>
                 ))}

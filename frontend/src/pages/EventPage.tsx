@@ -12,6 +12,7 @@ import {
 
 import { getListing, getMyListings, getMyRequests } from "../api";
 import type { Listing } from "../api";
+import { getEventTitle } from "../eventTitle";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
 import "../FormLayout.css";
@@ -118,7 +119,7 @@ function EventPageContent({ event, hasJoined, pending, onRequested }: EventPageC
                     <div className="event-page__heading">
                         <p className="form-eyebrow">Study session</p>
                         <div className="event-page__title-row">
-                            <h1 id="event-title">{event.subject}</h1>
+                            <h1 id="event-title">{getEventTitle(event.courses)}</h1>
                             {event.isPrivate && (
                                 <span className="event-page__private" title="Private event" aria-label="Private event">
                                     <LockFill aria-hidden="true" />
