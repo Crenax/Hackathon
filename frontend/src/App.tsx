@@ -23,11 +23,13 @@ export default App;
 
 const AppContent = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/profile" element={<UserSettings />} />
-      </Routes>
-    </BrowserRouter>
+    <div style={{paddingBottom: "3rem"}}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/profile" element={<UserSettings />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   );
 }
