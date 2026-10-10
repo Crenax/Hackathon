@@ -136,9 +136,8 @@ function EventBackButton() {
     }
 
     return (
-        <button className="event-page__back" type="button" onClick={goBack} aria-label="Go back to the previous page">
+        <button className="event-page__back" type="button" onClick={goBack} aria-label="Go back to the previous page" title="Back">
             <ArrowLeft aria-hidden="true" />
-            Back
         </button>
     );
 }
@@ -168,9 +167,9 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
-                <header className="form-page-header event-page__header">
-                    <div className="event-page__heading-group">
-                        <EventBackButton />
+                <div className="event-page__header-row">
+                    <EventBackButton />
+                    <header className="form-page-header event-page__header">
                         <div className="event-page__heading">
                             <p className="form-eyebrow">Study session</p>
                             <div className="event-page__title-row">
@@ -183,9 +182,9 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                                 )}
                             </div>
                         </div>
-                    </div>
-                    {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
-                </header>
+                        {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
+                    </header>
+                </div>
 
                 <section className="form-card event-page__card" aria-label="Event details">
                     <dl className="event-page__details">
