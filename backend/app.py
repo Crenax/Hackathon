@@ -291,5 +291,5 @@ def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser):
 
 
 if __name__ == "__main__":
-    initDatabaseManager()
+    db.initDatabaseManager()
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
