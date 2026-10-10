@@ -23,7 +23,7 @@ export default App;
 
 const AppContent = () => {
   return (
-    <div style={{paddingBottom: "3rem"}}>
+    <div style={{paddingBottom: "5rem"}}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
