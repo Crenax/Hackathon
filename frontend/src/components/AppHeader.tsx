@@ -44,7 +44,7 @@ const AppHeader = () => {
                     onClick={goToHome}
                     style={{ cursor: "pointer" }}
                 >
-                    App-Title
+                    meETHZ
                 </strong>
             </div>
 
