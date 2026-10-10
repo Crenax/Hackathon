@@ -1,9 +1,26 @@
 import { useState, useRef, useEffect } from "react";
-import { getCourseNames } from "../api";
 
 
-export default function AutocompleteInputField({value = "", onChange, placeholder, ...props}) {
-    const [suggestions, setSuggestions] = useState([]);
+let courseNames = {};
+
+fetch("/api/courses")
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+    })
+    .then(data => { courseNames = data; })
+    .catch(error => {
+        console.error("Error fetching course names:", error);
+    });
+
+
+const suggestions = Object.values(courseNames).map((item) => item.title);
+console.log("Suggestions:", suggestions);
+
+export default function AutocompleteInputField({expValue, expOnChange, expPlaceholder, ...props}) {
+    console.log
+
+    const [value, setValue] = useState("");
     const [open, setOpen] = useState(false);
     const [highlighted, setHighlighted] = useState(-1);
     const ref = useRef(null);
@@ -23,18 +40,8 @@ export default function AutocompleteInputField({value = "", onChange, placeholde
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    useEffect(() => {
-        let active = true;
-        getCourseNames().then((courseNames) => {
-            if (active) setSuggestions(courseNames);
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
-
     const select = (item) => {
-        onChange?.({ target: { value: item } });
+        setValue(item);
         setOpen(false);
         setHighlighted(-1);
     };
@@ -58,14 +65,14 @@ export default function AutocompleteInputField({value = "", onChange, placeholde
     };
 
     return (
-        <div ref={ref} style={{ position: "relative", width: 260 }}>
+        <div style={{ position: "relative", width: 260 }}>
             <input
                 {...props}
-                value={value}
-                onChange={onChange}
+                value={expValue}
+                onChange={expOnChange}
                 onFocus={() => setOpen(true)}
                 onKeyDown={onKeyDown}
-                placeholder={placeholder}
+                placeholder={expPlaceholder}
                 style={{ width: "100%", padding: "8px 10px", fontSize: 14 }}
             />
             {open && filtered.length > 0 && (
