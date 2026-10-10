@@ -63,7 +63,7 @@ export default function EventPage() {
                     const creatorName = await getListingMembers(listingId)
                         .then((members) => {
                             const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
-                            return creator ? `${creator.firstName} ${creator.lastName}`.trim() : "";
+                            return creator ? creator.fullName : "";
                         })
                         .catch(() => "");
                     if (active) setLoadState((current) => ({

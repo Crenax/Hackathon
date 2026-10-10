@@ -33,8 +33,7 @@ def current_user(request: Request) -> User:
     user = db.get_user_by_email(request.state.proxy_email)
     if user is not None:
         return user
-    first_name, _, last_name = request.state.proxy_name.partition(" ")
-    return db.create_user_From_External_Info(first_name, last_name, request.state.proxy_email)
+    return db.create_user_From_External_Info(request.state.proxy_name, request.state.proxy_email)
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
@@ -278,10 +277,10 @@ def get_messages(listing_id: str, user: CurrentUser):
 
 @app.post("/api/listings/{listing_id}/messages", response_model=Message, status_code=201)
 def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser):
-    listing = require_member(listing_id, user)
+	listing = require_member(listing_id, user)
     return db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
 
 
 if __name__ == "__main__":
 	initDatabaseManager()
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+	uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

@@ -107,8 +107,7 @@ Authenticated responses use `Cache-Control: no-store`.
 ```json
 {
   "id": "user-1",
-  "firstName": "Albert",
-  "lastName": "Einstein",
+  "fullName": "Albert Einstein",
   "emailAddress": "einstein@ethz.ch",
   "dateOfBirth": null,
   "gender": null,
@@ -122,7 +121,7 @@ Authenticated responses use `Cache-Control: no-store`.
 | Field | JSON type / accepted values |
 | --- | --- |
 | `id` | string; database user ID |
-| `firstName`, `lastName`, `description` | string; last name and description default to `""` |
+| `fullName`, `description` | string; both default to `""`. New users get the full name from the proxy's `X-User-Name` header |
 | `emailAddress` | string or null; proxy identity email |
 | `dateOfBirth` | date string or null |
 | `gender` | `prefer_not_to_say`, `male`, `female`, `non_binary`, or null |
@@ -226,7 +225,7 @@ and submit requests/messages as themselves.
 | `GET /api/me/listings` | No body | `200` array of Listing objects where caller is member/admin, including private listings |
 | `GET /api/me/requests` | No body | `200` array of caller's PendingRequest objects, oldest first, including private listings |
 
-`PATCH /api/me` accepts `firstName`, `lastName`, `dateOfBirth`, `gender`, `major`,
+`PATCH /api/me` accepts `fullName`, `dateOfBirth`, `gender`, `major`,
 `degree`, `pfp`, and `description` using the User types/enums above. All fields
 are optional; omitted fields remain unchanged and `{}` is allowed. Nullable
 profile fields can be cleared with null. Use strings for names/description

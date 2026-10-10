@@ -42,11 +42,11 @@ class MemoryDatabaseManager(DatabaseManager):
                      if u.emailAddress == email.strip().lower()), None)
 
     @locked
-    def create_user(self, email: str, first_name: str, last_name: str = "") -> User:
+    def create_user(self, email: str, full_name: str) -> User:
         if self.get_user_by_email(email):
             raise ValueError("User already exists")
         user = User(id=str(uuid4()), emailAddress=email.strip().lower(),
-                    firstName=first_name, lastName=last_name)
+                    fullName=full_name.strip())
         self._users[user.id] = user
         return user.model_copy(deep=True)
 

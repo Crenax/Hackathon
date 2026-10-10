@@ -39,8 +39,7 @@ export type Course = string;
 
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   emailAddress: string;
   dateOfBirth: string | null;
   gender: Gender | null;
@@ -77,8 +76,7 @@ export interface ListingMember {
 }
 
 export interface UserForCreate {
-  firstName?: string;
-  lastName?: string;
+  fullName?: string;
   emailAddress?: string;
   dateOfBirth?: string | null;
   gender?: Gender | null;
@@ -89,8 +87,7 @@ export interface UserForCreate {
 
 // Only the fields that are sent get updated
 export interface UserForUpdate {
-  firstName?: string | null;
-  lastName?: string | null;
+  fullName?: string | null;
   dateOfBirth?: string | null;
   gender?: Gender | null;
   major?: Major | null;
