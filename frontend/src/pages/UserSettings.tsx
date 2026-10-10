@@ -1,9 +1,14 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 export default function UserSettings() {
     const [courses, setCourses] = useState<string[]>([]);
     const [courseInput, setCourseInput] = useState('');
     const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+    const [profilePicture, setProfilePicture] = useState<string | null>(null);
+
+    useEffect(() => () => {
+        if (profilePicture) URL.revokeObjectURL(profilePicture);
+    }, [profilePicture]);
 
     function addCourse() {
         const course = courseInput.trim();
@@ -26,6 +31,35 @@ export default function UserSettings() {
                     <h1>Create your profile</h1>
                     <p>Introduce yourself and choose what other people can see.</p>
                 </header>
+
+                <section className="profile-section picture-section" aria-labelledby="picture-heading">
+                    <h2 id="picture-heading">Profile picture</h2>
+                    <div className="picture-picker">
+                        {profilePicture ? (
+                            <img className="picture-preview" src={profilePicture} alt="Profile preview" />
+                        ) : (
+                            <div className="picture-placeholder" aria-hidden="true">Add photo</div>
+                        )}
+                        <div className="picture-controls">
+                            <label className="picture-upload">
+                                <span>{profilePicture ? 'Change picture' : 'Choose picture'}</span>
+                                <input
+                                    type="file"
+                                    name="profilePicture"
+                                    accept="image/*"
+                                    onChange={(event) => {
+                                        const file = event.currentTarget.files?.[0];
+                                        if (file) setProfilePicture(URL.createObjectURL(file));
+                                    }}
+                                />
+                            </label>
+                            {profilePicture && (
+                                <button className="remove-picture" type="button" onClick={() => setProfilePicture(null)}>Remove picture</button>
+                            )}
+                            <small>Choose an image from your device.</small>
+                        </div>
+                    </div>
+                </section>
 
                 <section className="profile-section" aria-labelledby="personal-heading">
                     <h2 id="personal-heading">Personal information</h2>
@@ -109,6 +143,16 @@ export default function UserSettings() {
                 .profile-heading > p:last-child { margin: 9px 0 0; color: #6b7280; }
                 .profile-section { display: flex; flex-direction: column; gap: 18px; padding: 22px; border: 1px solid #e5e7eb; border-radius: 16px; background: white; box-shadow: 0 4px 14px rgba(15, 23, 42, .03); }
                 .profile-section h2 { margin: 0; font-size: 19px; }
+                .picture-picker { display: flex; align-items: center; gap: 16px; }
+                .picture-preview, .picture-placeholder { width: 88px; height: 88px; flex: 0 0 88px; border-radius: 50%; }
+                .picture-preview { object-fit: cover; }
+                .picture-placeholder { display: grid; place-items: center; background: #eef2ff; color: #4338ca; font-size: 13px; font-weight: 600; }
+                .picture-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+                .picture-upload { display: inline-flex; align-items: center; min-height: 40px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 10px; padding: 0 14px; background: #f9fafb; color: #111827; font-size: 14px; font-weight: 600; cursor: pointer; }
+                .picture-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+                .picture-upload:focus-within { outline: 3px solid #c7d2fe; border-color: #6366f1; }
+                .remove-picture { padding: 0; border: 0; background: transparent; color: #4f46e5; font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
+                .picture-controls small { color: #6b7280; font-size: 12px; }
                 .section-description { margin: -12px 0 0; color: #6b7280; font-size: 14px; }
                 .profile-field { display: flex; flex-direction: column; gap: 8px; color: #374151; font-size: 14px; font-weight: 600; }
                 .profile-field input, .profile-field textarea, .course-entry input { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; background: #fff; color: #111827; font: inherit; font-weight: 400; }
