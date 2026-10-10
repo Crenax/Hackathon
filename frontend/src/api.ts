@@ -157,6 +157,10 @@ export function createListing(listing: ListingForCreate): Promise<Listing> {
   return request<Listing>(`/api/listings`, "POST", listing);
 }
 
+export function getListings(): Promise<Listing[]> {
+  return request<Listing[]>(`/api/listings`, "GET");
+}
+
 export function getTodos(): Promise<TodoItem[]> {
   return request<TodoItem[]>(`/api/todos`, "GET").then((todos) =>
     todos.map(parseDeadline),

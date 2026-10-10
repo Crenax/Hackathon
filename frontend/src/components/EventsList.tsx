@@ -1,20 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { PlusCircleFill, XCircle, Trash3 } from "react-bootstrap-icons";
 
-import { createListing, type Listing, type ListingForCreate } from "../api";
+import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
 import "../FormLayout.css";
 import "./EventsList.css";
 import AutocompleteInputField from "./AutocompleteInputField";
 
-const STORAGE_KEY = "viscon-study-listings";
-
-function readEvents(): Listing[] {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? (JSON.parse(saved) as Listing[]) : [];
-    } catch {
-        return [];
-    }
+function sortListings(listings: Listing[]): Listing[] {
+    return [...listings].sort((a, b) =>
+        (a.startTime ?? "").localeCompare(b.startTime ?? ""),
+    );
 }
 
 function today(): string {
@@ -23,7 +18,7 @@ function today(): string {
 }
 
 export default function EventsList() {
-    const [events, setEvents] = useState<Listing[]>(readEvents);
+    const [events, setEvents] = useState<Listing[]>([]);
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
@@ -33,10 +28,34 @@ export default function EventsList() {
     const [newCourse, setNewCourse] = useState("");
     const [isAdding, setIsAdding] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
 
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-    }, [events]);
+        let isActive = true;
+
+        getListings()
+            .then((publishedEvents) => {
+                if (isActive) {
+                    setEvents(sortListings(publishedEvents));
+                    setLoadError("");
+                }
+            })
+            .catch((error: unknown) => {
+                if (isActive) {
+                    setLoadError(error instanceof Error ? error.message : "Could not load published events.");
+                }
+            })
+            .finally(() => {
+                if (isActive) {
+                    setIsLoading(false);
+                }
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     function addCourse() {
         const trimmedCourse = newCourse.trim();
@@ -67,9 +86,7 @@ export default function EventsList() {
         try {
             const createdEvent = await createListing(newEvent);
             setEvents((current) =>
-                [...current, createdEvent].sort((a, b) =>
-                    (a.startTime ?? "").localeCompare(b.startTime ?? ""),
-                ),
+                sortListings([...current.filter((event) => event.id !== createdEvent.id), createdEvent]),
             );
             setTitle("");
             setDate("");
@@ -189,7 +206,9 @@ export default function EventsList() {
                     </div>
 
                     {events.length === 0 ? (
-                        <p className="event-empty">No events yet. You can be the first!</p>
+                        <p className="event-empty">
+                            {isLoading ? "Loading events…" : loadError || "No events yet. You can be the first!"}
+                        </p>
                     ) : (
                         <div className="event-list">
                             {events.map((studyEvent) => {
