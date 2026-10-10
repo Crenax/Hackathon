@@ -10,7 +10,7 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getListingMembers, getMyListings, getMyRequests, MemberRole } from "../api";
+import { getListing, getListingMembers, getMyListings, getMyRequests, getMe, MemberRole } from "../api";
 import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -36,6 +36,7 @@ interface EventLoadState {
     creatorName?: string;
     members?: ListingMember[];
     membersError?: string;
+    currentUserId?: string;
     hasJoined?: boolean;
     pending?: boolean;
     error?: string;
@@ -51,13 +52,14 @@ export default function EventPage() {
 
         let active = true;
         // Both /me endpoints resolve the authenticated user's ID on the server.
-        Promise.all([getListing(listingId), getMyListings(), getMyRequests()])
-            .then(async ([event, memberships, requests]) => {
+        Promise.all([getListing(listingId), getMyListings(), getMyRequests(), getMe()])
+            .then(async ([event, memberships, requests, me]) => {
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
                 setLoadState({
                     listingId,
                     event,
+                    currentUserId: me.id,
                     hasJoined,
                     pending: requests.some((request) => request.listing.id === listingId),
                 });
@@ -72,7 +74,7 @@ export default function EventPage() {
                             ...current,
                             members,
                             creatorName: creator
-                                ? `${creator.firstName} ${creator.lastName}`.trim() || "Name unavailable"
+                                ? creator.fullName.trim() || "Name unavailable"
                                 : "Name unavailable",
                         }));
                     } catch {
@@ -113,6 +115,8 @@ export default function EventPage() {
 
     return <EventPageContent
         event={loadState.event}
+        key={listingId}
+        currentUserId={loadState.currentUserId}
         creatorName={loadState.creatorName}
         members={loadState.members}
         membersError={loadState.membersError}
@@ -161,9 +165,10 @@ interface EventPageContentProps {
     hasJoined: boolean;
     pending: boolean;
     onRequested: () => void;
+    currentUserId?: string;
 }
 
-function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested }: EventPageContentProps) {
+function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested, currentUserId }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -229,42 +234,107 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                     )}
 
                 </section>
-                {hasJoined && (
-                    <section className="form-card event-page__section" aria-labelledby="event-members-heading">
-                        <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
-                        {membersError ? (
-                            <p role="alert">{membersError}</p>
-                        ) : members === undefined ? (
-                            <p role="status">Loading members…</p>
-                        ) : members.length === 0 ? (
-                            <p>No accepted members yet.</p>
-                        ) : (
-                            <div className="event-page__member-groups">
-                                {[MemberRole.admin, MemberRole.member].map((groupRole) => {
-                                    const group = members.filter(({ role }) => role === groupRole);
-                                    if (group.length === 0) return null;
-                                    return (
-                                        <ul className="event-page__members" key={groupRole}
-                                            aria-label={groupRole === MemberRole.admin ? "Admins" : "Members"}>
-                                            {group.map(({ user, role }) => (
-                                                <li className="event-page__member" key={user.id}>
-                                                    <span className="event-page__member-name">
-                                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
-                                                    </span>
-                                                    <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
-                                                        {role === MemberRole.admin ? "Admin" : "Member"}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </section>
-                )}
+                <Attendance event={event} members={members} membersError={membersError}
+                    hasJoined={hasJoined} currentUserId={currentUserId} />
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>
     );
+}
+
+function displayValue(value: string | null) {
+    if (!value) return "Not provided";
+    if (value === "phd") return "PhD";
+    return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+async function attendanceRequest<T>(eventId: string, path: string, method = "GET"): Promise<T> {
+    const response = await fetch(`/api/listings/${encodeURIComponent(eventId)}/${path}`, { method });
+    if (!response.ok) throw new Error(`Request failed (${response.status}). Please try again.`);
+    return response.status === 204 ? undefined as T : response.json();
+}
+
+function Attendance({ event, members, membersError, hasJoined, currentUserId }: {
+    event: Listing;
+    members?: ListingMember[];
+    membersError?: string;
+    hasJoined: boolean;
+    currentUserId?: string;
+}) {
+    const [updatedMembers, setUpdatedMembers] = useState<ListingMember[]>();
+    const [requests, setRequests] = useState<ListingMember[]>();
+    const [requestsError, setRequestsError] = useState("");
+    const [actionError, setActionError] = useState("");
+    const [busy, setBusy] = useState(false);
+    const attendees = updatedMembers ?? members;
+    const isAdmin = attendees?.some(({ user, role }) => user.id === currentUserId && role === MemberRole.admin) === true;
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        let active = true;
+        attendanceRequest<ListingMember[]>(event.id, "requests")
+            .then((items) => { if (active) { setRequests(items); setRequestsError(""); } })
+            .catch(() => { if (active) setRequestsError("Could not load pending requests. Please refresh to try again."); });
+        return () => { active = false; };
+    }, [event.id, isAdmin]);
+
+    async function act(member: ListingMember, action: "accept" | "deny" | "remove") {
+        if (busy || !isAdmin || member.user.id === currentUserId) return;
+        setBusy(true);
+        setActionError("");
+        try {
+            const id = encodeURIComponent(member.user.id);
+            await attendanceRequest<void>(event.id,
+                action === "accept" ? `requests/${id}/approve` : `members/${id}`,
+                action === "accept" ? "POST" : "DELETE");
+            if (action === "accept") {
+                setUpdatedMembers((previous) => [...(previous ?? members ?? []), { ...member, role: MemberRole.member }]);
+            } else if (action === "remove") {
+                setUpdatedMembers((previous) => (previous ?? members ?? []).filter(({ user }) => user.id !== member.user.id));
+            }
+            if (action !== "remove") setRequests((previous) => previous?.filter(({ user }) => user.id !== member.user.id));
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not complete the action. Please try again.");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    function table(items: ListingMember[], pendingRequests = false) {
+        return <div className="event-page__table-scroll">
+            <table className="event-page__attendance-table">
+                <caption className="event-page__table-caption">{pendingRequests ? "People requesting to join" : "People attending this event"}</caption>
+                <thead><tr><th scope="col">First name</th><th scope="col">Last name</th><th scope="col">Major</th><th scope="col">Degree</th>
+                    {isAdmin && <th scope="col">Actions</th>}
+                </tr></thead>
+                <tbody>{items.map((member) => {
+                    const [firstName, ...lastName] = member.user.fullName.trim().split(/\s+/);
+                    return <tr key={member.user.id}>
+                        <td>{firstName || "Not provided"}</td><td>{lastName.join(" ") || "Not provided"}</td>
+                        <td>{displayValue(member.user.major)}</td><td>{displayValue(member.user.degree)}</td>
+                        {isAdmin && <td><div className="event-page__attendance-actions">
+                            {member.user.id === currentUserId ? <span>You</span> : pendingRequests ? <>
+                                <button type="button" disabled={busy} onClick={() => void act(member, "accept")}>Accept</button>
+                                <button type="button" disabled={busy} onClick={() => void act(member, "deny")}>Deny</button>
+                            </> : <button type="button" disabled={busy} onClick={() => void act(member, "remove")}>Remove</button>}
+                        </div></td>}
+                    </tr>;
+                })}</tbody>
+            </table>
+        </div>;
+    }
+
+    return <section className="form-card event-page__section" aria-labelledby="event-members-heading" aria-busy={busy}>
+        <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Attendance</h2>
+        <p aria-live="polite">{attendees?.length ?? event.memberIds.length} people attending</p>
+        {hasJoined && (membersError ? <p role="alert">{membersError}</p>
+            : attendees === undefined ? <p role="status">Loading attendees…</p>
+            : attendees.length === 0 ? <p>No attendees yet.</p> : table(attendees))}
+        {isAdmin && <section className="event-page__pending" aria-labelledby="event-requests-heading">
+            <h2 id="event-requests-heading">Pending requests</h2>
+            {requestsError ? <p role="alert">{requestsError}</p> : requests === undefined ? <p role="status">Loading requests…</p>
+                : requests.length === 0 ? <p>No pending requests.</p> : table(requests, true)}
+        </section>}
+        {actionError && <p role="alert">{actionError}</p>}
+    </section>;
 }
