@@ -2,12 +2,14 @@ import { use, useEffect, useState, type FormEvent } from "react";
 import "./EventsList.css";
 import "../index.css";
 import { BorderStyle, PlusCircleFill } from 'react-bootstrap-icons';
+import AutocompleteInputField from "./AutocompleteInputField";
 
 interface StudyEvent {
     id: string;
     title: string;
     date: string;
     time: string;
+    courses: string[];
     location: string;
     description: string;
 }
@@ -33,8 +35,21 @@ export default function CreateEvent() {
     const [title, setTitle] = useState("");
     const [date, setDate] = useState("");
     const [time, setTime] = useState("");
+    const [courses, setCourses] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
+
+    const [newCourse, setNewCourse] = useState("");
+    function addCourse() {
+        console.log("Adding course:", newCourse);
+        const trimmedCourse = newCourse.trim();
+        if (trimmedCourse && !courses.includes(trimmedCourse)) {
+            setCourses((current) => [...current, trimmedCourse]);
+            console.log("Added course:", trimmedCourse);
+            console.log("Current courses:", [...courses, trimmedCourse]);
+        }
+        setNewCourse("");
+    }
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -52,6 +67,7 @@ export default function CreateEvent() {
             title: title.trim(),
             date,
             time,
+            courses,
             location: location.trim(),
             description: description.trim(),
         };
@@ -66,6 +82,8 @@ export default function CreateEvent() {
         setTime("");
         setLocation("");
         setDescription("");
+        setCourses([]);
+        setNewCourse("");
 
         addButtonClicked();
     }
@@ -92,6 +110,14 @@ export default function CreateEvent() {
                             <div className="create-event-field">
                                 <label htmlFor="study-event-time">Start time</label>
                                 <input id="study-event-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+                            </div>
+                        </div>
+
+                        <div className="create-event-field">
+                            <label htmlFor="study-event-courses">Courses</label>
+                            <div style={{display:"flex", alignItems:"center", justifyContent:'start', gap:"1rem"}}>
+                                <AutocompleteInputField id="study-event-courses" value={newCourse} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCourse(e.target.value)} placeholder="e.g. CS101, MATH202" />
+                                <AddButton onClick={addCourse} />
                             </div>
                         </div>
 
@@ -123,9 +149,7 @@ export default function CreateEvent() {
                             <span>{events.length}</span>
                         </div>
                         
-                        <a type="button" onClick={addButtonClicked} style={{color: "#5748c8", fontSize: "2.5rem"}}>
-                            <PlusCircleFill />
-                        </a>
+                        <AddButton onClick={addButtonClicked} />
                     </div>
                     {events.length === 0 ? (
                         <p className="create-event-empty">No events yet. You can be the first!</p>
@@ -166,4 +190,16 @@ export default function CreateEvent() {
             </main>
         );
     }
+}
+
+
+
+
+
+function AddButton({ onClick }: { onClick: () => void }) {
+    return (
+        <a type="button" onClick={onClick} style={{color: "#5748c8", fontSize: "2.5rem"}}>
+            <PlusCircleFill />
+        </a>
+    );
 }
