@@ -45,6 +45,10 @@ const AppContent = () => {
         <a href={scienceIconAttribution.url}>
           {scienceIconAttribution.text}
         </a>
+        <br />
+        <a href="https://getbootstrap.com">
+          Interface icons by Bootstrap
+        </a>
       </div>
     </div>
   );

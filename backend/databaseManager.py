@@ -56,8 +56,8 @@ def listing_courses(subject: str, courses: list[str] | None) -> list[str]:
 def user_from_row(row: dict) -> User:
     return User(
         id=row["id"],
-        firstName=row["first_name"],
-        lastName=row["last_name"],
+        firstName=row.get("first_name") or "",
+        lastName=row.get("last_name") or "",
         emailAddress=row.get("email"),
         dateOfBirth=row.get("date_of_birth"),
         gender=row.get("gender"),
@@ -231,8 +231,15 @@ class DatabaseManager:
     def update_listing(self, listing_id: str, admin_id: str, update: ListingForUpdate) -> Listing:
         self.require_admin(listing_id, admin_id)
         columns = to_columns(update.model_dump(mode="json", exclude_unset=True), LISTING_COLUMNS)
+        # Preserve null handling from the function-based implementation.
+        if "description" in columns and columns["description"] is None:
+            columns["description"] = ""
+        if "is_private" in columns and columns["is_private"] is None:
+            del columns["is_private"]
         if "subject" in update.model_fields_set or "courses" in update.model_fields_set:
             existing = self.get_listing_by_id(listing_id)
+            if existing is None:
+                raise ValueError("Listing not found")
             subject = update.subject or existing.subject
             courses = columns.get("courses") if "courses" in update.model_fields_set else existing.courses[1:]
             columns["courses"] = listing_courses(subject.value, courses)

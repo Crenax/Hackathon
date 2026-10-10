@@ -1,4 +1,3 @@
-
 from datetime import date, datetime
 from enum import Enum
 
@@ -40,6 +39,7 @@ class MemberRole(str, Enum):
 class User(BaseModel):
     id: str
     firstName: str = Field(
+        default="",
         validation_alias=AliasChoices("firstName", "name")
     )
     lastName: str = ""
@@ -49,6 +49,17 @@ class User(BaseModel):
     major: Major | None = None
     degree: Degree | None = None
     pfp: str | None = None
+    description: str = ""
+
+
+class UserForCreate(BaseModel):
+    firstName: str = ""
+    lastName: str = ""
+    emailAddress: str = ""
+    dateOfBirth: date | None = None
+    gender: Gender | None = None
+    major: Major | None = None
+    degree: Degree | None = None
     description: str = ""
 
 
@@ -97,12 +108,12 @@ class ListingForCreate(BaseModel):
 class ListingForUpdate(BaseModel):
     # Only the fields that are sent get updated; send null to unset start/end time or location
     subject: Course | None = None
-    description: str | None = None
-    startTime: datetime | None = None
-    endTime: datetime | None = None
-    location: str | None = None
-    courses: list[Course] | None = None
-    isPrivate: bool | None = None
+    description: str | None = Field(default=None, validation_alias=AliasChoices("description", "newDescription"))
+    startTime: datetime | None = Field(default=None, validation_alias=AliasChoices("startTime", "newStartTime"))
+    endTime: datetime | None = Field(default=None, validation_alias=AliasChoices("endTime", "newEndTime"))
+    location: str | None = Field(default=None, validation_alias=AliasChoices("location", "newLocation"))
+    courses: list[Course] | None = Field(default=None, validation_alias=AliasChoices("courses", "newCourses"))
+    isPrivate: bool | None = Field(default=None, validation_alias=AliasChoices("isPrivate", "newIsPrivate"))
 
     @field_validator("subject")
     @classmethod
@@ -149,4 +160,3 @@ class TodoItemForCreate(BaseModel):
     title: str
     description: str
     deadline: datetime
-

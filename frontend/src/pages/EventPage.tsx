@@ -10,17 +10,12 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing } from "../api";
+import { getListing, getMyListings, getMyRequests } from "../api";
 import type { Listing } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
 import "../FormLayout.css";
 import "./EventPage.css";
-
-export interface EventPageProps {
-    /** Set this only for approved members, never pending join requests. */
-    hasJoined?: boolean;
-}
 
 function formatDateTime(value: string | null): string {
     if (!value) return "To be confirmed";
@@ -37,10 +32,12 @@ function formatDateTime(value: string | null): string {
 interface EventLoadState {
     listingId: string;
     event?: Listing;
+    hasJoined?: boolean;
+    pending?: boolean;
     error?: string;
 }
 
-export default function EventPage({ hasJoined = false }: EventPageProps) {
+export default function EventPage() {
     const [searchParams] = useSearchParams();
     const listingId = searchParams.get("id")?.trim() ?? "";
     const [loadState, setLoadState] = useState<EventLoadState>({ listingId: "" });
@@ -49,9 +46,15 @@ export default function EventPage({ hasJoined = false }: EventPageProps) {
         if (!listingId) return;
 
         let active = true;
-        getListing(listingId)
-            .then((event) => {
-                if (active) setLoadState({ listingId, event });
+        // Both /me endpoints resolve the authenticated user's ID on the server.
+        Promise.all([getListing(listingId), getMyListings(), getMyRequests()])
+            .then(([event, memberships, requests]) => {
+                if (active) setLoadState({
+                    listingId,
+                    event,
+                    hasJoined: memberships.some((listing) => listing.id === listingId),
+                    pending: requests.some((request) => request.listing.id === listingId),
+                });
             })
             .catch((error: unknown) => {
                 if (!active) return;
@@ -80,9 +83,14 @@ export default function EventPage({ hasJoined = false }: EventPageProps) {
         return <EventPageStatus role="status">Loading event…</EventPageStatus>;
     }
 
-    // The API only returns a private listing to one of its approved members.
-    const canSeeMemberDetails = hasJoined || loadState.event.isPrivate;
-    return <EventPageContent event={loadState.event} hasJoined={canSeeMemberDetails} />;
+    return <EventPageContent
+        event={loadState.event}
+        hasJoined={loadState.hasJoined === true}
+        pending={loadState.pending === true}
+        onRequested={() => setLoadState((current) =>
+            current.listingId === listingId ? { ...current, pending: true } : current
+        )}
+    />;
 }
 
 function EventPageStatus({ children, role }: { children: string; role: "alert" | "status" }) {
@@ -97,10 +105,12 @@ function EventPageStatus({ children, role }: { children: string; role: "alert" |
 
 interface EventPageContentProps {
     event: Listing;
-    hasJoined?: boolean;
+    hasJoined: boolean;
+    pending: boolean;
+    onRequested: () => void;
 }
 
-function EventPageContent({ event, hasJoined = false }: EventPageContentProps) {
+function EventPageContent({ event, hasJoined, pending, onRequested }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -117,7 +127,7 @@ function EventPageContent({ event, hasJoined = false }: EventPageContentProps) {
                             )}
                         </div>
                     </div>
-                    {!hasJoined && <JoinEventButton key={event.id} event={event} />}
+                    {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
                 </header>
 
                 <section className="form-card event-page__card" aria-label="Event details">
