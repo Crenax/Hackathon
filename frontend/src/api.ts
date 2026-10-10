@@ -188,6 +188,14 @@ export function getListing(listingId: string): Promise<Listing> {
   );
 }
 
+// Outlook link that opens a prefilled "new event" form, e.g. window.open(url, "_blank")
+export function getOutlookCalendarLink(listingId: string): Promise<string> {
+  return request<{ url: string }>(
+    `/api/listings/${encodeURIComponent(listingId)}/calendar`,
+    "GET",
+  ).then((response) => response.url);
+}
+
 export function getListingMembers(listingId: string): Promise<ListingMember[]> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/members`, "GET");
 }
