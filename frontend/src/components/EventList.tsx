@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import type { Listing } from "../api";
 import { getEventTitle } from "../eventTitle";
+import { compareEventsFutureToPast } from "../eventSorting";
 import "./EventList.css";
 
 export interface EventListProps {
@@ -21,9 +22,11 @@ export default function EventList({
         return <p className="event-empty">{emptyMessage}</p>;
     }
 
+    const sortedEvents = [...events].sort(compareEventsFutureToPast);
+
     return (
         <div className="event-list">
-            {events.map((event) => {
+            {sortedEvents.map((event) => {
                 const eventTitle = getEventTitle(event.courses);
                 const eventDate = new Date(event.startTime ?? "");
                 const hasValidDate = !Number.isNaN(eventDate.getTime());

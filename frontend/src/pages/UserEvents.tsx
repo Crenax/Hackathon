@@ -7,6 +7,7 @@ import {
     type Listing,
 } from "../api";
 import EventList from "../components/EventList";
+import { compareEventsFutureToPast } from "../eventSorting";
 import "../FormLayout.css";
 import "./EventsList.css";
 import "./UserEvents.css";
@@ -26,10 +27,6 @@ function validTimestamp(value: string | null): number | undefined {
 
 function eventEndTimestamp(event: Listing): number | undefined {
     return validTimestamp(event.endTime) ?? validTimestamp(event.startTime);
-}
-
-function eventStartTimestamp(event: Listing): number {
-    return validTimestamp(event.startTime) ?? Number.POSITIVE_INFINITY;
 }
 
 export default function UserEvents() {
@@ -91,8 +88,8 @@ export default function UserEvents() {
             }
         });
 
-        current.sort((a, b) => eventStartTimestamp(a.listing) - eventStartTimestamp(b.listing));
-        past.sort((a, b) => (eventEndTimestamp(b.listing) ?? 0) - (eventEndTimestamp(a.listing) ?? 0));
+        current.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
+        past.sort((a, b) => compareEventsFutureToPast(a.listing, b.listing));
 
         return {
             currentEvents: current.map(({ listing }) => listing),

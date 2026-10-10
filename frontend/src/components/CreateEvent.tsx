@@ -15,10 +15,14 @@ const STORAGE_KEY = "viscon-study-events";
 function readEvents(): StudyEvent[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? (JSON.parse(saved) as StudyEvent[]) : [];
+    return saved ? (JSON.parse(saved) as StudyEvent[]).sort(compareEventsFutureToPast) : [];
   } catch {
     return [];
   }
+}
+
+function compareEventsFutureToPast(first: StudyEvent, second: StudyEvent): number {
+  return `${second.date}T${second.time}`.localeCompare(`${first.date}T${first.time}`);
 }
 
 function today(): string {
@@ -50,9 +54,7 @@ export default function CreateEvent() {
     };
 
     setEvents((current) =>
-      [...current, newEvent].sort((a, b) =>
-        `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`),
-      ),
+      [...current, newEvent].sort(compareEventsFutureToPast),
     );
     setTitle("");
     setDate("");

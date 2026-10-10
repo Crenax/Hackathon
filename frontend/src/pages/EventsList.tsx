@@ -4,6 +4,7 @@ import { XCircle } from "react-bootstrap-icons";
 import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
 import AutocompleteInputField from "../components/AutocompleteInputField";
 import EventList from "../components/EventList";
+import { compareEventsFutureToPast } from "../eventSorting";
 import "../FormLayout.css";
 import "./EventsList.css";
 
@@ -12,9 +13,7 @@ type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
 function sortListings(listings: Listing[]): Listing[] {
-    return [...listings].sort((a, b) =>
-        (a.startTime ?? "").localeCompare(b.startTime ?? ""),
-    );
+    return [...listings].sort(compareEventsFutureToPast);
 }
 
 function formatLocalDateTime(date: Date): string {
