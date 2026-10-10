@@ -9,8 +9,8 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getListingMembers, getMyListings, getMyRequests } from "../api";
-import type { Listing } from "../api";
+import { getListing, getListingMembers, getMyListings, getMyRequests, MemberRole } from "../api";
+import type { Listing, ListingMember } from "../api";
 import { getEventTitle } from "../eventTitle";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -33,6 +33,8 @@ interface EventLoadState {
     listingId: string;
     event?: Listing;
     creatorName?: string;
+    members?: ListingMember[];
+    membersError?: string;
     hasJoined?: boolean;
     pending?: boolean;
     error?: string;
@@ -59,17 +61,26 @@ export default function EventPage() {
                     pending: requests.some((request) => request.listing.id === listingId),
                 });
 
-                if (hasJoined && event.createdBy) {
-                    const creatorName = await getListingMembers(listingId)
-                        .then((members) => {
-                            const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
-                            return creator ? `${creator.firstName} ${creator.lastName}`.trim() : "";
-                        })
-                        .catch(() => "");
-                    if (active) setLoadState((current) => ({
-                        ...current,
-                        creatorName: creatorName || "Name unavailable",
-                    }));
+                if (hasJoined) {
+                    try {
+                        const members = (await getListingMembers(listingId)).filter(
+                            (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
+                        );
+                        const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
+                        if (active) setLoadState((current) => ({
+                            ...current,
+                            members,
+                            creatorName: creator
+                                ? `${creator.firstName} ${creator.lastName}`.trim() || "Name unavailable"
+                                : "Name unavailable",
+                        }));
+                    } catch {
+                        if (active) setLoadState((current) => ({
+                            ...current,
+                            creatorName: "Name unavailable",
+                            membersError: "Could not load members. Please try refreshing.",
+                        }));
+                    }
                 }
             })
             .catch((error: unknown) => {
@@ -102,6 +113,8 @@ export default function EventPage() {
     return <EventPageContent
         event={loadState.event}
         creatorName={loadState.creatorName}
+        members={loadState.members}
+        membersError={loadState.membersError}
         hasJoined={loadState.hasJoined === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
@@ -123,12 +136,14 @@ function EventPageStatus({ children, role }: { children: string; role: "alert" |
 interface EventPageContentProps {
     event: Listing;
     creatorName?: string;
+    members?: ListingMember[];
+    membersError?: string;
     hasJoined: boolean;
     pending: boolean;
     onRequested: () => void;
 }
 
-function EventPageContent({ event, creatorName, hasJoined, pending, onRequested }: EventPageContentProps) {
+function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -189,6 +204,26 @@ function EventPageContent({ event, creatorName, hasJoined, pending, onRequested 
                     )}
 
                 </section>
+                {hasJoined && (
+                    <section className="form-card event-page__section" aria-labelledby="event-members-heading">
+                        <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
+                        {membersError ? (
+                            <p role="alert">{membersError}</p>
+                        ) : members === undefined ? (
+                            <p role="status">Loading members…</p>
+                        ) : members.length === 0 ? (
+                            <p>No accepted members yet.</p>
+                        ) : (
+                            <ul className="event-page__tags">
+                                {members.map(({ user }) => (
+                                    <li key={user.id}>
+                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </section>
+                )}
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>
