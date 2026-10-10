@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { XCircle } from "react-bootstrap-icons";
 
 import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
@@ -9,6 +9,7 @@ import "./EventsList.css";
 
 type DegreeFilter = "" | "bachelor" | "master" | "phd";
 type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
+const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
 function sortListings(listings: Listing[]): Listing[] {
     return [...listings].sort((a, b) =>
@@ -18,6 +19,16 @@ function sortListings(listings: Listing[]): Listing[] {
 
 function formatLocalDateTime(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function eventEndTimestamp(event: Listing): number | undefined {
+    const timestamp = new Date(event.endTime ?? event.startTime ?? "").getTime();
+    return Number.isNaN(timestamp) ? undefined : timestamp;
+}
+
+function isPastEvent(event: Listing, referenceTime: number): boolean {
+    const endsAt = eventEndTimestamp(event);
+    return endsAt !== undefined && endsAt < referenceTime;
 }
 
 export default function EventsList() {
@@ -37,6 +48,7 @@ export default function EventsList() {
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [minimumStartTime, setMinimumStartTime] = useState(() => formatLocalDateTime(new Date()));
+    const [referenceTime, setReferenceTime] = useState(() => Date.now());
 
     useEffect(() => {
         let isActive = true;
@@ -63,6 +75,16 @@ export default function EventsList() {
             isActive = false;
         };
     }, []);
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setReferenceTime(Date.now()), 60 * 1000);
+        return () => window.clearInterval(timer);
+    }, []);
+
+    const visibleEvents = useMemo(() => events.filter((event) => {
+        const endsAt = eventEndTimestamp(event);
+        return endsAt === undefined || endsAt >= referenceTime - ONE_DAY_IN_MILLISECONDS;
+    }), [events, referenceTime]);
 
     function addCourse() {
         const trimmedCourse = newCourse.trim();
@@ -304,12 +326,14 @@ export default function EventsList() {
                 <section className="form-card" aria-labelledby="upcoming-events-heading">
                     <div className="form-section-header">
                         <h2>Events</h2>
-                        <span className="event-count">{events.length}</span>
+                        <span className="event-count">{visibleEvents.length}</span>
                     </div>
 
                     <EventList
-                        events={events}
-                        emptyMessage={isLoading ? "Loading events…" : loadError || "No events yet. You can be the first to publish one!"}
+                        events={visibleEvents}
+                        emptyMessage={isLoading ? "Loading events…" : loadError || "No upcoming or recently ended events. You can create one!"}
+                        getStatusLabel={(event) => isPastEvent(event, referenceTime) ? "Past" : undefined}
+                        isDimmed={(event) => isPastEvent(event, referenceTime)}
                     />
                 </section>
             </div>
