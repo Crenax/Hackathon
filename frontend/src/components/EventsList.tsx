@@ -6,30 +6,37 @@ import "../FormLayout.css";
 import "./EventsList.css";
 import AutocompleteInputField from "./AutocompleteInputField";
 
+type DegreeFilter = "" | "bachelor" | "master" | "phd";
+type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
+
 function sortListings(listings: Listing[]): Listing[] {
     return [...listings].sort((a, b) =>
         (a.startTime ?? "").localeCompare(b.startTime ?? ""),
     );
 }
 
-function today(): string {
-    const date = new Date();
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+function formatLocalDateTime(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 export default function EventsList() {
     const [events, setEvents] = useState<Listing[]>([]);
-    const [title, setTitle] = useState("");
-    const [date, setDate] = useState("");
-    const [time, setTime] = useState("");
+    const [subject, setSubject] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
     const [courses, setCourses] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [newCourse, setNewCourse] = useState("");
+    const [isPrivate, setIsPrivate] = useState(false);
+    const [degreeFilter, setDegreeFilter] = useState<DegreeFilter>("");
+    const [genderFilter, setGenderFilter] = useState<GenderFilter>("");
     const [isAdding, setIsAdding] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
+    const [minimumStartTime, setMinimumStartTime] = useState(() => formatLocalDateTime(new Date()));
 
     useEffect(() => {
         let isActive = true;
@@ -65,21 +72,63 @@ export default function EventsList() {
         setNewCourse("");
     }
 
+    function openEventForm() {
+        const startsAt = new Date();
+        const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
+        const defaultStartTime = formatLocalDateTime(startsAt);
+
+        setMinimumStartTime(defaultStartTime);
+        setStartTime(defaultStartTime);
+        setEndTime(formatLocalDateTime(endsAt));
+        setSubmitError("");
+        setIsAdding(true);
+    }
+
+    function updateStartTime(value: string) {
+        const previousStart = new Date(startTime);
+        const previousEnd = new Date(endTime);
+        const previousInterval = previousEnd.getTime() - previousStart.getTime();
+        const interval = Number.isFinite(previousInterval) && previousInterval > 0
+            ? previousInterval
+            : 60 * 60 * 1000;
+
+        setStartTime(value);
+
+        const nextStart = new Date(value);
+        if (!Number.isNaN(nextStart.getTime())) {
+            setEndTime(formatLocalDateTime(new Date(nextStart.getTime() + interval)));
+        }
+    }
+
     async function addEvent(submitEvent: FormEvent<HTMLFormElement>) {
         submitEvent.preventDefault();
         if (isSubmitting) return;
 
-        const startsAt = new Date(`${date}T${time}:00`);
-        const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
+        setSubmitError("");
+        const startsAt = new Date(startTime);
+        const endsAt = new Date(endTime);
+        if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+            setSubmitError("Enter a valid start and end time.");
+            return;
+        }
+        if (endsAt <= startsAt) {
+            setSubmitError("End time must be later than start time.");
+            return;
+        }
+
+        const filters: ListingForCreate["filters"] = [];
+        if (degreeFilter) filters.push({ filterType: "degree", value: degreeFilter });
+        if (genderFilter) filters.push({ filterType: "gender", value: genderFilter });
+
         const newEvent: ListingForCreate = {
-            subject: courses[0] ?? (newCourse.trim() || title.trim()),
+            subject: subject.trim(),
             description: description.trim(),
             startTime: startsAt.toISOString(),
             endTime: endsAt.toISOString(),
             location: location.trim(),
             courses,
-            isPrivate: false,
-            filters: [{ filterType: "degree", value: "master" }],
+            isPrivate,
+            filters,
         };
 
         setIsSubmitting(true);
@@ -88,16 +137,19 @@ export default function EventsList() {
             setEvents((current) =>
                 sortListings([...current.filter((event) => event.id !== createdEvent.id), createdEvent]),
             );
-            setTitle("");
-            setDate("");
-            setTime("");
+            setSubject("");
+            setStartTime("");
+            setEndTime("");
             setLocation("");
             setDescription("");
             setCourses([]);
             setNewCourse("");
+            setIsPrivate(false);
+            setDegreeFilter("");
+            setGenderFilter("");
             setIsAdding(false);
         } catch (error) {
-            window.alert(error instanceof Error ? error.message : "Could not create the event.");
+            setSubmitError(error instanceof Error ? error.message : "Could not create the event.");
         } finally {
             setIsSubmitting(false);
         }
@@ -115,24 +167,33 @@ export default function EventsList() {
 
                     <section className="form-card" aria-labelledby="create-event-heading">
                         <form className="form-stack" onSubmit={addEvent}>
-                            <label className="form-field" htmlFor="study-event-title">
-                                <span>Event name <span className="form-required">*</span></span>
-                                <input id="study-event-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Exam prep session" maxLength={80} required />
-                            </label>
+                            <div className="form-field">
+                                <label htmlFor="study-event-subject">
+                                    Subject <span className="form-required">*</span>
+                                </label>
+                                <AutocompleteInputField
+                                    id="study-event-subject"
+                                    value={subject}
+                                    onValueChange={setSubject}
+                                    placeholder="Start typing a course name"
+                                    required
+                                />
+                                <small>Must exactly match a course from the suggestions.</small>
+                            </div>
 
                             <div className="form-row">
-                                <label className="form-field" htmlFor="study-event-date">
-                                    <span>Date <span className="form-required">*</span></span>
-                                    <input id="study-event-date" type="date" min={today()} value={date} onChange={(event) => setDate(event.target.value)} required />
+                                <label className="form-field" htmlFor="study-event-start-time">
+                                    <span>Starts <span className="form-required">*</span></span>
+                                    <input id="study-event-start-time" type="datetime-local" min={minimumStartTime} value={startTime} onChange={(event) => updateStartTime(event.target.value)} required />
                                 </label>
-                                <label className="form-field" htmlFor="study-event-time">
-                                    <span>Start time <span className="form-required">*</span></span>
-                                    <input id="study-event-time" type="time" value={time} onChange={(event) => setTime(event.target.value)} required />
+                                <label className="form-field" htmlFor="study-event-end-time">
+                                    <span>Ends <span className="form-required">*</span></span>
+                                    <input id="study-event-end-time" type="datetime-local" min={startTime || minimumStartTime} value={endTime} onChange={(event) => setEndTime(event.target.value)} required />
                                 </label>
                             </div>
 
                             <div className="form-field">
-                                <label htmlFor="study-event-courses">Courses</label>
+                                <label htmlFor="study-event-courses">Additional courses <span className="form-optional">(optional)</span></label>
                                 <div className="form-inline-entry">
                                     <AutocompleteInputField
                                         id="study-event-courses"
@@ -172,9 +233,64 @@ export default function EventsList() {
                                 <textarea id="study-event-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will you work on?" rows={3} maxLength={500} />
                             </label>
 
+                            <fieldset className="event-visibility-fieldset">
+                                <legend>Visibility</legend>
+                                <div className="event-visibility-options">
+                                    <label className="event-visibility-option">
+                                        <input type="radio" name="event-visibility" value="public" checked={!isPrivate} onChange={() => setIsPrivate(false)} />
+                                        <span>
+                                            <strong>Public</strong>
+                                            <small>Anyone can discover this event.</small>
+                                        </span>
+                                    </label>
+                                    <label className="event-visibility-option">
+                                        <input type="radio" name="event-visibility" value="private" checked={isPrivate} onChange={() => setIsPrivate(true)} />
+                                        <span>
+                                            <strong>Private</strong>
+                                            <small>Only members with the invite code can discover this event.</small>
+                                        </span>
+                                    </label>
+                                </div>
+                            </fieldset>
+
+                            <details className="event-filters">
+                                <summary>
+                                    <span>Filters</span>
+                                    {(degreeFilter || genderFilter) && (
+                                        <span className="event-filter-count">{Number(Boolean(degreeFilter)) + Number(Boolean(genderFilter))}</span>
+                                    )}
+                                </summary>
+                                <div className="event-filters-content">
+                                    <p>Optionally restrict the members who can find this event.</p>
+                                    <div className="form-row">
+                                        <label className="form-field" htmlFor="study-event-degree-filter">
+                                            Degree
+                                            <select id="study-event-degree-filter" value={degreeFilter} onChange={(event) => setDegreeFilter(event.target.value as DegreeFilter)}>
+                                                <option value="">Any degree</option>
+                                                <option value="bachelor">Bachelor</option>
+                                                <option value="master">Master</option>
+                                                <option value="phd">PhD</option>
+                                            </select>
+                                        </label>
+                                        <label className="form-field" htmlFor="study-event-gender-filter">
+                                            Gender
+                                            <select id="study-event-gender-filter" value={genderFilter} onChange={(event) => setGenderFilter(event.target.value as GenderFilter)}>
+                                                <option value="">Any gender</option>
+                                                <option value="female">Female</option>
+                                                <option value="male">Male</option>
+                                                <option value="non_binary">Non-binary</option>
+                                                <option value="prefer_not_to_say">Prefer not to say</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+                            </details>
+
+                            {submitError && <p className="event-submit-error" role="alert">{submitError}</p>}
+
                             <div className="form-actions">
-                                <button className="form-primary-button" type="submit">Add event</button>
-                                <button className="form-link-button" type="button" onClick={() => setIsAdding(false)}>Cancel</button>
+                                <button className="form-primary-button" type="submit" disabled={isSubmitting}>{isSubmitting ? "Publishing…" : "Add event"}</button>
+                                <button className="form-link-button" type="button" onClick={() => setIsAdding(false)} disabled={isSubmitting}>Cancel</button>
                             </div>
                         </form>
                     </section>
@@ -193,7 +309,7 @@ export default function EventsList() {
                             <h1 id="upcoming-events-heading">Upcoming events</h1>
                             <p className="form-page-description">Find your next study session or create a new one.</p>
                         </div>
-                        <button className="form-icon-button" type="button" onClick={() => setIsAdding(true)} aria-label="Create a study event">
+                        <button className="form-icon-button" type="button" onClick={openEventForm} aria-label="Create a study event">
                             <PlusCircleFill aria-hidden="true" />
                         </button>
                     </div>

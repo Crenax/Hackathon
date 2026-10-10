@@ -24,9 +24,9 @@
 .form-stack { display: flex; flex-direction: column; gap: 17px; }
 .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .form-field { display: flex; flex-direction: column; gap: 7px; color: #343b50; font-size: .9rem; font-weight: 600; }
-.form-field input, .form-field textarea { box-sizing: border-box; width: 100%; padding: 11px 13px; border: 1px solid #d6dbe6; border-radius: 8px; color: var(--form-text); background: #fff; font: inherit; font-weight: 400; }
+.form-field input, .form-field select, .form-field textarea { box-sizing: border-box; width: 100%; padding: 11px 13px; border: 1px solid #d6dbe6; border-radius: 8px; color: var(--form-text); background: #fff; font: inherit; font-weight: 400; }
 .form-field textarea { min-height: 100px; resize: vertical; }
-.form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--form-accent); box-shadow: 0 0 0 3px rgb(87 72 200 / 14%); }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--form-accent); box-shadow: 0 0 0 3px rgb(87 72 200 / 14%); }
 .form-field input::placeholder, .form-field textarea::placeholder { color: #989eac; }
 .form-field small, .form-optional { color: #8990a2; font-size: .78rem; font-weight: 400; }
 .form-required { color: #b83242; }
@@ -36,6 +36,7 @@
 .form-primary-button, .form-secondary-button { min-height: 42px; border-radius: 8px; padding: 10px 16px; font-weight: 650; }
 .form-primary-button { border: 0; color: #fff; background: var(--form-accent); }
 .form-primary-button:hover { background: var(--form-accent-hover); }
+.form-primary-button:disabled, .form-link-button:disabled { opacity: .6; cursor: not-allowed; }
 .form-secondary-button { flex: 0 0 auto; border: 1px solid #d6dbe6; color: var(--form-text); background: #f9fafb; }
 .form-secondary-button:hover { border-color: #bbb5ea; background: #f5f3ff; }
 .form-link-button { border: 0; padding: 4px; color: var(--form-accent); background: transparent; text-decoration: underline; }
