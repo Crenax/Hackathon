@@ -166,6 +166,10 @@ export function getListings(): Promise<Listing[]> {
   return request<Listing[]>(`/api/listings`, "GET");
 }
 
+export function getMyListings(): Promise<Listing[]> {
+  return request<Listing[]>(`/api/me/listings`, "GET");
+}
+
 export function getListing(listingId: string): Promise<Listing> {
   return request<Listing>(
     `/api/listings/${encodeURIComponent(listingId)}`,

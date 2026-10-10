@@ -7,12 +7,14 @@ import "./EventList.css";
 export interface EventListProps {
     events: Listing[];
     emptyMessage?: string;
+    getStatusLabel?: (event: Listing) => string | undefined;
     onDelete?: (event: Listing) => void;
 }
 
 export default function EventList({
     events,
     emptyMessage = "No events found.",
+    getStatusLabel,
     onDelete,
 }: EventListProps) {
     if (events.length === 0) {
@@ -24,6 +26,7 @@ export default function EventList({
             {events.map((event) => {
                 const eventDate = new Date(event.startTime ?? "");
                 const hasValidDate = !Number.isNaN(eventDate.getTime());
+                const statusLabel = getStatusLabel?.(event);
                 const eventTime = hasValidDate
                     ? eventDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
                     : "Time TBD";
@@ -40,7 +43,10 @@ export default function EventList({
                                 <strong>{hasValidDate ? eventDate.getDate() : "—"}</strong>
                             </div>
                             <div className="event-details">
-                                <h3>{event.subject}</h3>
+                                <div className="event-title-row">
+                                    <h3>{event.subject}</h3>
+                                    {statusLabel && <span className="event-status">{statusLabel}</span>}
+                                </div>
                                 <p className="event-meta">{eventTime} | {event.location}</p>
                                 {event.description && <p className="event-description">{event.description}</p>}
                             </div>

@@ -1,88 +1,97 @@
 import { useEffect, useRef, useState } from "react";
-import { House, List, Map, PersonBadge } from "react-bootstrap-icons";
+import { House, List, Map, PersonBadge, Calendar3 } from "react-bootstrap-icons";
 import "./AppHeader.css";
 
 const AppHeader = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  function goToHome() {
-    window.location.href = "/";
-  }
+    function goToHome() {
+        window.location.href = "/";
+    }
 
-  useEffect(() => {
-    if (!isMenuOpen) return;
+    useEffect(() => {
+        if (!isMenuOpen) return;
 
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
+        const closeOnOutsideClick = (event: PointerEvent) => {
+            if (!menuRef.current?.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
 
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-        menuButtonRef.current?.focus();
-      }
-    };
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsMenuOpen(false);
+                menuButtonRef.current?.focus();
+            }
+        };
 
-    document.addEventListener("pointerdown", closeOnOutsideClick);
-    document.addEventListener("keydown", closeOnEscape);
+        document.addEventListener("pointerdown", closeOnOutsideClick);
+        document.addEventListener("keydown", closeOnEscape);
 
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsideClick);
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [isMenuOpen]);
+        return () => {
+            document.removeEventListener("pointerdown", closeOnOutsideClick);
+            document.removeEventListener("keydown", closeOnEscape);
+        };
+    }, [isMenuOpen]);
 
-  return (
-    <header className="app-header">
+    return (
+        <header className="app-header">
 
-      <div>
-        <strong
-          onClick={goToHome}
-          style={{cursor: "pointer"}}
-        >
-          App-Title
-        </strong>
-      </div>
+            <div>
+                <strong
+                    onClick={goToHome}
+                    style={{ cursor: "pointer" }}
+                >
+                    App-Title
+                </strong>
+            </div>
 
-      <div className="app-header-menu" ref={menuRef}>
-        <button
-          ref={menuButtonRef}
-          className="app-header-menu-button"
-          type="button"
-          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-controls="app-header-navigation"
-          aria-expanded={isMenuOpen}
-          onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
-        >
-          <List aria-hidden="true" />
-        </button>
+            <div className="app-header-menu" ref={menuRef}>
+                <button
+                    ref={menuButtonRef}
+                    className="app-header-menu-button"
+                    type="button"
+                    aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                    aria-controls="app-header-navigation"
+                    aria-expanded={isMenuOpen}
+                    onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
+                    onMouseEnter={() =>setIsMenuOpen(true)}
+                >
+                    <List aria-hidden="true" />
+                </button>
 
-        {isMenuOpen && (
-          <aside
-            id="app-header-navigation"
-            className="app-sidebar"
-            aria-label="Main navigation"
-          >
-            <nav className="app-sidebar-navigation">
-              <a href="/">
-                <House aria-hidden="true" />
-                Home
-              </a>
-              <a href="/map"><Map aria-hidden="true" />Map</a>
-              <a href="/profile">
-                <PersonBadge aria-hidden="true" />
-                Profile
-              </a>
-            </nav>
-          </aside>
-        )}
-      </div>
-    </header>
-  );
+                {isMenuOpen && (
+                    <aside
+                        id="app-header-navigation"
+                        className="app-sidebar"
+                        aria-label="Main navigation"
+                        onMouseLeave={() => setIsMenuOpen(false)}
+                    >
+                        <nav className="app-sidebar-navigation">
+                            <a href="/">
+                                <House aria-hidden="true" />
+                                Home
+                            </a>
+                            <a href="/map">
+                                <Map aria-hidden="true" />
+                                Map
+                            </a>
+                            <a href="/my-events">
+                                <Calendar3 aria-hidden="true" />
+                                My Events
+                            </a>
+                            <a href="/my-profile">
+                                <PersonBadge aria-hidden="true" />
+                                My Profile
+                            </a>
+                        </nav>
+                    </aside>
+                )}
+            </div>
+        </header>
+    );
 };
 
 export default AppHeader;
