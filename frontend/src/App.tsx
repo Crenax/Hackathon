@@ -7,6 +7,7 @@ import { scienceIconAttribution } from "../icons";
 
 import UserSettings from "./pages/UserSettings.tsx";
 import HomePage from "./pages/HomePage.tsx";
+import EventPage from "./pages/EventPage.tsx";
 
 
 const App = () => {
@@ -30,6 +31,7 @@ const AppContent = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/event" element={<EventPage />} />
           <Route path="/profile" element={<UserSettings />} />
         </Routes>
       </BrowserRouter>

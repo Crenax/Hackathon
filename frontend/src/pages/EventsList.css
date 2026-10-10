@@ -1,18 +1,4 @@
 .event-count { min-width: 24px; padding: 2px 7px; border-radius: 99px; color: #5144bd; background: #eeecff; text-align: center; font-size: .8rem; font-weight: 700; }
-.event-empty { margin: 0; padding: 20px 14px; border: 1px dashed #d9ddea; border-radius: 9px; color: #778095; text-align: center; }
-.event-list { display: flex; flex-direction: column; }
-.event-item { display: flex; align-items: flex-start; gap: 15px; padding: 16px 0; border-top: 1px solid #edf0f5; }
-.event-item:first-child { padding-top: 0; border-top: 0; }
-.event-item:last-child { padding-bottom: 0; }
-.event-date-badge { display: grid; flex: 0 0 50px; justify-items: center; padding: 7px 4px; border-radius: 9px; color: #5144bd; background: #f1efff; line-height: 1.25; }
-.event-date-badge span { font-size: .72rem; font-weight: 650; text-transform: uppercase; }
-.event-date-badge strong { font-size: 1.2rem; }
-.event-details { min-width: 0; flex: 1; }
-.event-details h3 { margin: 1px 0 5px; color: #20263a; font-size: 1rem; }
-.event-meta, .event-description { margin: 0; color: #697187; font-size: .9rem; }
-.event-description { margin-top: 8px; white-space: pre-wrap; }
-.event-delete { border: 0; border-radius: 6px; padding: 6px 8px; color: #71798b; background: transparent; font: inherit; font-size: .85rem; cursor: pointer; }
-.event-delete:hover { color: #b83242; background: #fff0f1; }
 .event-visibility-fieldset { display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; border: 0; color: #343b50; }
 .event-visibility-fieldset legend { margin-bottom: 7px; padding: 0; font-size: .9rem; font-weight: 600; }
 .event-visibility-options { display: flex; flex-direction: column; gap: 10px; }
@@ -30,7 +16,3 @@
 .event-filters-content { display: flex; flex-direction: column; gap: 14px; padding: 0 14px 14px; border-top: 1px solid #edf0f5; }
 .event-filters-content > p { margin: 12px 0 0; color: #697187; font-size: .82rem; }
 .event-submit-error { margin: 0; padding: 10px 12px; border: 1px solid #f2c8ce; border-radius: 8px; color: #9f2635; background: #fff5f6; font-size: .9rem; }
-@media (max-width: 420px) {
-  .event-item { gap: 10px; }
-  .event-delete { padding-right: 0; }
-}

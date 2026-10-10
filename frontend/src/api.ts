@@ -166,6 +166,13 @@ export function getListings(): Promise<Listing[]> {
   return request<Listing[]>(`/api/listings`, "GET");
 }
 
+export function getListing(listingId: string): Promise<Listing> {
+  return request<Listing>(
+    `/api/listings/${encodeURIComponent(listingId)}`,
+    "GET",
+  );
+}
+
 export function getTodos(): Promise<TodoItem[]> {
   return request<TodoItem[]>(`/api/todos`, "GET").then((todos) =>
     todos.map(parseDeadline),

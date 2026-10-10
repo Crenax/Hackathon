@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { PlusCircleFill, XCircle, Trash3 } from "react-bootstrap-icons";
+import { XCircle } from "react-bootstrap-icons";
 
 import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
+import AutocompleteInputField from "../components/AutocompleteInputField";
+import EventList from "../components/EventList";
 import "../FormLayout.css";
 import "./EventsList.css";
-import AutocompleteInputField from "../components/AutocompleteInputField";
 
 type DegreeFilter = "" | "bachelor" | "master" | "phd";
 type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
@@ -319,46 +320,11 @@ export default function EventsList() {
                         <span className="event-count">{events.length}</span>
                     </div>
 
-                    {events.length === 0 ? (
-                        <p className="event-empty">
-                            {isLoading ? "Loading events…" : loadError || "No events yet. You can be the first to publish one!"}
-                        </p>
-                    ) : (
-                        <div className="event-list">
-                            {events.map((studyEvent) => {
-                                const eventDate = new Date(studyEvent.startTime ?? "");
-                                const eventTime = Number.isNaN(eventDate.getTime())
-                                    ? "Time TBD"
-                                    : eventDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
-
-                                return (
-                                    <article className="event-item" key={studyEvent.id}>
-                                        <div className="event-date-badge">
-                                            <span>{Number.isNaN(eventDate.getTime()) ? "TBD" : eventDate.toLocaleDateString(undefined, { month: "short" })}</span>
-                                            <strong>{Number.isNaN(eventDate.getTime()) ? "—" : eventDate.getDate()}</strong>
-                                        </div>
-                                        <div className="event-details">
-                                            <h3>{studyEvent.subject}</h3>
-                                            <p className="event-meta">{eventTime} | {studyEvent.location}</p>
-                                            {studyEvent.description && <p className="event-description">{studyEvent.description}</p>}
-                                        </div>
-                                        <div
-                                            style={{ display: "flex", alignItems: "space-around", justifyContent: "space-around", fontSize: "1.2rem", height: "auto", padding: "0 0.5rem", color: "#dc3545", background: "none", border: "none", cursor: "pointer" }}
-                                        >                                     
-                                            <button
-                                                className="event-delete"
-                                                type="button"
-                                                onClick={() => setEvents((current) => current.filter((item) => item.id !== studyEvent.id))}
-                                                aria-label={`Delete ${studyEvent.subject}`}
-                                            >
-                                                <Trash3 aria-hidden="true" />
-                                            </button>
-                                        </div>
-                                    </article>
-                                );
-                            })}
-                        </div>
-                    )}
+                    <EventList
+                        events={events}
+                        emptyMessage={isLoading ? "Loading events…" : loadError || "No events yet. You can be the first to publish one!"}
+                        onDelete={(event) => setEvents((current) => current.filter((item) => item.id !== event.id))}
+                    />
                 </section>
             </div>
         </main>

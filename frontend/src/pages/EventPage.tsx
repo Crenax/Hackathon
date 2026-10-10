@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     Book,
     Calendar3,
@@ -9,7 +10,7 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { hasPendingJoinRequest } from "../api";
+import { getListing } from "../api";
 import type { Listing } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -17,8 +18,6 @@ import "../FormLayout.css";
 import "./EventPage.css";
 
 export interface EventPageProps {
-    /** The listing returned by the API. */
-    event: Listing;
     /** Set this only for approved members, never pending join requests. */
     hasJoined?: boolean;
 }
@@ -35,44 +34,73 @@ function formatDateTime(value: string | null): string {
     }).format(date);
 }
 
-export default function EventPage({ event, hasJoined = false }: EventPageProps) {
-    if (event.isPrivate && !hasJoined) {
-        return <PrivateEventAccess key={event.id} event={event} />;
-    }
-    return <EventPageContent event={event} hasJoined={hasJoined} />;
+interface EventLoadState {
+    listingId: string;
+    event?: Listing;
+    error?: string;
 }
 
-function PrivateEventAccess({ event }: { event: Listing }) {
-    const [access, setAccess] = useState<"checking" | "allowed" | "denied" | "error">("checking");
+export default function EventPage({ hasJoined = false }: EventPageProps) {
+    const [searchParams] = useSearchParams();
+    const listingId = searchParams.get("id")?.trim() ?? "";
+    const [loadState, setLoadState] = useState<EventLoadState>({ listingId: "" });
 
     useEffect(() => {
+        if (!listingId) return;
+
         let active = true;
-        hasPendingJoinRequest(event.id)
-            .then((pending) => {
-                if (active) setAccess(pending ? "allowed" : "denied");
+        getListing(listingId)
+            .then((event) => {
+                if (active) setLoadState({ listingId, event });
             })
-            .catch(() => {
-                if (active) setAccess("error");
+            .catch((error: unknown) => {
+                if (!active) return;
+                const message = error instanceof Error ? error.message : "Unknown error";
+                setLoadState({ listingId, error: `Could not load this event: ${message}` });
             });
-        return () => { active = false; };
-    }, [event.id]);
 
-    if (access === "allowed") return <EventPageContent event={event} hasJoined={false} />;
+        return () => {
+            active = false;
+        };
+    }, [listingId]);
 
+    if (!listingId) {
+        return <EventPageStatus role="alert">No event id was provided in the URL.</EventPageStatus>;
+    }
+
+    if (loadState.listingId !== listingId) {
+        return <EventPageStatus role="status">Loading event…</EventPageStatus>;
+    }
+
+    if (loadState.error) {
+        return <EventPageStatus role="alert">{loadState.error}</EventPageStatus>;
+    }
+
+    if (!loadState.event) {
+        return <EventPageStatus role="status">Loading event…</EventPageStatus>;
+    }
+
+    // The API only returns a private listing to one of its approved members.
+    const canSeeMemberDetails = hasJoined || loadState.event.isPrivate;
+    return <EventPageContent event={loadState.event} hasJoined={canSeeMemberDetails} />;
+}
+
+function EventPageStatus({ children, role }: { children: string; role: "alert" | "status" }) {
     return (
         <main className="form-page event-page">
             <div className="form-container">
-                <p className="form-card" role={access === "error" ? "alert" : "status"}>
-                    {access === "checking" ? "Checking event access…"
-                        : access === "error" ? "Could not verify event access. Please refresh to try again."
-                        : "Event unavailable. Enter a valid invitation key to access a private event."}
-                </p>
+                <p className="form-card" role={role}>{children}</p>
             </div>
         </main>
     );
 }
 
-function EventPageContent({ event, hasJoined = false }: EventPageProps) {
+interface EventPageContentProps {
+    event: Listing;
+    hasJoined?: boolean;
+}
+
+function EventPageContent({ event, hasJoined = false }: EventPageContentProps) {
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
