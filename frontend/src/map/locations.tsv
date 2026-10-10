@@ -1,0 +1,1564 @@
+room	type
+CAB D 16	Workshop
+CAB D 20.1	Common Room
+CAB D 20.2	Common Room
+CAB D 21	Multipurpose Room
+CAB D 53.1	Laboratory
+CAB D 56	Laboratory
+CAB D 71.1	Common Room
+CAB D 72.1	Meeting Room
+CAB D 72.2	Meeting Room
+CAB D 74	Meeting Room
+CAB D 75.2	Print and Copy
+CAB D 77	Meeting Room
+CAB D 78	Meeting Room
+CAB E 10.4	Common Room
+CAB E 10.6	Security Room
+CAB E 17.1	Print and Copy
+CAB E 27.3	Common Room
+CAB E 42	Print and Copy
+CAB E 47	Retreat Room
+CAB E 48	Computer Room
+CAB E 53	Sports
+CAB E 57	Sports
+CAB E 69	Meeting Room
+CAB E 72	Common Room
+CAB E 87.1	Laboratory
+CAB E 87.2	Laboratory
+CAB F 16	Meeting Room
+CAB F 17.1	Print and Copy
+CAB F 21	Multipurpose Room
+CAB F 31	Workplace
+CAB F 51.2	Meeting Room
+CAB F 64.2	Common Room
+CAB F 65.1	Meeting Room
+CAB F 65.2	Meeting Room
+CAB F 66	Meeting Room
+CAB F 71.1	Print and Copy
+CAB F 78	Study Room
+CAB F 78.1	Meeting Box
+CAB F 78.2	Meeting Box
+CAB G 11	Lecture Hall
+CAB G 31.2	Meeting Room
+CAB G 36.1	Meeting Room
+CAB G 36.2	Meeting Room
+CAB G 38	Meeting Room
+CAB G 41	Library
+CAB G 51	Lecture Hall
+CAB G 52	Seminar Room
+CAB G 56	Seminar Room
+CAB G 57	Seminar Room
+CAB G 59	Lecture Hall
+CAB G 61	Lecture Hall
+CAB G 69.3	Meeting Room
+CAB GO 41	Library
+CAB H 41	Food
+CAB H 52	Seminar Room
+CAB H 53	Seminar Room
+CAB H 56	Computer Room
+CAB H 57	Computer Room
+CAB H 68	Print and Copy
+CAB J 21.1	Print and Copy
+CAB J 21.2	Meeting Room
+CAB J 21.4	Meeting Room
+CAB J 21.6	Common Room
+CAB J 71.6	Meeting Room
+CHN B 1.1	Laboratory
+CHN B 54.1	Laboratory
+CHN B 54.2	Laboratory
+CHN B 54.3	Laboratory
+CHN B 54.4	Laboratory
+CHN B 54.5	Laboratory
+CHN B 54.6	Laboratory
+CHN B 59.1	Laboratory
+CHN B 59.2	Laboratory
+CHN B 65.1	Laboratory
+CHN B 65.2	Laboratory
+CHN B 65.3	Laboratory
+CHN B 65.4	Laboratory
+CHN C 101.1	Parking Area
+CHN C 14	Lecture Hall
+CHN C 22.1	Laboratory
+CHN C 24	Laboratory
+CHN C 26.1	Laboratory
+CHN C 27	Laboratory
+CHN C 27.1	Laboratory
+CHN C 29.1	Labor
+CHN C 29.2	Laboratory
+CHN C 47	Laboratory
+CHN C 56.2	Laboratory
+CHN C 59.1	Laboratory
+CHN C 59.4	Laboratory
+CHN C 59.5	Laboratory
+CHN D 101.1	Parking Area
+CHN D 101.5	Parking Area
+CHN D 15.1	Laboratory
+CHN D 15.2	Laboratory
+CHN D 15.3	Laboratory
+CHN D 15.4	Laboratory
+CHN D 23.1	Laboratory
+CHN D 26.2	Meeting Room
+CHN D 27.1	Labor
+CHN D 27.2	Labor
+CHN D 29	Seminar Room
+CHN D 31	Meeting Room
+CHN D 35.2	Meeting Room
+CHN D 42	Seminar Room
+CHN D 44	Seminar Room
+CHN D 46	Seminar Room
+CHN D 48	Seminar Room
+CHN D 51	Labor
+CHN D 52.1	Labor
+CHN D 52.2	Labor
+CHN D 53.1	Laboratory
+CHN D 53.2	Laboratory
+CHN D 57	Labor
+CHN D 58.1	Laboratory
+CHN D 58.2	Laboratory
+CHN D 58.3	Laboratory
+CHN D 58.4	Laboratory
+CHN D 58.5	Laboratory
+CHN D 59	Labor
+CHN D 65.1	Labor
+CHN D 65.2	Labor
+CHN D 65.3	Labor
+CHN D 66.1	Labor
+CHN D 66.2	Labor
+CHN D 67.1	Labor
+CHN D 67.2	Laboratory
+CHN D 67.3	Lager
+CHN D 8	Multipurpose Room
+CHN D 9	Food
+CHN E 15	Laboratory
+CHN E 28.2	Common Room
+CHN E 42	Seminar Room
+CHN E 46	Seminar Room
+CHN E 51	Laboratory
+CHN E 52.1	Laboratory
+CHN E 52.2	Laboratory
+CHN E 53.1	Labor
+CHN E 53.2	Laboratory
+CHN E 54	Laboratory
+CHN E 55.2	Laboratory
+CHN E 56	Labor
+CHN E 57.1	Laboratory
+CHN E 57.2	Laboratory
+CHN E 57.3	Laboratory
+CHN E 58.1	Laboratory
+CHN E 58.2	Laboratory
+CHN E 65	Laboratory
+CHN E 67	Laboratory
+CHN E 69	Laboratory
+CHN E 72.1	Laboratory
+CHN E 72.2	Laboratory
+CHN E 72.3	Laboratory
+CHN E 73	Labor
+CHN E 78.1	Laboratory
+CHN E 78.2	Laboratory
+CHN E 78.3	Laboratory
+CHN E 79.1	Laboratory
+CHN E 79.2	Laboratory
+CHN F 10.3	Retreat Room
+CHN F 15.1	Laboratory
+CHN F 15.2	Laboratory
+CHN F 18	Laboratory
+CHN F 36	Print and Copy
+CHN F 42	Seminar Room
+CHN F 46	Seminar Room
+CHN F 51.1	Laboratory
+CHN F 51.2	Laboratory
+CHN F 51.3	Laboratory
+CHN F 52	Laboratory
+CHN F 53	Laboratory
+CHN F 54.1	Laboratory
+CHN F 54.2	Laboratory
+CHN F 54.3	Laboratory
+CHN F 56.1	Laboratory
+CHN F 56.2	Laboratory
+CHN F 56.3	Laboratory
+CHN F 57	Laboratory
+CHN F 61	Laboratory
+CHN F 63	Laboratory
+CHN F 65	Laboratory
+CHN F 67	Laboratory
+CHN F 69	Laboratory
+CHN F 70.1	Workshop
+CHN F 74	Workshop
+CHN F 76	Workshop
+CHN F 78	Workshop
+CHN G 15	Laboratory
+CHN G 18.1	Labor
+CHN G 18.2	Laboratory
+CHN G 18.3	Laboratory
+CHN G 28.2	Common Room
+CHN G 34	Aufenthaltsraum
+CHN G 42	Seminar Room
+CHN G 46	Seminar Room
+CHN G 51	Laboratory
+CHN G 53.1	Laboratory
+CHN G 53.2	Laboratory
+CHN G 53.3	Laboratory
+CHN G 53.4	Laboratory
+CHN G 54	Laboratory
+CHN G 57	Laboratory
+CHN G 58	Laboratory
+CHN G 61	Laboratory
+CHN G 63	Laboratory
+CHN G 65	Labor
+CHN G 67	Labor
+CHN G 69	Labor
+CHN H 14	Labor
+CHN H 15	Labor
+CHN H 16	Labor
+CHN H 17	Labor
+CHN H 18	Labor
+CHN H 33	Library
+CHN H 35	Meeting Room
+CHN H 43	Library
+CHN H 43.1	Library
+CHN H 43.2	Library
+CHN H 43.3	Library
+CHN H 48	Meeting Room
+CHN H 57	Laboratory
+CHN H 69	Laboratory
+CHN H 78	Multipurpose Room
+CHN J 10.5	Common Room
+CHN J 15	Labor
+CHN J 16	Labor
+CHN J 17	Labor
+CHN J 18	Labor
+CHN J 43	Library
+CHN J 71.2	Meeting Room
+CHN J 77	Meeting Room
+CHN K 10.5	Common Room
+CHN K 15	Labor
+CHN K 17	Labor
+CHN K 77	Multipurpose Room
+CHN L 10.5	Common Room
+CHN L 17.1	Training Room
+CHN L 17.2	Betriebsraum
+CHN M 10.5	Common Room
+CHN M 11	Aufenthaltsraum
+CHN N 10.5	Common Room
+CHN N 15.3	Sitzungszimmer
+CHN O 10.5	Common Room
+CHN P 10.5	Common Room
+CHN P 12	Meeting Room
+CLA A 11.1	Laboratory
+CLA A 11.2	Laboratory
+CLA A 12.1	Laboratory
+CLA A 12.2	Laboratory
+CLA A 13.1	Laboratory
+CLA A 13.2	Laboratory
+CLA A 14.1	Laboratory
+CLA A 15.2	Workshop
+CLA A 15.3	Workshop
+CLA A 2.1	Laboratory
+CLA A 2.3	Laboratory
+CLA A 2.5	Laboratory
+CLA A 20.3	Laboratory
+CLA A 21.1	Workshop
+CLA A 21.2	Laboratory
+CLA A 22.1	Laboratory
+CLA A 22.2	Laboratory
+CLA A 23.1	Laboratory
+CLA A 23.2	Laboratory
+CLA A 23.3	Laboratory
+CLA A 23.4	Laboratory
+CLA A 23.5	Laboratory
+CLA A 23.6	Laboratory
+CLA A 24.1	Laboratory
+CLA A 24.2	Laboratory
+CLA A 31.1	Laboratory
+CLA A 31.3	Laboratory
+CLA A 31.4	Laboratory
+CLA A 31.5	Laboratory
+CLA A 31.6	Laboratory
+CLA A 5	Laboratory
+CLA B 10.3	Laboratory
+CLA B 11.1	Laboratory
+CLA B 11.2	Laboratory
+CLA B 12.1	Laboratory
+CLA B 12.3	Laboratory
+CLA B 12.4	Laboratory
+CLA B 13	Laboratory
+CLA B 14.1	Laboratory
+CLA B 15	Laboratory
+CLA B 16	Laboratory
+CLA B 17	Laboratory
+CLA B 18	Laboratory
+CLA B 19	Laboratory
+CLA B 2.1	Laboratory
+CLA B 2.2	Workshop
+CLA B 21.1	Laboratory
+CLA B 21.2	Laboratory
+CLA B 21.3	Laboratory
+CLA B 21.4	Laboratory
+CLA B 22	Laboratory
+CLA B 23	Laboratory
+CLA B 26	Laboratory
+CLA B 30.4	Laboratory
+CLA B 32	Laboratory
+CLA B 33	Laboratory
+CLA B 34.1	Laboratory
+CLA B 34.2	Laboratory
+CLA B 34.3	Laboratory
+CLA B 34.4	Laboratory
+CLA B 34.5	Laboratory
+CLA B 34.6	Laboratory
+CLA B 36.1	Laboratory
+CLA B 36.2	Laboratory
+CLA B 36.3	Laboratory
+CLA B 36.4	Laboratory
+CLA B 36.5	Laboratory
+CLA B 36.6	Laboratory
+CLA B 36.7	Laboratory
+CLA B 36.8	Laboratory
+CLA B 37.1	Laboratory
+CLA B 37.2	Laboratory
+CLA B 38	Laboratory
+CLA B 39.1	Laboratory
+CLA B 39.2	Laboratory
+CLA B 5	Laboratory
+CLA B 6	Security Room
+CLA C 21	Parking Area
+CLA C 31.1	Workshop
+CLA C 34.1	Workshop
+CLA C 34.2	Workshop
+CLA D 1.1	Food
+CLA D 11.1	Meeting Room
+CLA D 11.2	Labor
+CLA D 13	Laboratory
+CLA D 14.1	Workshop
+CLA D 15	Meeting Room
+CLA D 16	Workshop
+CLA D 17	Meeting Room
+CLA D 19	Meeting Room
+CLA D 21.1	Laboratory
+CLA D 21.2	Workshop
+CLA D 22.1	Laboratory
+CLA D 23	Laboratory
+CLA D 24	Laboratory
+CLA D 25	Laboratory
+CLA D 31	Laboratory
+CLA D 33	Laboratory
+CLA D 34.2	Laboratory
+CLA D 5	Food
+CLA E 14.1	Laboratory
+CLA E 14.2	Laboratory
+CLA E 14.3	Laboratory
+CLA E 16	Laboratory
+CLA E 18	Laboratory
+CLA E 2	Retreat Room
+CLA E 22	Common Room
+CLA E 4	Seminar Room
+CLA F 1.2	Meeting Room
+CLA F 14.1	Laboratory
+CLA F 14.2	Workshop
+CLA F 14.3	Laboratory
+CLA F 16.1	Laboratory
+CLA F 16.2	Laboratory
+CLA F 18.1	Laboratory
+CLA F 18.2	Laboratory
+CLA F 2	Laboratory
+CLA F 22.1	Common Room
+CLA F 22.2	Labor
+CLA F 4	Laboratory
+CLA F 6	Laboratory
+CLA G 14.1	Laboratory
+CLA G 14.2	Laboratory
+CLA G 15.2	Laboratory
+CLA G 16.1	Laboratory
+CLA G 16.2	Laboratory
+CLA G 17.1	Laboratory
+CLA G 18	Laboratory
+CLA G 2	Meeting Room
+CLA G 22	Laboratory
+CLA G 24	Laboratory
+CLA G 26	Laboratory
+CLA G 31	Laboratory
+CLA G 32	Laboratory
+CLA G 33	Laboratory
+CLA G 34	Laboratory
+CLA G 35	Laboratory
+CLA H 10.3	Laboratory
+CLA H 14.1	Common Room
+CLA H 14.2	Common Room
+CLA H 16	Laboratory
+CLA H 18	Laboratory
+CLA H 2.1	Laboratory
+CLA H 2.2	Laboratory
+CLA H 22	Laboratory
+CLA H 24	Laboratory
+CLA H 26	Laboratory
+CLA H 32.1	Laboratory
+CLA H 32.2	Laboratory
+CLA H 34	Laboratory
+CLA J 1	Meeting Room
+CLA J 10.3	Laboratory
+CLA J 14.1	Laboratory
+CLA J 14.2	Laboratory
+CLA J 16.1	Laboratory
+CLA J 16.2	Laboratory
+CLA J 2	Laboratory
+CLA J 22	Library
+CLA J 24	Meeting Room
+CLA J 26	Laboratory
+CLA J 3	Meeting Room
+CLA J 31	Meeting Room
+CLA J 32.2	Laboratory
+CLA J 34.1	Laboratory
+CLA J 34.2	Laboratory
+CLA J 4	Laboratory
+CLA J 5	Meeting Room
+CLA K 33	Hallway
+CLA K 36	Terraces
+CNB D 101.1	Computer Room
+CNB D 101.2	Laboratory
+CNB D 102.1	Study Room
+CNB D 112	Common Room
+CNB E 100.5	Meeting Room
+CNB E 103.2	Common Room
+CNB E 109	Meeting Room
+CNB E 111	Print and Copy
+CNB E 115	Parking Area
+CNB E 121	Laboratory
+CNB E 122.1	Common Room
+CNB E 129.1	Laboratory
+CNB E 129.2	Laboratory
+CNB E 134	Laboratory
+CNB E 136	Laboratory
+CNB E 139	Laboratory
+CNB F 100.9	Meeting Room
+CNB F 110	Meeting Room
+CNB F 111	Common Room
+CNB F 131	Laboratory
+CNB G 110	Meeting Room
+CNB G 111	Common Room
+CNB G 130.1	Laboratory
+CNB H 110	Common Room
+CNB H 112	Print and Copy
+ETA F 5	Lecture Hall
+ETF A 102	Study Room
+ETF A 103	Laboratory
+ETF A 104	Laboratory
+ETF A 105	Laboratory
+ETF A 106	Laboratory
+ETF A 107	Laboratory
+ETF A 108	Workshop
+ETF A 113	Laboratory
+ETF A 3.1	Laboratory
+ETF A 3.2	Laboratory
+ETF B 101.2	Laboratory
+ETF B 102	Study Room
+ETF B 104.1	Study Room
+ETF B 105	Study Room
+ETF B 107	Study Room
+ETF B 111.1	Laboratory
+ETF B 111.2	Laboratory
+ETF B 2.1	Laboratory
+ETF B 2.2	Laboratory
+ETF B 3.1	Laboratory
+ETF B 5	Computer Room
+ETF C 1	Lecture Hall
+ETF C 101	Laboratory
+ETF C 103	Laboratory
+ETF C 104.1	Laboratory
+ETF C 104.2	Laboratory
+ETF C 106	Study Room
+ETF C 109	Meeting Room
+ETF C 112	Common Room
+ETF D 110	Seminar Room
+ETF D 111	Common Room
+ETF D 2.1	Laboratory
+ETF D 3.1	Laboratory
+ETF E 1	Lecture Hall
+ETF E 109	Laboratory
+ETF E 110	Workshop
+ETF E 114	Common Room
+ETF E 115	Laboratory
+ETF F 101	Meeting Room
+ETF F 110	Laboratory
+ETL C 11.1	Laboratory
+ETL C 11.2	Laboratory
+ETL C 11.3	Laboratory
+ETL C 11.4	Laboratory
+ETL C 11.5	Laboratory
+ETL C 11.6	Laboratory
+ETL C 12.1	Laboratory
+ETL C 12.2	Laboratory
+ETL C 21.2	Laboratory
+ETL C 23.2	Laboratory
+ETL C 23.3	Workshop
+ETL C 25	Workshop
+ETL C 28.1	Workshop
+ETL C 28.2	Workshop
+ETL D 10.1	Study Room
+ETL D 11.1	Laboratory
+ETL D 11.4	Laboratory
+ETL D 12	Laboratory
+ETL D 22	Workshop
+ETL E 10.1	Workshop
+ETL E 12	Laboratory
+ETL E 13	Laboratory
+ETL E 14	Laboratory
+ETL E 15.1	Laboratory
+ETL E 15.2	Laboratory
+ETL E 16.1	Laboratory
+ETL E 16.2	Laboratory
+ETL E 17.1	Laboratory
+ETL E 17.2	Laboratory
+ETL E 18.1	Laboratory
+ETL E 18.2	Laboratory
+ETL E 18.3	Laboratory
+ETL E 18.4	Laboratory
+ETL E 19.1	Laboratory
+ETL E 19.2	Laboratory
+ETL E 26.1	Workshop
+ETL E 27.1	Workshop
+ETL E 31.1	Laboratory
+ETL E 31.6	Workshop
+ETL E 31.7	Laboratory
+ETL E 31.8	Laboratory
+ETL F 15	Common Room
+ETL F 18	Meeting Room
+ETL F 25	Common Room
+ETL F 31	Training Room
+ETL G 10.1	Training Room
+ETL G 11	Laboratory
+ETL G 14	Laboratory
+ETL G 16.1	Study Room
+ETL G 16.2	Study Room
+ETL G 17	Laboratory
+ETL G 18	Laboratory
+ETL G 21.1	Laboratory
+ETL G 25	Common Room
+ETL H 10.1	Training Room
+ETL H 11	Laboratory
+ETL H 12	Common Room
+ETL H 31.2	Laboratory
+ETL H 31.3	Laboratory
+ETL H 35.2	Common Room
+ETL H 40.1	Laboratory
+ETL I 10.1	Meeting Room
+ETL I 17.1	Laboratory
+ETL I 17.2	Laboratory
+ETL I 18	Laboratory
+ETL I 21.1	Print and Copy
+ETL I 31.1	Study Room
+ETL I 32	Laboratory
+ETL I 33	Common Room
+ETL I 35	Laboratory
+ETL K 15	Laboratory
+ETL K 21	Meeting Room
+ETL K 25	Sitzungszimmer
+ETZ A 61.1	Parking Area
+ETZ A 61.2	Parking Area
+ETZ A 61.5	Parking Area
+ETZ B 61.1	Parking Area
+ETZ B 61.2	Parking Area
+ETZ C 79	Laboratory
+ETZ C 81.1	Laboratory
+ETZ C 81.2	Laboratory
+ETZ C 82.1	Laboratory
+ETZ C 82.2	Laboratory
+ETZ C 83	Laboratory
+ETZ C 84.1	Laboratory
+ETZ C 84.2	Laboratory
+ETZ C 85	Laboratory
+ETZ C 86.1	Workshop
+ETZ C 86.2	Laboratory
+ETZ C 99	Study Room
+ETZ D 63	Common Room
+ETZ D 64	Laboratory
+ETZ D 66	Laboratory
+ETZ D 71	Laboratory
+ETZ D 79	Laboratory
+ETZ D 81	Laboratory
+ETZ D 82.1	Computer Room
+ETZ D 82.2	Laboratory
+ETZ D 83	Laboratory
+ETZ D 84.2	Laboratory
+ETZ D 85.2	Laboratory
+ETZ D 86.1	Laboratory
+ETZ D 86.2	Laboratory
+ETZ D 87.2	Laboratory
+ETZ D 88	Laboratory
+ETZ D 89.1	Laboratory
+ETZ D 89.2	Laboratory
+ETZ D 90.1	Laboratory
+ETZ D 90.2	Laboratory
+ETZ D 96.1	Computer Room
+ETZ D 96.2	Laboratory
+ETZ D 97.1	Laboratory
+ETZ D 97.2	Laboratory
+ETZ D 97.4	Laboratory
+ETZ D 97.5	Laboratory
+ETZ E 60.2	Retreat Room
+ETZ E 7	Lecture Hall
+ETZ E 8	Lecture Hall
+ETZ E 80.1	Common Room
+ETZ E 81	Meeting Room
+ETZ E 9	Lecture Hall
+ETZ E 90.1	Exhibition
+ETZ E 90.2	Exhibition
+ETZ F 60.5	Print and Copy
+ETZ F 66.2	Laboratory
+ETZ F 68	Laboratory
+ETZ F 69	Laboratory
+ETZ F 80.1	Common Room
+ETZ F 91	Seminar Room
+ETZ G 60.5	Laboratory
+ETZ G 66	Study Room
+ETZ G 68	Laboratory
+ETZ G 69	Laboratory
+ETZ G 71.1	Laboratory
+ETZ G 71.2	Laboratory
+ETZ G 74	Print and Copy
+ETZ G 80.1	Common Room
+ETZ G 91	Seminar Room
+ETZ H 60.2	Print and Copy
+ETZ H 60.5	Print and Copy
+ETZ H 60.8	Laboratory
+ETZ H 66	Laboratory
+ETZ H 68.1	Laboratory
+ETZ H 68.2	Laboratory
+ETZ H 71	Sitzungszimmer
+ETZ H 74	Labor
+ETZ H 78.2	Laboratory
+ETZ H 80.1	Common Room
+ETZ H 91	Seminar Room
+ETZ J 66.1	Print and Copy
+ETZ J 66.3	Laboratory
+ETZ J 67	Meeting Room
+ETZ J 68.1	Laboratory
+ETZ J 69.1	Laboratory
+ETZ J 71.1	Laboratory
+ETZ J 75	Laboratory
+ETZ J 80.1	Common Room
+ETZ J 91	Seminar Room
+ETZ K 60.8	Workshop
+ETZ K 66	Laboratory
+ETZ K 67	Laboratory
+ETZ K 68	Laboratory
+ETZ K 69.1	Laboratory
+ETZ K 69.2	Laboratory
+ETZ K 70	Laboratory
+ETZ K 71	Seminar Room
+ETZ K 74	Laboratory
+ETZ K 75	Laboratory
+ETZ K 78.1	Workshop
+ETZ K 78.2	Workshop
+ETZ K 78.3	Workshop
+ETZ K 80.1	Common Room
+ETZ K 91	Seminar Room
+GLC E 38.1	Meeting Room
+GLC E 38.2	Meeting Room
+GLC F 38.1	Meeting Room
+GLC F 38.2	Meeting Room
+GLC H 37.5	Common Room
+HG C 30.7	Security Room
+HG C 30.9	Parking Area
+HG D 1.1	Lecture Hall
+HG D 1.2	Lecture Hall
+HG D 11	Computer Room
+HG D 12	Computer Room
+HG D 13	Multipurpose Room
+HG D 14	Laboratory
+HG D 15.1	Parking Area
+HG D 16.2	Lecture Hall
+HG D 18.1	Seminar Room
+HG D 22	Sitzungszimmer
+HG D 27.1	Workshop
+HG D 27.3	Security Room
+HG D 28.2	Exhibition
+HG D 3.1	Seminar Room
+HG D 3.2	Lecture Hall
+HG D 3.3	Seminar Room
+HG D 30.9	Parking Area
+HG D 31.4	Miscellaneous
+HG D 33.1	Common Room
+HG D 33.3	Print and Copy
+HG D 33.6	Meeting Room
+HG D 34.1	Shopping
+HG D 34.2	Meeting Room
+HG D 42	Meeting Room
+HG D 43.3	Meeting Room
+HG D 47	Print and Copy
+HG D 48.2	Meeting Box
+HG D 48.4	Meeting Room
+HG D 5.1	Seminar Room
+HG D 5.2	Lecture Hall
+HG D 5.3	Seminar Room
+HG D 56	Meeting Room
+HG D 58.3	Security Room
+HG D 64.1	Retreat Room
+HG D 66	Common Room
+HG D 67	Multipurpose Room
+HG D 7.1	Lecture Hall
+HG D 7.2	Lecture Hall
+HG E 1.1	Lecture Hall
+HG E 1.2	Lecture Hall
+HG E 19	Computer Room
+HG E 21	Seminar Room
+HG E 22	Seminar Room
+HG E 23	Seminar Room
+HG E 26.1	Computer Room
+HG E 26.3	Computer Room
+HG E 27	Computer Room
+HG E 3	Lecture Hall
+HG E 30.7	Food
+HG E 33.1	Seminar Room
+HG E 33.3	Seminar Room
+HG E 33.5	Seminar Room
+HG E 4	Exhibition
+HG E 41	Seminar Room
+HG E 42	Meeting Room
+HG E 5	Lecture Hall
+HG E 61.1	Meeting Room
+HG E 7	Lecture Hall
+HG EO 27.1	Workplace
+HG EO 54.1	Library
+HG F 1	Lecture Hall
+HG F 19.1	Meeting Box
+HG F 19.2	Meeting Box
+HG F 23.1	Meeting Room
+HG F 26.1	Seminar Room
+HG F 26.3	Seminar Room
+HG F 26.5	Seminar Room
+HG F 3	Lecture Hall
+HG F 30	Lecture Hall
+HG F 30.1	Food
+HG F 30.6	Miscellaneous
+HG F 32	Food
+HG F 33.1	Meeting Room
+HG F 33.2	Meeting Room
+HG F 33.3	Meeting Room
+HG F 33.4	Meeting Room
+HG F 33.5	Meeting Room
+HG F 37.1	Meeting Room
+HG F 5	Lecture Hall
+HG F 50.3	Meeting Room
+HG F 64	Meeting Room
+HG F 68.3	Meeting Room
+HG F 7	Lecture Hall
+HG FO 32.1	Food
+HG G 1	Computer Room
+HG G 19.1	Seminar Room
+HG G 19.2	Seminar Room
+HG G 26.1	Seminar Room
+HG G 26.3	Seminar Room
+HG G 26.5	Seminar Room
+HG G 3	Lecture Hall
+HG G 30.1	Print and Copy
+HG G 32.6	Seminar Room
+HG G 43	Seminar Room
+HG G 5	Lecture Hall
+HG G 60	Multipurpose Room
+HG G 69	Common Room
+HG G 7	Library
+HG G 7.3	Print and Copy
+HG H 15.1	Library
+HG H 20.3	Library
+HG H 26	Library
+HG H 27.5	Library
+HG H 28.2	Print and Copy
+HG H 28.4	Retreat Room
+HG H 28.6	Print and Copy
+HG H 29.3	Library
+HG H 29.5	Library
+HG H 29.7	Library
+HG H 30.1	Library
+HG H 32.1	Meeting Room
+HG H 50.1	Büro
+HG H 50.4	Meeting Room
+HG H 55	Meeting Room
+HG H 64.1	Meeting Room
+HG J 15.1	Seminar Room
+HG J 26.1	Library
+HG J 29.7	Meeting Room
+HG J 30.1	Library
+HG J 31.1	Common Room
+HG J 31.5	Meeting Room
+HG J 32.7	Miscellaneous
+HG J 33.1	Meeting Room
+HG J 34	Meeting Room
+HG K 30.1	Seminar Room
+HG K 30.5	Food
+HG KO 33	Computer Room
+IFW A 29	Study Room
+IFW A 32.1	Lecture Hall
+IFW A 34	Seminar Room
+IFW A 35	Library
+IFW A 36	Lecture Hall
+IFW A 45.1	Training Room
+IFW B 28	Print and Copy
+IFW B 31.1	Laboratory
+IFW B 31.2	Laboratory
+IFW B 35.1	Library
+IFW B 35.3	Common Room
+IFW B 42	Seminar Room
+IFW B 44	Meeting Room
+IFW C 31	Seminar Room
+IFW C 33	Seminar Room
+IFW C 34	Print and Copy
+IFW C 35	Seminar Room
+IFW C 40.2	Common Room
+IFW C 40.4	Print and Copy
+IFW C 41.2	Common Room
+IFW C 42	Seminar Room
+IFW D 34	Print and Copy
+IFW D 36.2	Print and Copy
+IFW D 42	Seminar Room
+IFW D 44	Meeting Room
+IFW E 31.1	Common Room
+IFW E 42	Seminar Room
+IFW Y 42.1	Hallway
+IFW Z 32	Parking Area
+IFW Z 33	Parking Area
+IFW Z 34	Parking Area
+LEE A 105	Laboratory
+LEE A 108	Laboratory
+LEE A 200.4	Laboratory
+LEE A 206	Laboratory
+LEE A 309	Laboratory
+LEE B 218	Laboratory
+LEE C 104	Seminar Room
+LEE C 108	Workplace
+LEE C 114	Seminar Room
+LEE D 101	Seminar Room
+LEE D 105	Seminar Room
+LEE D 131	Workplace
+LEE E 101	Lecture Hall
+LEE E 126	Meeting Room
+LEE E 226.1	Retreat Room
+LEE E 308	Multipurpose Room
+LEE E 317	Parking Area
+LEE F 118	Meeting Room
+LEE F 124	Study Room
+LEE F 135	Common Room
+LEE F 136	Common Room
+LEE F 311	Common Room
+LEE G 116	Common Room
+LEE G 118	Meeting Room
+LEE G 136	Study Room
+LEE G 201	Study Room
+LEE G 215	Common Room
+LEE G 221	Meeting Room
+LEE G 227	Study Room
+LEE G 309	Common Room
+LEE G 310	Common Room
+LEE H 203	Meeting Room
+LEE H 210	Common Room
+LEE H 215	Common Room
+LEE H 218	Common Room
+LEE J 210	Common Room
+LEE J 215	Common Room
+LEE J 218	Common Room
+LEE J 230	Laboratory
+LEE J 309	Laboratory
+LEE K 219	Meeting Room
+LEE K 221	Meeting Room
+LEE K 223	Meeting Room
+LEE K 225	Meeting Room
+LEE K 229	Common Room
+LEE L 229	Common Room
+LEE M 214	Meeting Room
+LEE M 229	Common Room
+LEE M 230	Common Room
+LEE N 214	Meeting Room
+LEE N 229	Common Room
+LEE N 230	Common Room
+LEE O 214	Common Room
+LEE O 215	Common Room
+LEE O 219	Meeting Room
+LEE O 230	Common Room
+LEE P 214	Common Room
+LEE P 215	Common Room
+LEO A 1.2	Meeting Room
+LEO A 2	Workshop
+LEO A 3	Workshop
+LEO A 4	Workshop
+LEO A 8.2	Workshop
+LEO B 2	Workshop
+LEO B 5	Workshop
+LEO B 6	Workshop
+LEO B 7.2	Laboratory
+LEO B 7.4	Laboratory
+LEO B 8.1	Laboratory
+LEO B 8.2	Laboratory
+LEO B 8.3	Laboratory
+LEO C 11	Common room
+LEO C 12	Meeting Room
+LEO C 4	Labor
+LEO C 6.1	Laboratory
+LFH A 11.1	Laboratory
+LFH A 11.2	Laboratory
+LFH B 11.2	Meeting Room
+LFH B 5	Common Room
+LFO A 13.2	Laboratory
+LFO A 16	Laboratory
+LFO A 19.1	Laboratory
+LFO A 23	Laboratory
+LFO A 24	Laboratory
+LFO B 10.1	Miscellaneous
+LFO B 104.1	Laboratory
+LFO B 109.1	Laboratory
+LFO B 109.2	Laboratory
+LFO B 110	Laboratory
+LFO B 111.1	Laboratory
+LFO B 111.2	Laboratory
+LFO B 112	Laboratory
+LFO B 113.2	Laboratory
+LFO B 12	Laboratory
+LFO B 13	Laboratory
+LFO B 14	Laboratory
+LFO B 16	Laboratory
+LFO B 18	Common Room
+LFO B 20	Workshop
+LFO B 21	Workshop
+LFO B 25	Laboratory
+LFO B 26	Laboratory
+LFO B 27	Laboratory
+LFO C 12	Laboratory
+LFO C 13	Lecture Hall
+LFO C 16.1	Laboratory
+LFO C 16.2	Laboratory
+LFO C 17	Laboratory
+LFO C 18	Laboratory
+LFO C 19	Computer Room
+LFO C 20	Laboratory
+LFO C 24	Laboratory
+LFO C 25	Laboratory
+LFO C 26	Laboratory
+LFO C 27	Laboratory
+LFO D 16.1	Common Room
+LFO D 16.2	Common Room
+LFO D 20	Laboratory
+LFO D 21.1	Print and Copy
+LFO D 21.3	Laboratory
+LFO D 23	Laboratory
+LFO D 24	Laboratory
+LFO D 25	Laboratory
+LFO D 26	Laboratory
+LFO D 27	Laboratory
+LFO D 28	Laboratory
+LFO E 13	Laboratory
+LFO E 16	Laboratory
+LFO E 17	Common Room
+LFO E 24.1	Laboratory
+LFO E 24.2	Laboratory
+LFO E 24.3	Laboratory
+LFO E 27	Laboratory
+LFO F 12.1	Labor
+LFO F 14	Laboratory
+LFO F 16.1	Laboratory
+LFO F 16.3	Laboratory
+LFO F 17	Laboratory
+LFO F 18	Laboratory
+LFO F 25.1	Seminar Room
+LFO F 26.1	Laboratory
+LFO F 26.2	Laboratory
+LFO F 27	Common Room
+LFO G 12	Laboratory
+LFO G 14	Laboratory
+LFO G 17	Laboratory
+LFO G 20.1	Drucken und Kopieren
+LFO G 24.1	Laboratory
+LFO G 24.2	Laboratory
+LFO G 24.3	Laboratory
+LFO G 24.4	Laboratory
+LFO G 24.5	Laboratory
+LFO G 24.6	Laboratory
+LFO G 24.7	Laboratory
+LFO G 25	Seminar Room
+LFO G 26.1	Laboratory
+LFO G 27	Laboratory
+LFO G 28	Common Room
+LFV A 11	Laboratory
+LFV A 13	Laboratory
+LFV A 14	Laboratory
+LFV A 15.1	Laboratory
+LFV A 15.3	Laboratory
+LFV A 17	Workshop
+LFV A 28	Laboratory
+LFV A 31	Laboratory
+LFV A 33	Laboratory
+LFV A 36	Laboratory
+LFV A 43.1	Common Room
+LFV A 43.2	Laboratory
+LFV A 44	Laboratory
+LFV A 47.2	Laboratory
+LFV B 11	Laboratory
+LFV B 13	Laboratory
+LFV B 14	Laboratory
+LFV B 16	Laboratory
+LFV B 17	Laboratory
+LFV B 19	Laboratory
+LFV B 23	Laboratory
+LFV B 25	Laboratory
+LFV B 26	Laboratory
+LFV B 28	Common Room
+LFV B 31	Laboratory
+LFV B 32.1	Laboratory
+LFV B 32.2	Laboratory
+LFV B 33.1	Laboratory
+LFV B 34	Laboratory
+LFV B 35	Laboratory
+LFV B 37	Seminar Room
+LFV B 39	Laboratory
+LFV B 40	Laboratory
+LFV B 41	Laboratory
+LFV B 42.1	Laboratory
+LFV B 42.2	Laboratory
+LFV C 10.2	Common Room
+LFV C 11	Laboratory
+LFV C 13	Laboratory
+LFV C 16	Laboratory
+LFV C 17	Laboratory
+LFV C 18	Laboratory
+LFV C 19	Laboratory
+LFV C 23	Laboratory
+LFV C 24	Laboratory
+LFV C 25.1	Laboratory
+LFV C 26.1	Laboratory
+LFV C 26.2	Laboratory
+LFV C 31.1	Laboratory
+LFV C 31.2	Laboratory
+LFV C 31.3	Print and Copy
+LFV C 32	Laboratory
+LFV C 42	Laboratory
+LFV D 11.1	Laboratory
+LFV D 13	Laboratory
+LFV D 15.2	Laboratory
+LFV D 16.1	Laboratory
+LFV D 17	Laboratory
+LFV D 18.1	Laboratory
+LFV D 19.1	Library
+LFV D 23	Laboratory
+LFV D 24	Laboratory
+LFV D 25	Laboratory
+LFV D 26.1	Laboratory
+LFV D 27.1	Laboratory
+LFV D 28	Laboratory
+LFV D 31.1	Laboratory
+LFV D 31.2	Laboratory
+LFV D 32.1	Laboratory
+LFV D 32.2	Laboratory
+LFV D 32.3	Laboratory
+LFV D 41	Laboratory
+LFV D 43	Laboratory
+LFV D 44.1	Laboratory
+LFV E 11	Meeting Room
+LFV E 13	Laboratory
+LFV E 24	Laboratory
+LFV E 25	Laboratory
+LFV E 28	Laboratory
+LFV E 41	Seminar Room
+LFV E 42	Common Room
+LFW A 13	Common Room
+LFW A 15.2	Laboratory
+LFW A 15.3	Laboratory
+LFW A 16	Betriebsraum
+LFW A 18.1	Laboratory
+LFW A 19.1	Laboratory
+LFW A 19.4	Laboratory
+LFW A 22.1	Laboratory
+LFW A 22.2	Laboratory
+LFW A 22.3	Laboratory
+LFW A 23	Laboratory
+LFW A 24.1	Laboratory
+LFW A 24.2	Laboratory
+LFW A 25	Laboratory
+LFW A 26.1	Laboratory
+LFW A 26.2	Laboratory
+LFW A 32.1	Laboratory
+LFW A 32.2	Laboratory
+LFW A 34	Laboratory
+LFW A 36	Laboratory
+LFW A 37	Laboratory
+LFW A 38	Laboratory
+LFW A 41	Laboratory
+LFW A 42	Laboratory
+LFW A 43	Laboratory
+LFW A 46.1	Laboratory
+LFW A 47	Laboratory
+LFW A 48.1	Laboratory
+LFW A 49.1	Laboratory
+LFW A 59.1	Workshop
+LFW B 1	Lecture Hall
+LFW B 2	Seminar Room
+LFW B 21	Labor
+LFW B 22	Labor
+LFW B 23	Labor
+LFW B 25	Laboratory
+LFW B 26	Büro
+LFW B 27	Büro
+LFW B 3	Seminar Room
+LFW B 31	Laboratory
+LFW B 32	Laboratory
+LFW B 33	Laboratory
+LFW B 35	Laboratory
+LFW B 36.1	Laboratory
+LFW B 36.2	Laboratory
+LFW B 37	Laboratory
+LFW B 38	Laboratory
+LFW B 41	Exhibition
+LFW B 42	Laboratory
+LFW B 44.1	Laboratory
+LFW B 44.2	Laboratory
+LFW B 44.3	Laboratory
+LFW B 45	Laboratory
+LFW B 46.1	Laboratory
+LFW B 47	Laboratory
+LFW B 48.1	Laboratory
+LFW B 49.1	Laboratory
+LFW B 52	Meeting Room
+LFW B 59	Common Room
+LFW C 1	Seminar Room
+LFW C 11	Seminar Room
+LFW C 21	Laboratory
+LFW C 23	Laboratory
+LFW C 25	Laboratory
+LFW C 27	Laboratory
+LFW C 28	Laboratory
+LFW C 31	Laboratory
+LFW C 33	Laboratory
+LFW C 34.1	Laboratory
+LFW C 34.2	Laboratory
+LFW C 35.1	Laboratory
+LFW C 36.1	Laboratory
+LFW C 36.2	Laboratory
+LFW C 37	Laboratory
+LFW C 38	Workshop
+LFW C 4	Seminar Room
+LFW C 41	Arbeitsplatz
+LFW C 42.2	Laboratory
+LFW C 42.3	Laboratory
+LFW C 44.1	Laboratory
+LFW C 44.2	Laboratory
+LFW C 45	Laboratory
+LFW C 46.1	Laboratory
+LFW C 47	Laboratory
+LFW C 49.1	Laboratory
+LFW C 5	Lecture Hall
+LFW C 55.1	Common Room
+LFW C 58	Laboratory
+LFW C 59	Laboratory
+LFW D 10.2	Events
+LFW D 11	Common Room
+LFW D 12	Meeting Room
+LFW D 20.2	Terraces
+LFW D 31	Laboratory
+LFW D 32	Laboratory
+LFW D 33	Laboratory
+LFW D 34.1	Laboratory
+LFW D 34.2	Laboratory
+LFW D 36.1	Laboratory
+LFW D 36.2	Laboratory
+LFW D 38	Laboratory
+LFW D 42.3	Laboratory
+LFW D 42.4	Laboratory
+LFW D 43	Laboratory
+LFW D 45	Laboratory
+LFW D 46.1	Laboratory
+LFW D 48.1	Laboratory
+LFW D 48.2	Laboratory
+LFW D 49.1	Laboratory
+LFW D 51	Laboratory
+LFW D 52	Laboratory
+LFW D 53.1	Laboratory
+LFW D 53.3	Meeting Room
+LFW D 55.1	Laboratory
+LFW D 55.2	Laboratory
+LFW D 55.3	Laboratory
+LFW D 57.1	Laboratory
+LFW D 58	Laboratory
+LFW E 11	Laboratory
+LFW E 13	Seminar Room
+LFW E 15	Laboratory
+LFW E 32.2	Laboratory
+LFW E 33.1	Laboratory
+LFW E 33.2	Laboratory
+LFW E 34.1	Laboratory
+LFW E 36.1	Laboratory
+LFW E 38	Laboratory
+LFW E 41.1	Computer Room
+LFW E 42.1	Laboratory
+LFW E 42.2	Laboratory
+LFW E 42.3	Laboratory
+LFW E 43	Laboratory
+LFW E 44.2	Laboratory
+LFW E 45.1	Laboratory
+LFW E 46.1	Laboratory
+LFW E 47	Laboratory
+LFW E 48.1	Laboratory
+LFW E 48.2	Laboratory
+LFW E 49.1	Laboratory
+LFW E 55	Laboratory
+LFW E 58.2	Print and Copy
+LFW E 59.2	Common Room
+LFW F 59	Terraces
+ML A 22.1	Workshop
+ML A 22.2	Workshop
+ML A 22.3	Workshop
+ML A 22.5	Workshop
+ML A 23.1	Workshop
+ML A 23.2	Workshop
+ML A 24	Workshop
+ML B 20.5	Parking Area
+ML B 20.6	Parking Area
+ML C 20.2	Entrance and Exit
+ML C 20.3	Parking Area
+ML C 20.4	Parking Area
+ML C 46.1	Laboratory
+ML C 46.6	Laboratory
+ML C 46.7	Laboratory
+ML C 51	Laboratory
+ML C 53.1	Workshop
+ML C 53.3	Workshop
+ML D 28	Lecture Hall
+ML D 42.1	Workshop
+ML D 42.2	Laboratory
+ML D 42.4	Laboratory
+ML D 42.6	Laboratory
+ML D 42.7	Laboratory
+ML D 43.2	Workshop
+ML D 44.1	Laboratory
+ML D 44.2	Workshop
+ML D 44.4	Laboratory
+ML D 44.5	Laboratory
+ML D 44.6	Workshop
+ML D 46.3	Security Room
+ML D 49.3	Workshop
+ML D 49.4	Workshop
+ML D 49.5	Multipurpose Room
+ML D 49.7	Workshop
+ML D 51.1	Laboratory
+ML D 51.2	Workshop
+ML D 52.1	Workshop
+ML D 53	Workshop
+ML D 54	Workshop
+ML DO 43.6	Laboratory
+ML E 12	Lecture Hall
+ML E 13	Meeting Room
+ML E 21	Food
+ML E 23	Food
+ML E 31	Laboratory
+ML E 36.3	Laboratory
+ML E 38	Workshop
+ML E 41	Workshop
+ML E 43.1	Print and Copy
+ML E 44.1	Laboratory
+ML E 44.2	Laboratory
+ML E 44.3	Laboratory
+ML E 49.1	Common Room
+ML E 49.2	Multipurpose Room
+ML E 49.8	Common Room
+ML E 51.3	Laboratory
+ML E 51.4	Hallway
+ML E 55	Workshop
+ML E 60.9	Exhibition
+ML F 11	Betriebsraum
+ML F 14.1	Laboratory
+ML F 15	Laboratory
+ML F 16.1	Laboratory
+ML F 17	Laboratory
+ML F 18.1	Laboratory
+ML F 19	Laboratory
+ML F 20.1	Laboratory
+ML F 22.1	Laboratory
+ML F 23.1	Laboratory
+ML F 27	Laboratory
+ML F 28.1	Laboratory
+ML F 29.3	Common Room
+ML F 32.2	Retreat Room
+ML F 34	Lecture Hall
+ML F 36	Lecture Hall
+ML F 38	Lecture Hall
+ML F 39	Lecture Hall
+ML F 40	Seminar Room
+ML F 44.1	Labor
+ML F 45.4	Miscellaneous
+ML F 46.1	Security Room
+ML F 49.2	Multipurpose Room
+ML F 51.1	Laboratory
+ML F 53.3	Workshop
+ML F 56	Laboratory
+ML F 58.1	Laboratory
+ML F 58.4	Laboratory
+ML G 11	Laboratory
+ML G 12	Laboratory
+ML G 13.1	Laboratory
+ML G 13.3	Laboratory
+ML G 14	Laboratory
+ML G 16	Laboratory
+ML G 17	Laboratory
+ML G 19	Laboratory
+ML G 28.1	Laboratory
+ML G 28.2	Laboratory
+ML G 53.3	Common Room
+ML G 53.4	Meeting Room
+ML H 17	Laboratory
+ML H 20.1	Laboratory
+ML H 20.2	Laboratory
+ML H 23	Laboratory
+ML H 24	Laboratory
+ML H 25	Laboratory
+ML H 26	Laboratory
+ML H 27.1	Workshop
+ML H 27.3	Workshop
+ML H 27.4	Workshop
+ML H 28.1	Laboratory
+ML H 28.2	Laboratory
+ML H 29.1	Laboratory
+ML H 29.3	Laboratory
+ML H 34.1	Computer Room
+ML H 34.3	Seminar Room
+ML H 37.1	Seminar Room
+ML H 41.1	Seminar Room
+ML H 43	Seminar Room
+ML H 44	Lecture Hall
+ML H 49.2	Multipurpose Room
+ML H 51.1	Meeting Room
+ML H 51.7	Print and Copy
+ML H 59	Laboratory
+ML J 12.3	Laboratory
+ML J 12.9	Laboratory
+ML J 17.1	Laboratory
+ML J 17.2	Laboratory
+ML J 21	Laboratory
+ML J 25	Sitzungszimmer
+ML J 26	Sitzungszimmer
+ML J 26.1	Common Room
+ML J 27.5	Laboratory
+ML J 28	Laboratory
+ML J 29	Laboratory
+ML J 34.1	Seminar Room
+ML J 34.2	Computer Room
+ML J 34.3	Seminar Room
+ML J 37.1	Seminar Room
+ML J 44.1	Laboratory
+ML J 44.2	Workshop
+ML J 44.3	Workshop
+ML J 49.1	Common Room
+ML J 49.2	Common Room
+ML J 49.5	Workshop
+ML K 15.2	Print and Copy
+ML K 24	Laboratory
+ML K 28.1	Laboratory
+ML K 28.2	Laboratory
+ML K 28.3	Laboratory
+ML K 29	Laboratory
+ML K 30.9	Laboratory
+ML K 31	Laboratory
+ML K 37.1	Library
+ML K 37.5	Common Room
+ML K 40.1	Meeting Room
+ML K 44.1	Laboratory
+ML L 29	Laboratory
+MM A 71.1	Training Room
+MM A 71.3	Training Room
+MM A 71.4	Training Room
+MM A 74	Shopping
+MM A 81	Sports
+MM A 82	Sports
+MM A 83	Sports
+MM A 84	Sports
+MM A 86	Common Room
+MM A 87	Sports
+MM A 88	Sports
+MM A 89	Sports
+MM A 96.2	Workshop
+MM A 97.1	Laboratory
+MM A 97.2	Laboratory
+MM A 97.3	Laboratory
+MM A 97.4	Laboratory
+MM A 98	Training Room
+MM B 71.1	Training Room
+MM B 79	Food
+MM B 96	Shopping
+MM C 78.1	Multipurpose Room
+MM C 81	Food
+MM C 82	Food
+MM C 83	Food
+MM C 84.5	Common Room
+MM C 85.1	Miscellaneous
+MM C 85.4	Miscellaneous
+MM C 86.2	Shopping
+MM C 87.1	Shopping
+MM C 88.1	Shopping
+MM C 88.2	Shopping
+MM D 80.1	Events
+MM D 80.2	Events
+MM D 80.3	Events
+MM D 80.4	Events
+MM Z 71.2	Common Room
+MM Z 78.7	Meeting Room
+MM Z 81	Sports
+MM Z 82	Sports
+MM Z 82.6	Sports
+MM Z 82.7	Sports
+MM Z 89	Sports
+MM Z 96.1	Retreat Room
+NO B 51.1	Workshop
+NO B 51.2	Workshop
+NO B 65	Workshop
+NO B 67.4	Laboratory
+NO B 69.4	Workshop
+NO B 69.5	Workshop
+NO B 70.1	Parking Area
+NO C 1.1	Print and Copy
+NO C 1.2	Workshop
+NO C 42.1	Retreat Room
+NO C 44	Lecture Hall
+NO C 47.1	Workshop
+NO C 47.2	Workshop
+NO C 6	Lecture Hall
+NO C 60	Lecture Hall
+NO C 67	Laboratory
+NO C 69	Workshop
+NO C 70.8	Workshop
+NO C 70.9	Workshop
+NO CO 1.1	Computer Room
+NO CO 11.5	Laboratory
+NO CO 13	Laboratory
+NO CO 17.1	Laboratory
+NO CO 17.2	Laboratory
+NO CO 19.1	Laboratory
+NO CO 19.2	Laboratory
+NO CO 21.1	Laboratory
+NO CO 21.2	Laboratory
+NO CO 33.1	Laboratory
+NO CO 33.2	Laboratory
+NO CO 39.2	Laboratory
+NO CO 47	Workshop
+NO CO 67	Laboratory
+NO CO 9.1	Common Room
+NO CO 9.2	Common Room
+NO D 1	Seminar Room
+NO D 11	Seminar Room
+NO D 13.1	Common Room
+NO D 24	Exhibition
+NO D 25.1	Library
+NO D 25.2	Common Room
+NO D 25.4	Print and Copy
+NO D 39	Seminar Room
+NO D 45	Seminar Room
+NO D 49.1	Workshop
+NO D 49.3	Workshop
+NO D 49.4	Workshop
+NO D 53	Meeting Room
+NO D 69	Seminar Room
+NO DO 25.1	Workplace
+NO DO 25.2	Library
+NO DO 49.1	Workshop
+NO DO 49.4	Workshop
+NO E 11	Seminar Room
+NO E 15.1	Print and Copy
+NO E 24	Exhibition
+NO E 35	Meeting Room
+NO E 39	Seminar Room
+NO E 51.1	Seminar Room
+NO F 24	Exhibition
+NO F 27	Laboratory
+NO F 39	Seminar Room
+NO F 47	Meeting Room
+NO F 68	Print and Copy
+NO FO 47.1	Meeting Room
+NO G 11.1	Laboratory
+NO G 11.2	Laboratory
+NO G 12.1	Laboratory
+NO G 12.2	Laboratory
+NO G 12.3	Laboratory
+NO G 16.1	Laboratory
+NO G 16.2	Laboratory
+NO G 17	Laboratory
+NO G 19	Laboratory
+NO G 20	Laboratory
+NO G 21	Laboratory
+NO G 23	Laboratory
+NO G 24	Laboratory
+NO G 26	Laboratory
+NO G 29	Laboratory
+NO G 30	Laboratory
+NO G 39.1	Laboratory
+NO G 39.3	Laboratory
+NO G 41	Laboratory
+NO G 52.1	Print and Copy
+NO G 55	Meeting Room
+NO G 68.2	Print and Copy
+NO G 9.1	Laboratory
+NO G 9.2	Laboratory
+NO H 33	Meeting Room
+NO J 45	Meeting Room
+NW A 81.1	Laboratory
+NW A 81.2	Laboratory
+NW A 83	Laboratory
+NW A 85	Laboratory
+NW A 87	Laboratory
+NW A 89	Laboratory
+NW A 90.1	Laboratory
+NW A 90.2	Laboratory
+NW B 81.1	Laboratory
+NW B 81.2	Laboratory
+NW B 85.1	Laboratory
+NW B 85.2	Laboratory
+NW B 86	Laboratory
+NW B 86.1	Laboratory
+NW B 87	Laboratory
+NW B 89	Laboratory
+NW C 86.1	Laboratory
+NW C 86.2	Laboratory
+NW C 87	Laboratory
+NW C 88.2	Laboratory
+NW D 75.1	Laboratory
+NW D 77.1	Laboratory
+NW D 79.1	Laboratory
+NW D 79.2	Laboratory
+NW D 81.1	Laboratory
+NW D 86.1	Laboratory
+NW D 86.2	Laboratory
+NW D 87	Laboratory
+NW D 88.2	Laboratory
+NW E 86.1	Laboratory
+NW E 86.2	Laboratory
+NW E 87	Laboratory
+NW F 71.2	Laboratory
+NW F 71.3	Laboratory
+NW F 71.4	Laboratory
+NW F 71.6	Laboratory
+NW F 71.7	Laboratory
+NW F 74	Laboratory
+NW F 80.5	Laboratory
+NW F 81.1	Laboratory
+NW F 88	Laboratory
+NW F 89.1	Laboratory
+NW Z 83	Laboratory
+NW Z 84	Laboratory
+NW Z 85	Laboratory
+RZ A 24	Common Room
+RZ B 2	Workshop
+RZ D 21	Seminar Room
+RZ D 8	Seminar Room
+RZ D 9	Laboratory
+RZ DO 12	Common Room
+RZ F 1	Meeting Room
+RZ F 17.2	Common Room
+RZ F 21	Seminar Room
+RZ G 21	Common Room
+RZ G 26	Print and Copy
+RZ J 21	Print and Copy
+TAN A 3	Laboratory
+TAN B 3	Laboratory
+TAN B 4.1	Laboratory
+TAN B 4.2	Laboratory
+TAN B 8.2	Laboratory
+TAN B 8.4	Laboratory
+TAN C 5	Common Room
+TAN C 7.3	Meeting Room
+TAN D 4	Meeting Room
+TAN D 5.2	Laboratory
+TAN D 6.1	Common Room
+TAN D 6.2	Common Room
+TAN F 5	Common Room
