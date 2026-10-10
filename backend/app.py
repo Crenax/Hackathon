@@ -1,6 +1,9 @@
 """Authenticated API behind the VIScon identity proxy."""
 
+from contextlib import asynccontextmanager
 from functools import lru_cache
+import logging
+from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import unquote
@@ -15,6 +18,7 @@ from pydantic import BaseModel, Field
 
 from courses import Course
 from databaseManager import DatabaseManager
+from memoryDatabase import MemoryDatabaseManager
 from models import (
     Degree, FilterType, Gender, Listing, ListingFilter, ListingForCreate,
     ListingForUpdate, ListingMember, MemberRole, Message, MessageForCreate,
@@ -26,11 +30,26 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 @lru_cache(maxsize=1)
 def get_database() -> DatabaseManager:
-    # Delay connecting until an authenticated request needs the database.
-    try:
+    if (getenv("SUPABASE_URL") or "").strip() and (getenv("SUPABASE_SERVICE_ROLE_KEY") or "").strip():
         return DatabaseManager()
-    except RuntimeError as exc:
-        raise HTTPException(503, "Database is not configured") from exc
+    logging.getLogger("uvicorn.error").warning(
+        "\n\n" + "!" * 88 + "\n"
+        "!!! WARNING: SUPABASE IS NOT CONFIGURED — USING A RAM-ONLY MOCK DATABASE !!!\n"
+        "!!! ALL DATA WILL BE LOST WHEN THE SERVER RESTARTS.                     !!!\n"
+        "!!! EACH SERVER WORKER HAS ITS OWN SEPARATE DATABASE.                  !!!\n"
+        "!!! Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for persistent data. !!!\n"
+        + "!" * 88 + "\n"
+    )
+    return MemoryDatabaseManager()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    get_database()
+    try:
+        yield
+    finally:
+        get_database.cache_clear()
 
 
 Database = Annotated[DatabaseManager, Depends(get_database)]
@@ -43,6 +62,7 @@ def current_user(request: Request, db: Database) -> User:
 
 CurrentUser = Annotated[User, Depends(current_user)]
 app = FastAPI(
+    lifespan=lifespan,
     docs_url="/api/docs",
     redoc_url=None,
     openapi_url="/api/openapi.json",

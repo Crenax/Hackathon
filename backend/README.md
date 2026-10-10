@@ -1,7 +1,7 @@
 # Backend
 
-FastAPI API backed by `DatabaseManager` and Supabase. There is no guest mode or
-in-memory listing storage. Every HTTP request, including documentation and
+FastAPI API backed by Supabase when configured, with a RAM-only mock database
+for local development otherwise. Every HTTP request, including documentation and
 unknown URLs, requires both proxy headers:
 
 ```http
@@ -46,9 +46,13 @@ and cascades.
 .venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
-Database initialization is lazy. Authenticated API requests return `503` if the
-configuration is missing. Unauthenticated requests continue to return `401`.
-There is no fallback identity or storage mode when the database fails.
+Storage initializes at server startup. If either Supabase setting is missing or
+blank, the server prints a large warning and uses a RAM-only mock database for
+users, listings, filters, memberships, invites, and messages. All mock data is
+lost on restart; each worker/process has its own independent store. Use a single
+worker for local development. Authentication headers and permissions still apply.
+Configured Supabase connection failures return errors rather than switching to
+the mock database.
 
 ## API
 
@@ -104,7 +108,7 @@ still contains todo calls and needs to use these listing endpoints.
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-Tests use an injected database double and make no database/network requests.
+Tests use an injected database double or the RAM-only database without network requests.
 They cover authentication on every route, identity resolution, authorization,
 private listings, invite-code visibility, and database error handling. Live
 Supabase schema/triggers need integration testing against a configured project.

@@ -204,7 +204,8 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         with patch.dict("os.environ", {}, clear=True):
             self.assertEqual((await self.client.get("/api/me")).status_code, 401)
             response = await self.client.get("/api/me", headers=HEADERS)
-            self.assertEqual(response.status_code, 503)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()["emailAddress"], HEADERS["X-User-Id"])
         api.get_database.cache_clear()
 
 
