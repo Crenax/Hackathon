@@ -14,6 +14,7 @@ import type { Listing, ListingMember } from "../api";
 import { getEventTitle } from "../eventTitle";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
+import OutlookCalendarButton from "../components/OutlookCalendarButton";
 import "../FormLayout.css";
 import "./EventPage.css";
 
@@ -196,10 +197,15 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
 
                     {event.courses.length > 0 && (
                         <section className="event-page__section" aria-labelledby="event-courses-heading">
-                            <h2 id="event-courses-heading"><Book aria-hidden="true" /> Courses</h2>
-                            <ul className="event-page__tags">
-                                {event.courses.map((course) => <li key={course}>{course}</li>)}
-                            </ul>
+                            <div className="event-page__courses-row">
+                                <div className="event-page__courses">
+                                    <h2 id="event-courses-heading"><Book aria-hidden="true" /> Courses</h2>
+                                    <ul className="event-page__tags">
+                                        {event.courses.map((course) => <li key={course}>{course}</li>)}
+                                    </ul>
+                                </div>
+                                {hasJoined && <OutlookCalendarButton key={event.id} listingId={event.id} />}
+                            </div>
                         </section>
                     )}
 

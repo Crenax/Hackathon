@@ -28,3 +28,9 @@
 .event-page__join-status, .event-page__join-error { max-width: 280px; text-align: right; }
 .event-page__join-status { margin: 0; color: var(--form-muted); }
 .event-page__join-error { margin: 0; color: #b83242; }
+
+.event-page__courses-row { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.event-page__courses { flex: 1 1 220px; min-width: 0; }
+.event-page__calendar { margin-left: auto; max-width: 100%; }
+.event-page__calendar button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.event-page__calendar p { max-width: 280px; color: #b83242; font-size: .85rem; }
