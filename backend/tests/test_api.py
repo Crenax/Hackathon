@@ -74,6 +74,34 @@ class APITests(unittest.IsolatedAsyncioTestCase):
         self.db.get_or_create_user.assert_called_once_with("einstein@ethz.ch", "Albert Einstein")
         self.assertEqual(response.headers["cache-control"], "no-store")
 
+    async def test_localhost_defaults_to_guest(self):
+        for host in ("localhost", "127.0.0.1", "[::1]"):
+            with self.subTest(host=host):
+                self.db.get_or_create_user.reset_mock()
+                response = await self.client.get(f"http://{host}:8000/api/me",
+                                                 headers={"Origin": "http://localhost:5173"})
+                self.assertEqual(response.status_code, 200)
+                self.db.get_or_create_user.assert_called_once_with("guest@ethz.ch", "guest guest")
+                self.assertEqual(response.headers["cache-control"], "no-store")
+
+    async def test_localhost_preserves_explicit_identity_and_validation(self):
+        response = await self.client.get("http://localhost/api/me", headers=HEADERS)
+        self.assertEqual(response.status_code, 200)
+        self.db.get_or_create_user.assert_called_once_with("einstein@ethz.ch", "Albert Einstein")
+        for headers in ({"X-User-Id": "guest@ethz.ch"}, {**HEADERS, "X-User-Name": " "}):
+            response = await self.client.get("http://localhost/api/me", headers=headers)
+            self.assertEqual(response.status_code, 401)
+
+    async def test_localhost_guest_rejects_remote_origin_or_client(self):
+        response = await self.client.get("http://localhost/api/me", headers={"Origin": "https://example.com"})
+        self.assertEqual(response.status_code, 401)
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=api.app, client=("192.0.2.1", 1234)),
+            base_url="http://localhost",
+        ) as remote:
+            self.assertEqual((await remote.get("/api/me")).status_code, 401)
+        self.db.get_or_create_user.assert_not_called()
+
     async def test_proxy_name_is_decoded_and_email_normalized(self):
         response = await self.client.get("/api/me", headers={
             "X-User-Id": " EINSTEIN@ETHZ.CH ", "X-User-Name": "Zo%C3%AB Einstein",

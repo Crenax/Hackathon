@@ -2,11 +2,12 @@
 
 from contextlib import asynccontextmanager
 from functools import lru_cache
+from ipaddress import ip_address
 import logging
 from os import getenv
 from pathlib import Path
 from typing import Annotated, Literal
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 import httpx
 import uvicorn
@@ -73,9 +74,31 @@ app = FastAPI(
 @app.middleware("http")
 async def require_proxy_identity(request: Request, call_next):
     # Run before routing/body validation, including docs, redirects and unknown URLs.
+    def is_localhost(host: str | None) -> bool:
+        if host == "localhost":
+            return True
+        try:
+            return ip_address(host or "").is_loopback
+        except ValueError:
+            return False
+
+    origin = request.headers.get("origin")
+    try:
+        local_origin = origin is None or is_localhost(urlsplit(origin).hostname)
+    except ValueError:
+        local_origin = False
+    local_guest = (
+        request.client is not None
+        and is_localhost(request.client.host)
+        and is_localhost(request.url.hostname)
+        and local_origin
+        and "X-User-Id" not in request.headers
+        and "X-User-Name" not in request.headers
+    )
+    guest_headers = {"X-User-Id": "guest@ethz.ch", "X-User-Name": "guest guest"}
     identity = {}
     for header in ("X-User-Id", "X-User-Name"):
-        values = request.headers.getlist(header)
+        values = [guest_headers[header]] if local_guest else request.headers.getlist(header)
         if len(values) != 1:
             return JSONResponse({"detail": "Both proxy authentication headers are required"}, status_code=401)
         try:

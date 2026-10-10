@@ -2,14 +2,20 @@
 
 FastAPI API backed by Supabase when configured, with a RAM-only mock database
 for local development otherwise. Every HTTP request, including documentation and
-unknown URLs, requires both proxy headers:
+unknown URLs, requires both proxy headers (with the localhost exception below):
 
 ```http
 X-User-Id: einstein@ethz.ch
 X-User-Name: Albert Einstein
 ```
 
-Missing, empty, duplicate, or invalid identity headers return `401` before any
+For local development, requests from a loopback client to `localhost` or a
+loopback IP automatically use `X-User-Id: guest@ethz.ch` and
+`X-User-Name: guest guest` when both headers are absent. If an `Origin` header is
+present, it must also use localhost or a loopback IP. Explicit identity headers
+still take precedence and must pass validation.
+
+Otherwise, missing, empty, duplicate, or invalid identity headers return `401` before any
 database access. Percent-encoded names are decoded. The email is normalized and
 used to find or create a database user; all permissions and writes use that
 user's database ID. Clients cannot supply the acting user's ID in request bodies.
@@ -67,7 +73,8 @@ the mock database.
 
 Interactive documentation: `/api/docs`; OpenAPI schema: `/api/openapi.json`.
 Both require proxy headers. Browsing through the authenticated portal supplies
-them automatically. For local development, send headers explicitly:
+them automatically. Localhost requests use the guest identity automatically;
+send headers explicitly to use a different identity:
 
 ```sh
 curl http://localhost:8000/api/me \
