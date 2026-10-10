@@ -4,7 +4,6 @@ import {
     Book,
     Calendar3,
     Clock,
-    Funnel,
     GeoAltFill,
     LockFill,
     PersonCircle,
@@ -189,18 +188,6 @@ function EventPageContent({ event, creatorName, hasJoined, pending, onRequested 
                         </section>
                     )}
 
-                    {event.filters.length > 0 && (
-                        <section className="event-page__section" aria-labelledby="event-requirements-heading">
-                            <h2 id="event-requirements-heading"><Funnel aria-hidden="true" /> Participation preferences</h2>
-                            <ul className="event-page__preferences">
-                                {event.filters.map((filter) => (
-                                    <li key={`${filter.filterType}-${filter.value}`}>
-                                        {filter.filterType}: {filter.value.replaceAll("_", " ")}
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    )}
                 </section>
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>

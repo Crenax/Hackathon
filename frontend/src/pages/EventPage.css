@@ -12,9 +12,8 @@
 .event-page__section { padding: 23px 24px; border-bottom: 1px solid #edf0f5; }
 .event-page__section:last-child { border-bottom: 0; }
 .event-page__section p { margin: 10px 0 0; color: #444c60; line-height: 1.55; white-space: pre-wrap; }
-.event-page__tags, .event-page__preferences { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
-.event-page__tags li, .event-page__preferences li { border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .84rem; }
-.event-page__preferences li { color: #4e5568; background: #f4f5f8; text-transform: capitalize; }
+.event-page__tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.event-page__tags li { border-radius: 999px; padding: 7px 10px; color: #3730a3; background: #eef2ff; font-size: .84rem; }
 
 @media (max-width: 560px) {
   .event-page__detail, .event-page__section { padding-right: 16px; padding-left: 16px; }

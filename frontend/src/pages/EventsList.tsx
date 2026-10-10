@@ -8,8 +8,6 @@ import { compareEventsFutureToPast } from "../eventSorting";
 import "../FormLayout.css";
 import "./EventsList.css";
 
-type DegreeFilter = "" | "bachelor" | "master" | "phd";
-type GenderFilter = "" | "prefer_not_to_say" | "male" | "female" | "non_binary";
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
 function sortListings(listings: Listing[]): Listing[] {
@@ -39,8 +37,6 @@ export default function EventsList() {
     const [description, setDescription] = useState("");
     const [newCourse, setNewCourse] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
-    const [degreeFilter, setDegreeFilter] = useState<DegreeFilter>("");
-    const [genderFilter, setGenderFilter] = useState<GenderFilter>("");
     const [isAdding, setIsAdding] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
@@ -141,10 +137,6 @@ export default function EventsList() {
             return;
         }
 
-        const filters: ListingForCreate["filters"] = [];
-        if (degreeFilter) filters.push({ filterType: "degree", value: degreeFilter });
-        if (genderFilter) filters.push({ filterType: "gender", value: genderFilter });
-
         const newEvent: ListingForCreate = {
             description: description.trim(),
             startTime: startsAt.toISOString(),
@@ -152,7 +144,6 @@ export default function EventsList() {
             location: location.trim(),
             courses,
             isPrivate,
-            filters,
         };
 
         setIsSubmitting(true);
@@ -168,8 +159,6 @@ export default function EventsList() {
             setCourses([]);
             setNewCourse("");
             setIsPrivate(false);
-            setDegreeFilter("");
-            setGenderFilter("");
             setIsAdding(false);
         } catch (error) {
             setSubmitError(error instanceof Error ? error.message : "Could not create the event.");
@@ -261,37 +250,6 @@ export default function EventsList() {
                                     </label>
                                 </div>
                             </fieldset>
-
-                            <details className="event-filters">
-                                <summary>
-                                    <span>Filters</span>
-                                    {(degreeFilter || genderFilter) && (
-                                        <span className="event-filter-count">{Number(Boolean(degreeFilter)) + Number(Boolean(genderFilter))}</span>
-                                    )}
-                                </summary>
-                                <div className="event-filters-content">
-                                    <p>Optionally restrict the members who can find this event.</p>
-                                    <div className="form-row">
-                                        <label className="form-field" htmlFor="study-event-degree-filter">
-                                            Degree
-                                            <select id="study-event-degree-filter" value={degreeFilter} onChange={(event) => setDegreeFilter(event.target.value as DegreeFilter)}>
-                                                <option value="">Any degree</option>
-                                                <option value="bachelor">Bachelor</option>
-                                                <option value="master">Master</option>
-                                                <option value="phd">PhD</option>
-                                            </select>
-                                        </label>
-                                        <label className="form-field" htmlFor="study-event-gender-filter">
-                                            Gender
-                                            <select id="study-event-gender-filter" value={genderFilter} onChange={(event) => setGenderFilter(event.target.value as GenderFilter)}>
-                                                <option value="">Any gender</option>
-                                                <option value="female">Female</option>
-                                                <option value="male">Male</option>
-                                            </select>
-                                        </label>
-                                    </div>
-                                </div>
-                            </details>
 
                             {submitError && <p className="event-submit-error" role="alert">{submitError}</p>}
 

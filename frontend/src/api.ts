@@ -23,13 +23,6 @@ const Degree = {
 type Degree = (typeof Degree)[keyof typeof Degree];
 export { Degree };
 
-const FilterType = {
-    gender: 0,
-    degree: 1
-} as const;
-type FilterType = (typeof FilterType)[keyof typeof FilterType];
-export { FilterType };
-
 const MemberRole = {
   admin: "admin",
   member: "member",
@@ -52,11 +45,6 @@ export interface User {
   description: string;
 }
 
-export interface ListingFilter {
-  filterType: "gender" | "degree";
-  value: string;
-}
-
 export interface Listing {
   id: string;
   createdBy: string | null;
@@ -67,7 +55,6 @@ export interface Listing {
   courses: string[];
   isPrivate: boolean;
   inviteCode: string | null;
-  filters: ListingFilter[];
 }
 
 export interface ListingForCreate {
@@ -77,7 +64,6 @@ export interface ListingForCreate {
   location: string;
   courses: string[];
   isPrivate: boolean;
-  filters: ListingFilter[];
 }
 
 export interface Message {
