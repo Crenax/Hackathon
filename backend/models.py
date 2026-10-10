@@ -1,11 +1,140 @@
 from datetime import datetime
 
 from pydantic import BaseModel
+<<<<<<< Updated upstream
+=======
+from pydantic import BaseModel, Field, AliasChoices
+
+from courses import Course
+
+
+# Enums
+class Gender(str, Enum):
+    preferNotToSay = "prefer_not_to_say"
+    male = "male"
+    female = "female"
+    nonBinary = "non_binary"
+
+
+class Major(str, Enum):
+    ComputerScience = "computer_science"
+
+
+class Degree(str, Enum):
+    Bachelor = "bachelor"
+    Master = "master"
+    PHD = "phd"
+
+
+class FilterType(str, Enum):
+    gender = "gender"
+    degree = "degree"
+
+
+class MemberRole(str, Enum):
+    admin = "admin"
+    member = "member"
+    requestPending = "request_pending"
+
+>>>>>>> Stashed changes
 
 
 class User(BaseModel):
     id: str
+<<<<<<< Updated upstream
     name: str
+=======
+    firstName: str = Field(
+        validation_alias=AliasChoices("firstName", "name")
+    )
+    lastName: str = ""
+    emailAddress: str | None = None
+    dateOfBirth: date | None = None
+    gender: Gender | None = None
+    major: Major | None = None
+    degree: Degree | None = None
+    pfp: str | None = None
+    description: str = ""
+
+
+class UserForUpdate(BaseModel):
+    # Only the fields that are sent get updated
+    firstName: str | None = None
+    lastName: str | None = None
+    dateOfBirth: date | None = None
+    gender: Gender | None = None
+    major: Major | None = None
+    degree: Degree | None = None
+    pfp: str | None = None
+    description: str | None = None
+
+
+class ListingFilter(BaseModel):
+    filterType: FilterType
+    value: str  # e.g. "female" for gender, "master" for degree
+
+
+class Listing(BaseModel):
+    id: str
+    createdBy: str | None = None
+    subject: str
+    description: str = ""
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] = []
+    isPrivate: bool = False
+    inviteCode: str | None = None
+    filters: list[ListingFilter] = []
+
+
+class ListingForCreate(BaseModel):
+    subject: str
+    description: str = ""
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] = []
+    isPrivate: bool = False
+    filters: list[ListingFilter] = []
+
+
+class ListingForUpdate(BaseModel):
+    # Only the fields that are sent get updated; send null to unset start/end time or location
+    subject: str | None = None
+    description: str | None = None
+    startTime: datetime | None = None
+    endTime: datetime | None = None
+    location: str | None = None
+    courses: list[Course] | None = None
+    isPrivate: bool | None = None
+
+
+class ListingMember(BaseModel):
+    user: User
+    role: MemberRole
+    joinedAt: datetime
+
+
+class PendingRequest(BaseModel):
+    listing: Listing
+    user: User
+    requestedAt: datetime
+
+
+class Message(BaseModel):
+    id: str
+    listingId: str
+    author: User | None = None  # None if the author deleted their account
+    sentAt: datetime
+    subject: str | None = None
+    content: str
+
+
+class MessageForCreate(BaseModel):
+    subject: str | None = None
+    content: str
+>>>>>>> Stashed changes
 
 
 class TodoItem(BaseModel):
