@@ -115,9 +115,9 @@ export default function CreateEvent() {
 
                         <div className="create-event-field">
                             <label htmlFor="study-event-courses">Courses</label>
-                            <div style={{display:"flex", alignItems:"center", justifyContent:'start', gap:"1rem"}}>
+                            <div style={{height:"100&", display:"flex", alignItems:"center", justifyContent:'start', gap:"1rem"}}>
                                 <AutocompleteInputField id="study-event-courses" value={newCourse} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCourse(e.target.value)} placeholder="e.g. CS101, MATH202" />
-                                <AddButton onClick={addCourse} />
+                                <button className="create-event-add-course" type="button" onClick={addCourse}>Add course</button>
                             </div>
                         </div>
 
