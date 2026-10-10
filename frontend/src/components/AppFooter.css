@@ -1,11 +1,10 @@
 .app-footer {
+    display: none;
     position: fixed;
     z-index: 2;
     padding: 10px 8px;
     width: 100%;
     bottom: 0;
-
-    display: flex;
     justify-content: space-around;
 
 
@@ -23,6 +22,6 @@
         padding: 0px 8px;
         color: white;
         text-decoration: none;
-        font-size: 40px;
+        font-size: 30px;
     }
 }
