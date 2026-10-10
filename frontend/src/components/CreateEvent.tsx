@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { localDayTimestamp, useScrollToToday } from "../useScrollToToday";
 import "./EventsList.css";
 
 interface StudyEvent {
@@ -37,6 +38,8 @@ export default function CreateEvent() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const eventSequence = events.map((event) => `${event.id}:${event.date}:${event.time}`).join("|");
+  const eventListRef = useScrollToToday(eventSequence);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -108,11 +111,15 @@ export default function CreateEvent() {
         {events.length === 0 ? (
           <p className="create-event-empty">No events yet. Add one above to get started.</p>
         ) : (
-          <div>
+          <div className="create-event-items" ref={eventListRef} tabIndex={0}>
             {events.map((studyEvent) => {
               const eventDate = new Date(`${studyEvent.date}T12:00:00`);
               return (
-                <article className="create-event-item" key={studyEvent.id}>
+                <article
+                  className="create-event-item"
+                  data-event-day={localDayTimestamp(eventDate)}
+                  key={studyEvent.id}
+                >
                   <div className="create-event-date-badge">
                     <span>{eventDate.toLocaleDateString(undefined, { month: "short" })}</span>
                     <strong>{eventDate.getDate()}</strong>

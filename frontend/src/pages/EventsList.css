@@ -16,3 +16,5 @@
 .event-filters-content { display: flex; flex-direction: column; gap: 14px; padding: 0 14px 14px; border-top: 1px solid #edf0f5; }
 .event-filters-content > p { margin: 12px 0 0; color: #697187; font-size: .82rem; }
 .event-submit-error { margin: 0; padding: 10px 12px; border: 1px solid #f2c8ce; border-radius: 8px; color: #9f2635; background: #fff5f6; font-size: .9rem; }
+.create-event-items { position: relative; max-height: min(60vh, 32rem); overflow-y: auto; padding-right: 8px; scrollbar-gutter: stable; overscroll-behavior: contain; }
+.create-event-items:focus-visible { border-radius: 7px; outline: 2px solid #7568d6; outline-offset: 3px; }

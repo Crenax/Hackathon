@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Listing } from "../api";
 import { getEventTitle } from "../eventTitle";
 import { compareEventsFutureToPast } from "../eventSorting";
+import { localDayTimestamp, useScrollToToday } from "../useScrollToToday";
 import "./EventList.css";
 
 export interface EventListProps {
@@ -18,14 +19,16 @@ export default function EventList({
     getStatusLabel,
     isDimmed,
 }: EventListProps) {
+    const sortedEvents = [...events].sort(compareEventsFutureToPast);
+    const eventSequence = sortedEvents.map((event) => `${event.id}:${event.startTime ?? ""}`).join("|");
+    const listRef = useScrollToToday(eventSequence);
+
     if (events.length === 0) {
         return <p className="event-empty">{emptyMessage}</p>;
     }
 
-    const sortedEvents = [...events].sort(compareEventsFutureToPast);
-
     return (
-        <div className="event-list">
+        <div className="event-list" ref={listRef} tabIndex={0}>
             {sortedEvents.map((event) => {
                 const eventTitle = getEventTitle(event.courses);
                 const eventDate = new Date(event.startTime ?? "");
@@ -36,7 +39,11 @@ export default function EventList({
                     : "Time TBD";
 
                 return (
-                    <article className={`event-item${isDimmed?.(event) ? " event-item--dimmed" : ""}`} key={event.id}>
+                    <article
+                        className={`event-item${isDimmed?.(event) ? " event-item--dimmed" : ""}`}
+                        data-event-day={hasValidDate ? localDayTimestamp(eventDate) : undefined}
+                        key={event.id}
+                    >
                         <Link
                             className="event-item__link"
                             to={`/event?id=${encodeURIComponent(event.id)}`}

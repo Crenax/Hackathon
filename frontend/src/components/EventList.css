@@ -1,5 +1,6 @@
 .event-empty { margin: 0; padding: 20px 14px; border: 1px dashed #d9ddea; border-radius: 9px; color: #778095; text-align: center; }
-.event-list { display: flex; flex-direction: column; }
+.event-list { position: relative; display: flex; max-height: min(60vh, 32rem); overflow-y: auto; flex-direction: column; padding-right: 8px; scrollbar-gutter: stable; overscroll-behavior: contain; }
+.event-list:focus-visible { border-radius: 7px; outline: 2px solid #7568d6; outline-offset: 3px; }
 .event-item { display: flex; align-items: flex-start; border-top: 1px solid #edf0f5; }
 .event-item--dimmed { opacity: .5; }
 .event-item:first-child { border-top: 0; }
