@@ -1,29 +1,31 @@
+
+
 const Gender = {
-    PREFER_NOT_TO_SAY: 0,
-    MALE: 1,
-    FEMALE: 2,
-    NONBINARY: 3
+    prefer_not_to_say: 0,
+    male: 1,
+    female: 2,
+    nonBinary: 3
 } as const;
 type Gender = (typeof Gender)[keyof typeof Gender];
 export { Gender };
 
 const Major = {
-    CS: 0
+    cs: 0
 } as const;
 type Major = (typeof Major)[keyof typeof Major];
 export { Major };
 
 const Degree = {
-    Bachelor: 0,
-    Master: 1,
-    PHD: 2
+    bachelor: 0,
+    master: 1,
+    phd: 2
 } as const;
 type Degree = (typeof Degree)[keyof typeof Degree];
 export { Degree };
 
 const FilterType = {
-    GENDER: 0,
-    DEGREE: 1
+    gender: 0,
+    degree: 1
 } as const;
 type FilterType = (typeof FilterType)[keyof typeof FilterType];
 export { FilterType };
@@ -78,6 +80,18 @@ export interface Message {
   content: string
 }
 
+export interface TodoItem {
+  id: number;
+  title: string;
+  description: string;
+  deadline: Date;
+}
+
+export interface TodoItemForCreate {
+  title: string;
+  description: string;
+  deadline: Date;
+}
 
 export class ApiError extends Error {
   constructor(status: number, message: string) {
@@ -118,7 +132,7 @@ async function request<T>(
   return response.json();
 }
 
-/*
+
 // JSON has no date type, so the backend sends deadlines as strings
 function parseDeadline<T extends { deadline: Date }>(todo: T): T {
   return { ...todo, deadline: new Date(todo.deadline) };
@@ -155,7 +169,7 @@ export function generateTodo(prompt: string): Promise<TodoItemForCreate> {
 
 export function deleteTodo(id: number): Promise<void> {
   return request(`/api/todos/${id}`, "DELETE");
-} */
+} 
 
 // Calls onChange whenever the todos change, e.g. in another tab.
 // Returns a function that stops listening (use it as the useEffect cleanup).
