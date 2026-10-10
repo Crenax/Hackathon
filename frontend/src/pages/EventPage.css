@@ -32,7 +32,7 @@
 .event-page__courses-row { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 .event-page__courses { min-width: 0; max-width: 100%; }
 .event-page__calendar { max-width: 100%; }
-.event-page__calendar button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.event-page__calendar button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 34px; padding: 7px 11px; font-size: .82rem; border-radius: 6px; }
 .event-page__calendar p { max-width: 280px; color: #b83242; font-size: .85rem; }
 
 .event-page__members { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }

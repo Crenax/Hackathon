@@ -196,8 +196,12 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                                         {event.courses.map((course) => <li key={course}>{course}</li>)}
                                     </ul>
                                 </div>
-                                {hasJoined && <OutlookCalendarButton key={event.id} listingId={event.id} />}
                             </div>
+                        </section>
+                    )}
+                    {hasJoined && (
+                        <section className="event-page__section" aria-label="Calendar">
+                            <OutlookCalendarButton key={event.id} listingId={event.id} />
                         </section>
                     )}
 
