@@ -4,8 +4,8 @@ import { House, PersonBadge } from 'react-bootstrap-icons';
 const AppFooter = () => {
     return (
         <footer className="app-footer">
-            <a href=""><House /></a>
-            <a href=""><PersonBadge /></a>
+            <a href="/"><House /></a>
+            <a href="profile"><PersonBadge /></a>
         </footer>
     );
 };
