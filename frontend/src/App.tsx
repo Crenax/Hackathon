@@ -8,7 +8,6 @@ import { scienceIconAttribution } from "../icons";
 
 import UserSettings from "./pages/UserSettings.tsx";
 import HomePage from "./pages/HomePage.tsx";
-import EventPage from "./pages/EventPage.tsx";
 import UserEvents from "./pages/UserEvents.tsx";
 
 

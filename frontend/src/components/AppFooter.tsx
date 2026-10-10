@@ -1,4 +1,3 @@
-import { Links } from "react-router-dom";
 import "./AppFooter.css";
 import { Calendar3, House, PersonBadge, Map } from 'react-bootstrap-icons';
 
