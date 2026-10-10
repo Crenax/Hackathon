@@ -187,15 +187,20 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                 </div>
 
                 <section className="form-card event-page__card" aria-label="Event details">
+                    <section className="event-page__detail event-page__schedule" aria-label="Schedule">
+                        <dl className="event-page__times">
+                            <div>
+                                <dt><Calendar3 aria-hidden="true" /> Starts</dt>
+                                <dd>{formatDateTime(event.startTime)}</dd>
+                            </div>
+                            <div>
+                                <dt><Clock aria-hidden="true" /> Ends</dt>
+                                <dd>{formatDateTime(event.endTime)}</dd>
+                            </div>
+                        </dl>
+                        {hasJoined && <OutlookCalendarButton key={event.id} listingId={event.id} />}
+                    </section>
                     <dl className="event-page__details">
-                        <div className="event-page__detail">
-                            <dt><Calendar3 aria-hidden="true" /> Starts</dt>
-                            <dd>{formatDateTime(event.startTime)}</dd>
-                        </div>
-                        <div className="event-page__detail">
-                            <dt><Clock aria-hidden="true" /> Ends</dt>
-                            <dd>{formatDateTime(event.endTime)}</dd>
-                        </div>
                         {hasJoined && event.location && (
                             <div className="event-page__detail">
                                 <dt><GeoAltFill aria-hidden="true" /> Location</dt>
@@ -219,7 +224,6 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                                         {event.courses.map((course) => <li key={course}>{course}</li>)}
                                     </ul>
                                 </div>
-                                {hasJoined && <OutlookCalendarButton key={event.id} listingId={event.id} />}
                             </div>
                         </section>
                     )}
