@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft } from "react-bootstrap-icons";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { acceptFriendRequest, Gender, getUserProfile, sendFriendRequest, type PublicUser } from "../api";
+import { acceptFriendRequest, Gender, getUserProfile, removeFriend, sendFriendRequest, type PublicUser } from "../api";
 import FriendTag from "../components/FriendTag";
 import "../FormLayout.css";
 import "./UserSettings.css";
@@ -64,6 +64,20 @@ export default function PublicProfile() {
     const [friendError, setFriendError] = useState("");
 
     // "Send friend request" for strangers, "Accept friend request" if they asked first
+    async function endFriendship() {
+        if (!profile || isFriendActionRunning) return;
+        if (!window.confirm("Are you sure you want to destroy this friendship?")) return;
+        setIsFriendActionRunning(true);
+        setFriendError("");
+        try {
+            setState({ userId, profile: await removeFriend(profile.id) });
+        } catch (error) {
+            setFriendError(error instanceof Error ? error.message : "Could not remove this friend.");
+        } finally {
+            setIsFriendActionRunning(false);
+        }
+    }
+
     async function runFriendAction() {
         if (!profile || isFriendActionRunning) return;
         setIsFriendActionRunning(true);
@@ -100,6 +114,12 @@ export default function PublicProfile() {
                                 {profile.friendStatus === "request_received"
                                     ? (isFriendActionRunning ? "Accepting…" : "Accept friend request")
                                     : (isFriendActionRunning ? "Sending…" : "Send friend request")}
+                            </button>
+                        )}
+                        {profile?.friendStatus === "friends" && (
+                            <button className="public-profile__remove-friend" type="button"
+                                disabled={isFriendActionRunning} onClick={() => void endFriendship()}>
+                                {isFriendActionRunning ? "Removing…" : "Remove friend"}
                             </button>
                         )}
                         {profile?.friendStatus === "request_sent" && (

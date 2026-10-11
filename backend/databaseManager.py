@@ -432,6 +432,18 @@ def accept_friend_request(sender_id: str, receiver_id: str) -> bool:
     )
     return bool(rows)
 
+def delete_friendship_between(user_id: str, other_id: str):
+    # Removes the friendship (accepted or still a request) in either direction,
+    # plus the friend-request notifications between the two users
+    for sender, receiver in ((user_id, other_id), (other_id, user_id)):
+        client.table("friendships").delete().eq("sender_id", sender).eq("receiver_id", receiver).execute()
+        (
+            client.table("notifications").delete()
+            .eq("type", NotificationType.friendRequest.value)
+            .eq("actor_id", sender).eq("user_id", receiver)
+            .execute()
+        )
+
 def get_pending_friend_request_sender_ids(user_id: str) -> list[str]:
     # Ids of users whose friend request to this user is still open, oldest first
     rows = (

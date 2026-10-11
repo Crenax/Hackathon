@@ -257,6 +257,18 @@ def accept_friend_request(user_id: Id, user: CompleteUser):
     return public_profile(sender, user)
 
 
+@app.delete("/api/users/{user_id}/friendship", response_model=PublicUser)
+def remove_friendship(user_id: Id, user: CompleteUser):
+    # Ends a friendship, or withdraws/declines an open request
+    other = db.get_user_by_id(user_id)
+    if other is None:
+        raise HTTPException(404, "User not found")
+    if db.get_friendship_between(user.id, user_id) is None:
+        raise HTTPException(404, "You are not friends with this user")
+    db.delete_friendship_between(user.id, user_id)
+    return public_profile(other, user)
+
+
 @app.get("/api/me/friend-requests", response_model=list[PublicUser])
 def get_my_friend_requests(user: CompleteUser):
     # Profiles of people waiting for me to accept their friend request

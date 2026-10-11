@@ -8,3 +8,6 @@
 .public-profile__about { margin: 0; color: var(--form-text); white-space: pre-wrap; }
 .public-profile__friend-button { align-self: flex-start; margin-top: 12px; }
 .public-profile__friend-note { margin: 12px 0 0; color: var(--form-muted); font-size: .9rem; }
+.public-profile__remove-friend { align-self: flex-start; margin-top: 10px; padding: 5px 12px; border: 1px solid #f2c8ce; border-radius: 8px; color: #9f2635; background: #fff; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.public-profile__remove-friend:hover, .public-profile__remove-friend:focus-visible { background: #fff5f6; border-color: #9f2635; }
+.public-profile__remove-friend:disabled { opacity: .6; cursor: default; }

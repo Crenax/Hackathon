@@ -219,6 +219,11 @@ export function acceptFriendRequest(userId: string): Promise<PublicUser> {
   return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request/accept`, "POST");
 }
 
+// Ends a friendship (or an open request) in either direction
+export function removeFriend(userId: string): Promise<PublicUser> {
+  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friendship`, "DELETE");
+}
+
 // People waiting for me to accept their friend request, oldest first
 export function getMyFriendRequests(): Promise<PublicUser[]> {
   return request<PublicUser[]>(`/api/me/friend-requests`, "GET");
