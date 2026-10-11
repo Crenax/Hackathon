@@ -1,10 +1,9 @@
-- Requesten akzeptieren -> Jonathan
-- Nachrichten -> Jonathan
+- Nachrichten -> Linus
 - generell: Knöpfe und Infos unterscheiden nach Berechtigung
 	- Events löschen
 	- Events früher terminieren
 - Freunden
-- öffentliche Profilseite -> Linus
+- öffentliche Profilseite -> Jonathan
 - separate Add-Seite -> Eliseo
 - empfehlene Räume in Add-Seite -> Eliseo
 - Blog erweitern
