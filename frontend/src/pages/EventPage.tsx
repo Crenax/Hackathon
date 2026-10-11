@@ -11,9 +11,6 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-<<<<<<< HEAD
-import { getListing, getListingMembers, getMe, getMyListings, getMyRequests, MemberRole } from "../api";
-=======
 import {
     approveListingRequest,
     declineListingRequest,
@@ -25,7 +22,6 @@ import {
     getMyRequests,
     MemberRole,
 } from "../api";
->>>>>>> 1e20b4a (now able to reject/allow requests)
 import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -80,11 +76,7 @@ export default function EventPage() {
             getMyRequests().catch((): ListingMember[] => []),
             getMe().catch(() => null),
         ])
-<<<<<<< HEAD
-            .then(async ([event, memberships, requests, user]) => {
-=======
             .then(async ([event, user, memberships, requests]) => {
->>>>>>> 1e20b4a (now able to reject/allow requests)
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
                 const isOwner = event.createdBy?.id === user.id;
@@ -92,11 +84,7 @@ export default function EventPage() {
                     listingId,
                     event,
                     hasJoined,
-<<<<<<< HEAD
-                    isCreator: user !== null && event.createdBy?.id === user.id,
-=======
                     isOwner,
->>>>>>> 1e20b4a (now able to reject/allow requests)
                     pending: requests.some((request) => request.listing.id === listingId),
                     // createdBy is the full user, even if the creator has left the event
                     creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
