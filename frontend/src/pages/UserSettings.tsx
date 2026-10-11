@@ -92,7 +92,7 @@ export default function UserSettings() {
                 <header className="form-page-header">
                     <p className="form-eyebrow">Your account</p>
                     <h1>{isComplete ? "Your profile" : "Create your profile"}</h1>
-                    <p className="form-page-description">Introduce yourself and choose what other people can see.</p>
+                    <p className="form-page-description">Introduce yourself.</p>
                 </header>
 
                 {!isLoading && (!isComplete || cameFromIncompleteRedirect) && (
