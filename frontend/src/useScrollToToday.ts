@@ -1,9 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
 
-export function localDayTimestamp(date: Date): number {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-}
-
 export function useScrollToToday(eventSequence: string) {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -11,22 +7,28 @@ export function useScrollToToday(eventSequence: string) {
         const container = containerRef.current;
         if (!container) return;
 
-        const today = localDayTimestamp(new Date());
-        let closestItem: HTMLElement | undefined;
-        let closestDistance = Number.POSITIVE_INFINITY;
+        const now = Date.now();
+        let nearestNonEndedItem: HTMLElement | undefined;
 
-        container.querySelectorAll<HTMLElement>("[data-event-day]").forEach((item) => {
-            const eventDay = Number(item.dataset.eventDay);
-            if (!Number.isFinite(eventDay)) return;
+        container.querySelectorAll<HTMLElement>("[data-event-end]").forEach((item) => {
+            const eventEnd = Number(item.dataset.eventEnd);
+            if (!Number.isFinite(eventEnd) || eventEnd < now) return;
 
-            const distance = Math.abs(eventDay - today);
-            if (distance < closestDistance) {
-                closestItem = item;
-                closestDistance = distance;
-            }
+            // Events are ordered from future to past, so the final non-ended
+            // item is the event closest to the present.
+            nearestNonEndedItem = item;
         });
 
-        container.scrollTop = closestItem?.offsetTop ?? 0;
+        if (!nearestNonEndedItem) {
+            container.scrollTop = 0;
+            return;
+        }
+
+        // Put the active/ended boundary at the bottom of the viewport. This
+        // keeps ended events out of the initial view whenever enough upcoming
+        // content exists, while retaining access to them by scrolling down.
+        const nonEndedBoundary = nearestNonEndedItem.offsetTop + nearestNonEndedItem.offsetHeight;
+        container.scrollTop = Math.max(0, nonEndedBoundary - container.clientHeight);
     }, [eventSequence]);
 
     return containerRef;

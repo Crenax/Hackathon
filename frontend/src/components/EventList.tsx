@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import type { Listing } from "../api";
 import { compareEventsFutureToPast } from "./eventSorting";
 import { formatEventSchedule } from "./eventSchedule";
-import { localDayTimestamp, useScrollToToday } from "../useScrollToToday";
+import { useScrollToToday } from "../useScrollToToday";
 import "./EventList.css";
 
 export interface EventListProps {
@@ -20,7 +20,9 @@ export default function EventList({
     isDimmed,
 }: EventListProps) {
     const sortedEvents = [...events].sort(compareEventsFutureToPast);
-    const eventSequence = sortedEvents.map((event) => `${event.id}:${event.startTime ?? ""}`).join("|");
+    const eventSequence = sortedEvents
+        .map((event) => `${event.id}:${event.startTime ?? ""}:${event.endTime ?? ""}`)
+        .join("|");
     const listRef = useScrollToToday(eventSequence);
 
     if (events.length === 0) {
@@ -31,14 +33,14 @@ export default function EventList({
         <div className="event-list" ref={listRef} tabIndex={0}>
             {sortedEvents.map((event) => {
                 const eventTitle = event.description.trim() || "Study event";
-                const eventDate = new Date(event.startTime ?? "");
-                const hasValidDate = !Number.isNaN(eventDate.getTime());
+                const eventEnd = new Date(event.endTime ?? event.startTime ?? "");
+                const eventEndTimestamp = eventEnd.getTime();
                 const statusLabel = getStatusLabel?.(event);
 
                 return (
                     <article
                         className={`event-item${isDimmed?.(event) ? " event-item--dimmed" : ""}`}
-                        data-event-day={hasValidDate ? localDayTimestamp(eventDate) : undefined}
+                        data-event-end={Number.isNaN(eventEndTimestamp) ? undefined : eventEndTimestamp}
                         key={event.id}
                     >
                         <Link
@@ -58,7 +60,6 @@ export default function EventList({
                                         </ul>
                                     </div>
                                 )}
-                                <p className="event-location">{event.location?.trim() || "Location to be confirmed"}</p>
                                 <p className="event-schedule">{formatEventSchedule(event.startTime, event.endTime)}</p>
                             </div>
                         </Link>
