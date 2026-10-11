@@ -1,0 +1,2 @@
+.user-link { color: inherit; font-weight: inherit; text-decoration: underline; text-decoration-color: rgb(87 72 200 / 35%); text-underline-offset: 3px; }
+.user-link:hover, .user-link:focus-visible { color: var(--form-accent, #5748c8); text-decoration-color: currentColor; }

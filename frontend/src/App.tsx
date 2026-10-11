@@ -9,6 +9,7 @@ import UserSettings from "./pages/UserSettings.tsx";
 import HomePage from "./pages/HomePage.tsx";
 import UserEvents from "./pages/UserEvents.tsx";
 import EventPage from "./pages/EventPage.tsx";
+import PublicProfile from "./pages/PublicProfile.tsx";
 import CreateEvent from "./pages/CreateEvent.tsx";
 
 
@@ -39,6 +40,7 @@ const AppContent = () => {
           <Route path="/my-events" element={<UserEvents />} />
           <Route path="/my-profile" element={<UserSettings />} />
           <Route path="/event" element={<EventPage />} />
+          <Route path="/user" element={<PublicProfile />} />
           {/* Unknown URLs (typos, old links) go to the home page instead of an empty page */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

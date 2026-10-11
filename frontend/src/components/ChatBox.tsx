@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import { getMessages, sendMessage } from "../api";
 import type { Message } from "../api";
+import UserLink from "./UserLink";
 import "./ChatBox.css";
 
 function mergeMessages(previous: Message[], incoming: Message[]): Message[] {
@@ -74,7 +75,7 @@ export default function ChatBox({ listingId }: { listingId: string }) {
                     <article className="chat-box__message" key={message.id}>
                         <header>
                             <strong>{message.author
-                                ? message.author.fullName
+                                ? <UserLink userId={message.author.id} name={message.author.fullName} />
                                 : "Deleted user"}</strong>
                             <time dateTime={message.sentAt}>{new Date(message.sentAt).toLocaleString()}</time>
                         </header>

@@ -1,0 +1,8 @@
+.public-profile__header-row { display: flex; align-items: flex-start; gap: 14px; }
+.public-profile__header-row .form-page-header { flex: 1; }
+.public-profile__back { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; margin-top: 4px; border: 1px solid var(--form-border); border-radius: 50%; color: var(--form-text); background: #fff; cursor: pointer; }
+.public-profile__back:hover, .public-profile__back:focus-visible { border-color: var(--form-accent); color: var(--form-accent); }
+.public-profile__details { display: grid; gap: 16px; margin: 0; }
+.public-profile__details dt { margin-bottom: 4px; color: var(--form-muted); font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.public-profile__details dd { margin: 0; color: var(--form-text); }
+.public-profile__about { margin: 0; color: var(--form-text); white-space: pre-wrap; }

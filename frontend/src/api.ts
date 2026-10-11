@@ -46,6 +46,15 @@ export interface User {
   description: string;
 }
 
+// Another user's profile as anyone may see it: name, gender, date of birth and description (no email)
+export interface PublicUser {
+  id: string;
+  fullName: string;
+  dateOfBirth: string | null;
+  gender: Gender | null;
+  description: string;
+}
+
 export interface Listing {
   id: string;
   createdBy: User | null;
@@ -191,6 +200,10 @@ async function request<T>(
   }
 
   return response.json();
+}
+
+export function getUserProfile(userId: string): Promise<PublicUser> {
+  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}`, "GET");
 }
 
 export function getMe(): Promise<User> {

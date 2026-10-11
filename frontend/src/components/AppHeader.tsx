@@ -2,34 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Calendar3, House, List, Map, PersonBadge, PencilSquare } from "react-bootstrap-icons";
 import "./AppHeader.css";
 
-const notifications = [
-    {
-        id: 1,
-        message: "Your study session starts in 30 minutes.",
-        time: "30 min ago",
-        unread: true,
-    },
-    {
-        id: 2,
-        message: "A new participant joined your event.",
-        time: "2 hours ago",
-        unread: true,
-    },
-    {
-        id: 3,
-        message: "Tomorrow's coffee meetup changed location.",
-        time: "Yesterday",
-        unread: false,
-    },
-];
-
 const AppHeader = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [areNotificationsOpen, setAreNotificationsOpen] = useState(false);
+    const [, setAreNotificationsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const menuButtonRef = useRef<HTMLButtonElement>(null);
-    const notificationsButtonRef = useRef<HTMLButtonElement>(null);
-    const hasUnreadNotifications = notifications.some((notification) => notification.unread);
 
     function goToHome() {
         window.location.href = "/";

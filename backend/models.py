@@ -43,6 +43,14 @@ class User(BaseModel):
     degree: Degree | None = None
     description: str = ""
 
+class PublicUser(BaseModel):
+    # What other users may see of a profile: only what users enter on their profile page, no email
+    id: str
+    fullName: str = ""
+    dateOfBirth: date | None = None
+    gender: Gender | None = None
+    description: str = ""
+
 class Listing(BaseModel):
     id: str
     createdBy: User | None = None

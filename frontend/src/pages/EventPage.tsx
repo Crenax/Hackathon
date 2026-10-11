@@ -29,6 +29,7 @@ import ChatBox from "../components/ChatBox";
 import EditListingForm from "../components/EditListingForm";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
+import UserLink from "../components/UserLink";
 import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
 import "./EventPage.css";
@@ -326,7 +327,7 @@ function EventPageContent({
                         {hasJoined && event.createdBy && (
                             <div className="event-page__detail">
                                 <dt><PersonCircle aria-hidden="true" /> Created by</dt>
-                                <dd>{creatorName ?? "Loading name…"}</dd>
+                                <dd><UserLink userId={event.createdBy.id} name={creatorName ?? event.createdBy.fullName} /></dd>
                             </div>
                         )}
                     </dl>
@@ -360,7 +361,7 @@ function EventPageContent({
                                     {members.map(({ user, role }) => (
                                         <li className="event-page__member" key={user.id}>
                                             <span className="event-page__member-name">
-                                                {user.fullName.trim() || "Name unavailable"}
+                                                <UserLink userId={user.id} name={user.fullName} />
                                             </span>
                                             <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
                                                 {role === MemberRole.admin ? "Admin" : "Member"}
@@ -564,7 +565,7 @@ function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJ
                                     <tr key={userId}>
                                         <td>
                                             <span className="event-page__requester-name">
-                                                {request.user.fullName.trim() || "Name unavailable"}
+                                                <UserLink userId={request.user.id} name={request.user.fullName} />
                                             </span>
                                             {request.user.description.trim() && (
                                                 <span className="event-page__requester-description">

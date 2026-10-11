@@ -199,6 +199,26 @@ class CalendarLink(BaseModel):
     url: str
 
 
+def public_profile(user: User) -> PublicUser:
+    # Only what users enter on their profile page; no email
+    return PublicUser(
+        id=user.id,
+        fullName=user.fullName,
+        dateOfBirth=user.dateOfBirth,
+        gender=user.gender,
+        description=user.description,
+    )
+
+
+@app.get("/api/users/{user_id}", response_model=PublicUser)
+def get_user_profile(user_id: Id, user: CompleteUser):
+    # Read-only public profile of any user
+    profile = db.get_user_by_id(user_id)
+    if profile is None:
+        raise HTTPException(404, "User not found")
+    return public_profile(profile)
+
+
 @app.get("/api/me", response_model=User, dependencies=[Depends(current_user)])
 def get_me(user: CurrentUser):
     return user
