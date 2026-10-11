@@ -132,6 +132,10 @@ export class ApiError extends Error {
   }
 }
 
+// The backend answers 403 with this detail until date of birth, degree and major are set
+export const PROFILE_INCOMPLETE_DETAIL = "User profile incomplete";
+export const PROFILE_PAGE = "/my-profile";
+
 // Readable message for a failed request; prefers the backend's own "detail" text
 function errorMessage(status: number, detail: unknown): string {
   if (typeof detail === "string" && detail) return detail;
@@ -165,6 +169,10 @@ async function request<T>(
     const detail = await response.json()
       .then((data: unknown) => (data as { detail?: unknown } | null)?.detail)
       .catch(() => undefined);
+    // Every page except the profile page needs a complete profile, so send the user there
+    if (response.status === 403 && detail === PROFILE_INCOMPLETE_DETAIL && window.location.pathname !== PROFILE_PAGE) {
+      window.location.assign(`${PROFILE_PAGE}?incomplete=1`);
+    }
     const error = new ApiError(response.status, errorMessage(response.status, detail));
     console.log(`${error.name}: ${error.message}`);
     throw error;
@@ -181,6 +189,16 @@ async function request<T>(
 
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
+}
+
+// Only the fields that are sent get updated
+export function updateMe(update: UserForUpdate): Promise<User> {
+  return request<User>(`/api/me`, "PATCH", update);
+}
+
+// Matches is_user_complete in backend/app.py
+export function isProfileComplete(user: User): boolean {
+  return user.dateOfBirth !== null && user.degree !== null && user.major !== null;
 }
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {

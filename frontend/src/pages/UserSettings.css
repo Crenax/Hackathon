@@ -15,6 +15,9 @@
 .visibility-option span { display: flex; flex-direction: column; gap: 4px; }
 .visibility-option small { color: #697187; line-height: 1.4; }
 .profile-submit { width: 100%; min-height: 48px; }
+.profile-notice { margin: 0; border-color: #d9d3fb; color: var(--form-accent); background: #f6f4ff; font-weight: 600; }
+.profile-message { margin: 0; padding: 10px 12px; border: 1px solid #c9e8d3; border-radius: 8px; color: #1f6b3a; background: #f3fbf5; font-size: .9rem; }
+.profile-message--error { border-color: #f2c8ce; color: #9f2635; background: #fff5f6; }
 
 @media (max-width: 420px) {
   .picture-picker { align-items: flex-start; }
