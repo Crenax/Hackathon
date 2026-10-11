@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { XCircle } from "react-bootstrap-icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { Degree, Gender, getMe, isProfileComplete, Major, updateMe } from "../api";
+import { Gender, getMe, isProfileComplete, updateMe } from "../api";
 import "../FormLayout.css";
 import AutocompleteInputField from "../components/AutocompleteInputField";
 import "./UserSettings.css";
@@ -12,16 +12,6 @@ const GENDER_LABELS: Record<Gender, string> = {
     [Gender.male]: "Male",
     [Gender.female]: "Female",
     [Gender.nonBinary]: "Non-binary",
-};
-
-const DEGREE_LABELS: Record<Degree, string> = {
-    [Degree.Bachelor]: "Bachelor",
-    [Degree.Master]: "Master",
-    [Degree.PHD]: "PhD",
-};
-
-const MAJOR_LABELS: Record<Major, string> = {
-    [Major.ComputerScience]: "Computer Science",
 };
 
 function todayAsDateInput(): string {
@@ -40,8 +30,6 @@ export default function UserSettings() {
     const [email, setEmail] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
     const [gender, setGender] = useState<Gender | "">("");
-    const [degree, setDegree] = useState<Degree | "">("");
-    const [major, setMajor] = useState<Major | "">("");
     const [description, setDescription] = useState("");
     const [isComplete, setIsComplete] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
@@ -63,8 +51,6 @@ export default function UserSettings() {
                 setEmail(me.emailAddress);
                 setDateOfBirth(me.dateOfBirth ?? "");
                 setGender(me.gender ?? "");
-                setDegree(me.degree ?? "");
-                setMajor(me.major ?? "");
                 setDescription(me.description);
                 setIsComplete(isProfileComplete(me));
             })
@@ -102,8 +88,6 @@ export default function UserSettings() {
                 fullName: fullName.trim(),
                 dateOfBirth: dateOfBirth || null,
                 gender: gender || null,
-                degree: degree || null,
-                major: major || null,
                 description: description.trim(),
             });
             const complete = isProfileComplete(saved);
@@ -131,7 +115,7 @@ export default function UserSettings() {
 
                 {!isLoading && (!isComplete || cameFromIncompleteRedirect) && (
                     <p className="form-card profile-notice" role="status">
-                        Please complete your profile to use the app. Date of birth, degree and major are required.
+                        Please complete your profile to use the app. Date of birth and full name are required.
                     </p>
                 )}
 
@@ -206,26 +190,6 @@ export default function UserSettings() {
                         <span>Date of birth <span className="form-required">*</span></span>
                         <input id="profile-birth-date" name="dateOfBirth" type="date" required max={todayAsDateInput()}
                             value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} />
-                    </label>
-                    <label className="form-field" htmlFor="profile-degree">
-                        <span>Degree <span className="form-required">*</span></span>
-                        <select id="profile-degree" name="degree" required value={degree}
-                            onChange={(event) => setDegree(event.target.value as Degree | "")}>
-                            <option value="" disabled>Choose your degree</option>
-                            {Object.values(Degree).map((value) => (
-                                <option key={value} value={value}>{DEGREE_LABELS[value]}</option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="form-field" htmlFor="profile-major">
-                        <span>Major <span className="form-required">*</span></span>
-                        <select id="profile-major" name="major" required value={major}
-                            onChange={(event) => setMajor(event.target.value as Major | "")}>
-                            <option value="" disabled>Choose your major</option>
-                            {Object.values(Major).map((value) => (
-                                <option key={value} value={value}>{MAJOR_LABELS[value]}</option>
-                            ))}
-                        </select>
                     </label>
                 </section>
 

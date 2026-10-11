@@ -33,9 +33,8 @@ Id = Annotated[str, PathParam(pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-
 
 def is_user_complete(user: User) -> bool:
     return (
-        user.dateOfBirth is not None and
-        user.degree is not None and
-        user.major is not None
+		user.Name is not "" and
+        user.dateOfBirth is not None 
     )
 
 
