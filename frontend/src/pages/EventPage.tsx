@@ -23,6 +23,7 @@ import {
     getMyListings,
     getMyRequests,
     MemberRole,
+    removeListingMember,
     updateListing,
 } from "../api";
 import type { JoinRequest, Listing, ListingMember } from "../api";
@@ -87,6 +88,7 @@ interface EventLoadState {
     isOwner?: boolean;
     // Ids of my accepted friends, for the "Friend" tags
     friendIds?: string[];
+    myUserId?: string;
     // Admins (creator or promoted) can edit the event
     isAdmin?: boolean;
     requests?: JoinRequest[];
@@ -124,6 +126,7 @@ export default function EventPage() {
                     hasJoined,
                     isOwner,
                     friendIds,
+                    myUserId: user?.id,
                     pending: requests.some((request) => request.listing.id === listingId),
                     // createdBy is the full user, even if the creator has left the event
                     creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
@@ -197,6 +200,15 @@ export default function EventPage() {
         isOwner={loadState.isOwner === true}
         canEdit={loadState.isOwner === true || loadState.isAdmin === true}
         friendIds={loadState.friendIds ?? []}
+        myUserId={loadState.myUserId}
+        onMemberRemoved={(userId) => setLoadState((current) => current.listingId !== listingId ? current : {
+            ...current,
+            members: current.members?.filter(({ user }) => user.id !== userId),
+            event: current.event && {
+                ...current.event,
+                memberIds: current.event.memberIds.filter((id) => id !== userId),
+            },
+        })}
         requests={loadState.requests}
         requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
@@ -264,6 +276,8 @@ interface EventPageContentProps {
     isOwner: boolean;
     canEdit: boolean;
     friendIds: string[];
+    myUserId?: string;
+    onMemberRemoved: (userId: string) => void;
     requests?: JoinRequest[];
     requestsError?: string;
     hasJoined: boolean;
@@ -283,6 +297,8 @@ function EventPageContent({
     isOwner,
     canEdit,
     friendIds,
+    myUserId,
+    onMemberRemoved,
     requests,
     requestsError,
     hasJoined,
@@ -292,6 +308,28 @@ function EventPageContent({
     onRequestDecided,
 }: EventPageContentProps) {
     const [isEditing, setIsEditing] = useState(false);
+    const [removingIds, setRemovingIds] = useState<Set<string>>(() => new Set());
+    const [removeError, setRemoveError] = useState("");
+
+    // Admins can remove other members; the backend appoints a new admin if needed
+    async function removeMember(userId: string, name: string) {
+        if (removingIds.has(userId)) return;
+        if (!window.confirm(`Remove ${name.trim() || "this member"} from the event?`)) return;
+        setRemovingIds((current) => new Set(current).add(userId));
+        setRemoveError("");
+        try {
+            await removeListingMember(event.id, userId);
+            onMemberRemoved(userId);
+        } catch (error) {
+            setRemoveError(error instanceof Error ? error.message : "Could not remove this member.");
+        } finally {
+            setRemovingIds((current) => {
+                const next = new Set(current);
+                next.delete(userId);
+                return next;
+            });
+        }
+    }
     const isPast = useIsPastEvent(event);
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
@@ -410,10 +448,19 @@ function EventPageContent({
                                             <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
                                                 {role === MemberRole.admin ? "Admin" : "Member"}
                                             </span>
+                                            {canEdit && user.id !== myUserId && (
+                                                <button className="event-page__member-remove" type="button"
+                                                    disabled={removingIds.has(user.id)}
+                                                    onClick={() => void removeMember(user.id, user.fullName)}
+                                                    aria-label={`Remove ${user.fullName.trim() || "member"} from the event`}>
+                                                    {removingIds.has(user.id) ? "Removing…" : "Remove"}
+                                                </button>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             )}
+                            {removeError && <p className="event-page__owner-error" role="alert">{removeError}</p>}
                         </section>
                         {isOwner && (
                             <PendingJoinRequests

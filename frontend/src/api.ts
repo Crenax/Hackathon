@@ -329,6 +329,14 @@ export function approveListingRequest(
   );
 }
 
+// Admins only: removes a member (or admin) from the listing
+export function removeListingMember(listingId: string, userId: string): Promise<void> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/members/${encodeURIComponent(userId)}`,
+    "DELETE",
+  );
+}
+
 export function declineListingRequest(
   listingId: string,
   userId: string,

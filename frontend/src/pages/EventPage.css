@@ -90,3 +90,6 @@
 .event-page__requester-name { color: #242b3d; font-weight: 650; }
 .event-page__requester-description { max-width: 42ch; margin-top: 4px; color: var(--form-muted); font-size: .86rem; line-height: 1.4; white-space: pre-wrap; }
 .event-page__section .event-page__request-error { margin-top: 8px; color: #b83242; font-size: .84rem; line-height: 1.4; }
+.event-page__member-remove { margin-left: auto; padding: 3px 10px; border: 1px solid #f2c8ce; border-radius: 6px; color: #9f2635; background: #fff; font: inherit; font-size: .75rem; font-weight: 600; cursor: pointer; }
+.event-page__member-remove:hover, .event-page__member-remove:focus-visible { border-color: #9f2635; background: #fff5f6; }
+.event-page__member-remove:disabled { opacity: .6; cursor: default; }
