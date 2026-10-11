@@ -3,5 +3,7 @@
 - Blog erweitern
 - Events auf der Karte
 
+- Beispiel-Events und Database vorbereiten
+
 - Mensagruppen
 - Gamification

@@ -114,6 +114,7 @@ export interface ListingForCreate {
   location?: string | null;
   courses?: Course[];
   isPrivate?: boolean;
+  memberIds?: string[]; // accepted friends to add directly as members
 }
 
 // Only the fields that are sent get updated; send null to unset start/end time or location
@@ -239,6 +240,11 @@ export function getMyFriends(): Promise<PublicUser[]> {
 // Ids of all accepted friends
 export function getMyFriendIds(): Promise<string[]> {
   return request<string[]>(`/api/me/friends`, "GET");
+}
+
+// Accepted friends with the display data needed by friend pickers
+export function getMyFriends(): Promise<PublicUser[]> {
+  return request<PublicUser[]>(`/api/me/friends/profiles`, "GET");
 }
 
 export function getMe(): Promise<User> {

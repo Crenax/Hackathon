@@ -291,6 +291,14 @@ def get_my_friend_ids(user: CompleteUser):
     return db.get_friend_ids_by_user_id(user.id)
 
 
+@app.get("/api/me/friends/profiles", response_model=list[PublicUser])
+def get_my_friends(user: CompleteUser):
+    # Full display data for friend pickers. A deleted user is skipped in case a
+    # stale friendship row briefly remains while database cascades complete.
+    friends = [db.get_user_by_id(friend_id) for friend_id in db.get_friend_ids_by_user_id(user.id)]
+    return [public_profile(friend, user) for friend in friends if friend is not None]
+
+
 @app.get("/api/me", response_model=User, dependencies=[Depends(current_user)])
 def get_me(user: CurrentUser):
     return user
@@ -333,7 +341,24 @@ def get_listings(user: CompleteUser, course: Course | None = None):
 
 @app.post("/api/listings", response_model=Listing, status_code=201)
 def create_listing(listing: ListingForCreate, user: CompleteUser):
-    return db.create_listing(listing.model_copy(update={"createdBy": user}))
+    friend_ids = db.get_friend_ids_by_user_id(user.id)
+    member_ids = list(dict.fromkeys(listing.memberIds))
+    if not set(member_ids).issubset(friend_ids):
+        raise ValueError("Only accepted friends can be added as event members")
+
+    created = db.create_listing(listing.model_copy(update={
+        "createdBy": user,
+        "memberIds": member_ids,
+    }))
+    # Added members are always notified. For public listings, keep notifying
+    # the creator's other friends too, while sending at most one notification
+    # to each person.
+    notification_recipient_ids = list(dict.fromkeys([
+        *member_ids,
+        *([] if created.isPrivate else friend_ids),
+    ]))
+    notify(notification_recipient_ids, NotificationType.newListing, created.id, user.id)
+    return created
 
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)

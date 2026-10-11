@@ -236,7 +236,8 @@ def create_user_From_External_Info(fullName: str, email: str) -> User:
 
 
 def create_listing(listingForCreate: ListingForCreate) -> Listing:
-    # The database makes createdBy the admin of the new listing
+    # The database makes createdBy the admin of the new listing. Additional
+    # members have already been checked as accepted friends by the API layer.
     fields = listingForCreate.model_dump(mode="json")
     row = (
         client.table("listings")
@@ -252,6 +253,16 @@ def create_listing(listingForCreate: ListingForCreate) -> Listing:
         .execute()
         .data[0]
     )
+    member_ids = list(dict.fromkeys(listingForCreate.memberIds))
+    if member_ids:
+        client.table("listing_members").insert([
+            {
+                "listing_id": row["id"],
+                "user_id": member_id,
+                "role": MemberRole.member.value,
+            }
+            for member_id in member_ids
+        ]).execute()
     return get_listing_by_id(row["id"])
 
 def createMessage(messageForCreate: MessageForCreate) -> Message:
