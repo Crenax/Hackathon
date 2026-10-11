@@ -441,20 +441,27 @@ function EventPageContent({
                                 <ul className="event-page__members" aria-label="Accepted event members">
                                     {members.map(({ user, role }) => (
                                         <li className="event-page__member" key={user.id}>
-                                            <span className="event-page__member-name">
-                                                <UserLink userId={user.id} name={user.fullName} />
-                                                {friendIds.includes(user.id) && <FriendTag />}
-                                            </span>
-                                            <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
-                                                {role === MemberRole.admin ? "Admin" : "Member"}
-                                            </span>
-                                            {canEdit && user.id !== myUserId && (
-                                                <button className="event-page__member-remove" type="button"
-                                                    disabled={removingIds.has(user.id)}
-                                                    onClick={() => void removeMember(user.id, user.fullName)}
-                                                    aria-label={`Remove ${user.fullName.trim() || "member"} from the event`}>
-                                                    {removingIds.has(user.id) ? "Removing…" : "Remove"}
-                                                </button>
+                                            {/* Name and role on top, Friend tag and Remove button below */}
+                                            <div className="event-page__member-header">
+                                                <span className="event-page__member-name">
+                                                    <UserLink userId={user.id} name={user.fullName} />
+                                                </span>
+                                                <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
+                                                    {role === MemberRole.admin ? "Admin" : "Member"}
+                                                </span>
+                                            </div>
+                                            {(friendIds.includes(user.id) || (canEdit && user.id !== myUserId)) && (
+                                                <div className="event-page__member-actions">
+                                                    {friendIds.includes(user.id) && <FriendTag />}
+                                                    {canEdit && user.id !== myUserId && (
+                                                        <button className="event-page__member-remove" type="button"
+                                                            disabled={removingIds.has(user.id)}
+                                                            onClick={() => void removeMember(user.id, user.fullName)}
+                                                            aria-label={`Remove ${user.fullName.trim() || "member"} from the event`}>
+                                                            {removingIds.has(user.id) ? "Removing…" : "Remove"}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                         </li>
                                     ))}
