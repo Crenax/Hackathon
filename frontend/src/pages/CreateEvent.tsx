@@ -262,7 +262,7 @@ export default function CreateEvent() {
                                 />
                                 <span>
                                     <strong>Do you want this event to be private?</strong>
-                                    <small>Only members you add will be able to access it.</small>
+                                    <small>Only members you add now will be able to access it.</small>
                                 </span>
                             </label>
                         )}
