@@ -1,17 +1,17 @@
-- Nachrichten -> Linus
+- Nachrichten für Requesten
 - generell: Knöpfe und Infos unterscheiden nach Berechtigung
 	- Events löschen
 	- Events früher terminieren
-- Freunden
-- öffentliche Profilseite -> Jonathan
-- separate Add-Seite -> Eliseo
-- empfehlene Räume in Add-Seite -> Eliseo
+- Freunden-Beziehungen und dann Nachrichten
+- öffentliche Profilseite
+- empfehlene Räume in Add-Seite
 - Blog erweitern
+- Events auf der Karte und Indikationen
+
+
 - Calendare: Apple, Google
-
-
 - private events mit Zuganscode
-- Mesagruppen?
+- Mensagruppen?
 - Profilbild
 - Logo erstellen
 - Suspence mit logo

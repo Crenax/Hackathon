@@ -2,7 +2,6 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 
 import AppHeader from "./components/AppHeader";
-import AppFooter from "./components/AppFooter.tsx";
 import IconBackground from "./components/IconBackground";
 import { scienceIconAttribution } from "../icons";
 
@@ -21,7 +20,6 @@ const App = () => {
       <IconBackground />
       <AppHeader />
       <AppContent />
-      <AppFooter />
     </>
   );
 };
