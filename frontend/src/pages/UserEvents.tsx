@@ -9,7 +9,7 @@ import {
 import EventList from "../components/EventList";
 import { compareEventsFutureToPast } from "../eventSorting";
 import "../FormLayout.css";
-import "./EventsList.css";
+import "./HomePage.css";
 import "./UserEvents.css";
 
 type EventRelationship = "Published" | "Joined" | "Requested";

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { localDayTimestamp, useScrollToToday } from "../useScrollToToday";
-import "./EventsList.css";
+import "./HomePage.css";
 
 interface StudyEvent {
   id: string;
