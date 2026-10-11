@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 
 import type { Listing } from "../api";
-import { compareEventsFutureToPast } from "../eventSorting";
-import { formatEventSchedule } from "../eventSchedule";
+import { compareEventsFutureToPast } from "./eventSorting";
+import { formatEventSchedule } from "./eventSchedule";
 import { localDayTimestamp, useScrollToToday } from "../useScrollToToday";
 import "./EventList.css";
 

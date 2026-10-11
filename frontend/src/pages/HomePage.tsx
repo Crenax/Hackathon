@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, BadgeWc, DoorOpen } from "react-bootstrap-icons";
+import { Link } from "react-router-dom";
 
 import { type Listing, getListings } from "../api";
 import EventList from "../components/EventList";
-import { compareEventsFutureToPast } from "../eventSorting";
+import { compareEventsFutureToPast } from "../components/eventSorting";
 import "../FormLayout.css";
 import "./HomePage.css";
 
@@ -100,6 +102,30 @@ export default function HomePage() {
                         </button>
                     </div>
                 </header>
+
+                <section className="home-quick-links" aria-label="Quick directions">
+                    <Link className="home-quick-link home-quick-link--toilet" to="/map?destination=toilet">
+                        <span className="home-quick-link__icon" aria-hidden="true">
+                            <BadgeWc />
+                        </span>
+                        <span className="home-quick-link__content">
+                            <strong>Find the closest toilet</strong>
+                            <span>Get directions from where you are.</span>
+                        </span>
+                        <ArrowRight className="home-quick-link__arrow" aria-hidden="true" />
+                    </Link>
+
+                    <Link className="home-quick-link home-quick-link--room" to="/map?destination=lecture">
+                        <span className="home-quick-link__icon" aria-hidden="true">
+                            <DoorOpen />
+                        </span>
+                        <span className="home-quick-link__content">
+                            <strong>Find an available room</strong>
+                            <span>Head to the closest free lecture room.</span>
+                        </span>
+                        <ArrowRight className="home-quick-link__arrow" aria-hidden="true" />
+                    </Link>
+                </section>
 
                 <section className="form-card" aria-labelledby="upcoming-events-heading">
                     <div className="form-section-header">

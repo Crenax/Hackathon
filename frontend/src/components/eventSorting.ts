@@ -1,4 +1,4 @@
-import type { Listing } from "./api";
+import type { Listing } from "../api";
 
 // Sorted by end time; events without an end time use their start time
 function endTimestamp(event: Listing): number {

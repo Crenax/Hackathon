@@ -7,7 +7,7 @@ import {
     type Listing,
 } from "../api";
 import EventList from "../components/EventList";
-import { compareEventsFutureToPast } from "../eventSorting";
+import { compareEventsFutureToPast } from "../components/eventSorting";
 import "../FormLayout.css";
 import "./HomePage.css";
 import "./UserEvents.css";

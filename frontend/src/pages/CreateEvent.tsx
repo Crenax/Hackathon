@@ -6,7 +6,7 @@ import { createListing, type Listing, type ListingForCreate } from "../api";
 import { locationRooms } from "../map/rooms";
 
 import { XCircle } from "react-bootstrap-icons";
-import { compareEventsFutureToPast } from "../eventSorting";
+import { compareEventsFutureToPast } from "../components/eventSorting";
 
 
 

@@ -8,7 +8,11 @@ import './MapPage.css';
 
 export default function MapPage() {
   const [searchParams] = useSearchParams();
-  const [initialRoom] = useState(() => searchParams.get('destination') === 'room'
+  const [initialDestination] = useState(() => {
+    const requested = searchParams.get('destination');
+    return requested === 'toilet' || requested === 'lecture' ? requested : 'room';
+  });
+  const [initialRoom] = useState(() => initialDestination === 'room'
     ? findLocationRoom(searchParams.get('room'))
     : undefined);
   const [campus, setCampus] = useState<{ data: Dataset; router: Router }>();
@@ -17,7 +21,7 @@ export default function MapPage() {
   const [level, setLevel] = useState('ETH.HG.E');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState(initialRoom ?? '');
-  const [destination, setDestination] = useState('room');
+  const [destination, setDestination] = useState(initialDestination);
   const [toilet, setToilet] = useState('any');
   const [mode, setMode] = useState('fastest');
   const [route, setRoute] = useState<RouteResult | null>(null);

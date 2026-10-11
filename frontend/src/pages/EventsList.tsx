@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createListing, getCourses, getListings, type Listing, type ListingForCreate } from "../api";
 import AutocompleteInputField from "../components/AutocompleteInputField";
 import EventList from "../components/EventList";
-import { compareEventsFutureToPast } from "../eventSorting";
+import { compareEventsFutureToPast } from "../components/eventSorting";
 import "../FormLayout.css";
 import "./EventsList.css";
 
