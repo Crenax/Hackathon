@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft,
     Book,
@@ -7,6 +7,7 @@ import {
     Clock,
     GeoAltFill,
     LockFill,
+    Map,
     PersonCircle,
 } from "react-bootstrap-icons";
 
@@ -15,6 +16,7 @@ import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
+import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
 import "./EventPage.css";
 
@@ -165,6 +167,11 @@ interface EventPageContentProps {
 }
 
 function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested }: EventPageContentProps) {
+    const mappedRoom = findLocationRoom(event.location);
+    const directionsUrl = mappedRoom
+        ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
+        : undefined;
+
     return (
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
@@ -205,7 +212,14 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                         {hasJoined && event.location && (
                             <div className="event-page__detail">
                                 <dt><GeoAltFill aria-hidden="true" /> Location</dt>
-                                <dd>{event.location}</dd>
+                                <dd className="event-page__location">
+                                    <span>{event.location}</span>
+                                    {directionsUrl && (
+                                        <Link className="event-page__directions" to={directionsUrl}>
+                                            <Map aria-hidden="true" /> Get directions
+                                        </Link>
+                                    )}
+                                </dd>
                             </div>
                         )}
                         {hasJoined && event.createdBy && (

@@ -4,9 +4,8 @@
 	- Events früher terminieren
 - Freunden-Beziehungen und dann Nachrichten
 - öffentliche Profilseite
-- empfehlene Räume in Add-Seite
 - Blog erweitern
-- Events auf der Karte und Indikationen
+- Events auf der Karte
 - inkomplettes Profil ablehnen
 
 

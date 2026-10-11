@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { GeoAlt, Map as MapIcon, ArrowRight, Crosshair, Plus, Dash } from 'react-bootstrap-icons';
+import { useSearchParams } from 'react-router-dom';
 import { buildingOf, floorName, loadCampus, roomName } from '../map/campus';
 import type { Availability, Dataset, Feature, Point, Router, RouteResult } from '../map/campus';
-import { locationRooms } from '../map/rooms';
+import { findLocationRoom, locationRooms } from '../map/rooms';
 import './MapPage.css';
 
 export default function MapPage() {
+  const [searchParams] = useSearchParams();
+  const [initialRoom] = useState(() => searchParams.get('destination') === 'room'
+    ? findLocationRoom(searchParams.get('room'))
+    : undefined);
   const [campus, setCampus] = useState<{ data: Dataset; router: Router }>();
   const [error, setError] = useState('');
   const [building, setBuilding] = useState('ETH.HG');
   const [level, setLevel] = useState('ETH.HG.E');
   const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [to, setTo] = useState(initialRoom ?? '');
   const [destination, setDestination] = useState('room');
   const [toilet, setToilet] = useState('any');
   const [mode, setMode] = useState('fastest');
@@ -35,6 +40,14 @@ export default function MapPage() {
     const pendingRequest = request;
     loadCampus().then(value => {
       if (!mounted) return;
+      const targetRoom = initialRoom ? value.router.findRoom(initialRoom) : undefined;
+      if (targetRoom) {
+        const targetLevel = targetRoom.attributes.LEVEL_ID;
+        setBuilding(buildingOf(targetRoom));
+        setLevel(targetLevel);
+        setLocationLevel(targetLevel);
+        setSelected(targetRoom);
+      }
       setCampus(value);
       tracker.current = window.MapLocation.tracker({
         onPosition: value => { setPosition(value); setLocationStatus(`Location found · accurate to about ${Math.round(value.coords.accuracy)} m. Select your building and floor.`); },
@@ -43,7 +56,7 @@ export default function MapPage() {
       });
     }).catch(error => { if (mounted) setError(error.message); });
     return () => { mounted = false; pendingRequest.current++; abort.current?.abort(); tracker.current?.stop(); };
-  }, []);
+  }, [initialRoom]);
 
   function clear() {
     request.current++; abort.current?.abort(); setBusy(false); setRoute(null); setAvailability(undefined); setError(''); setStatus('');
