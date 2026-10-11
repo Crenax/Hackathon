@@ -22,3 +22,5 @@
 @media (max-width: 420px) {
   .picture-picker { align-items: flex-start; }
 }
+.profile-share-link { align-self: flex-start; color: var(--form-accent); font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.profile-share-link:hover, .profile-share-link:focus-visible { color: var(--form-accent-hover); }

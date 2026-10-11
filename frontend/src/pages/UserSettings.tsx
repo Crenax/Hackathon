@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { Gender, getMe, isProfileComplete, updateMe } from "../api";
 import "../FormLayout.css";
@@ -19,6 +19,8 @@ function todayAsDateInput(): string {
 
 export default function UserSettings() {
     // Saved through PATCH /api/me
+    // Needed for the link to the public profile page
+    const [userId, setUserId] = useState("");
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
@@ -40,6 +42,7 @@ export default function UserSettings() {
         getMe()
             .then((me) => {
                 if (!isActive) return;
+                setUserId(me.id);
                 setFullName(me.fullName);
                 setEmail(me.emailAddress);
                 setDateOfBirth(me.dateOfBirth ?? "");
@@ -92,6 +95,11 @@ export default function UserSettings() {
                     <p className="form-eyebrow">Your account</p>
                     <h1>{isComplete ? "Your profile" : "Create your profile"}</h1>
                     <p className="form-page-description">Introduce yourself.</p>
+                    {userId && (
+                        <Link className="profile-share-link" to={`/user?id=${encodeURIComponent(userId)}`}>
+                            Link to share profile
+                        </Link>
+                    )}
                 </header>
 
                 {!isLoading && (!isComplete || cameFromIncompleteRedirect) && (
