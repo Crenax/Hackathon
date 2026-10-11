@@ -1,0 +1,7 @@
+.join-requests h2 { margin: 0; font-size: 1.2rem; }
+.join-requests > p { margin: 0; }
+.join-requests__privacy { color: var(--form-muted); font-size: .85rem; }
+.join-requests__list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.join-requests__list li { padding: 16px; border: 1px solid var(--form-border); border-radius: 10px; }
+.join-requests__list h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.join-requests__message { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }

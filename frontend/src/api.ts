@@ -255,6 +255,14 @@ export function hasPendingJoinRequest(listingId: string): Promise<boolean> {
   return getMyRequests().then((requests) => requests.some((item) => item.listing.id === listingId));
 }
 
-export function requestToJoin(listingId: string): Promise<void> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "POST");
+export function requestToJoin(listingId: string, message: string = ""): Promise<void> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "POST", { message });
+}
+
+export interface JoinRequest extends ListingMember {
+  message: string;
+}
+
+export function getJoinRequests(listingId: string): Promise<JoinRequest[]> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "GET");
 }

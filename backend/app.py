@@ -184,6 +184,13 @@ def require_admin(listing_id: str, user: User) -> Listing:
     return listing
 
 
+def require_creator(listing_id: str, user: User) -> Listing:
+    listing = visible_listing(listing_id, user)
+    if listing.createdBy is None or listing.createdBy.id != user.id:
+        raise PermissionError("Only the event creator can view or handle join requests")
+    return listing
+
+
 class RoleUpdate(BaseModel):
     role: Literal[MemberRole.admin, MemberRole.member]
 
@@ -271,21 +278,21 @@ def get_members(listing_id: Id, user: CompleteUser):
     return db.get_listingMembers_by_listing(listing_id)
 
 
-@app.get("/api/listings/{listing_id}/requests", response_model=list[ListingMember])
+@app.get("/api/listings/{listing_id}/requests", response_model=list[JoinRequest])
 def get_requests(listing_id: Id, user: CompleteUser):
-    require_admin(listing_id, user)
+    require_creator(listing_id, user)
     return db.get_pending_requests_by_listing_id(listing_id)
 
 
 @app.post("/api/listings/{listing_id}/requests", status_code=204)
-def request_to_join(listing_id: Id, user: CompleteUser):
+def request_to_join(listing_id: Id, user: CompleteUser, request: JoinRequestForCreate = JoinRequestForCreate()):
     listing = visible_listing(listing_id, user)
     if listing.isPrivate:
         raise PermissionError("This listing is private")
     if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is not None:
         raise ValueError("Already a member or request already sent")
     try:
-        db.create_request(user.id, listing_id)
+        db.create_request(user.id, listing_id, request.message)
     except APIError as error:
         # e.g. a double click sent the request twice
         if error.code != UNIQUE_VIOLATION:
@@ -296,7 +303,7 @@ def request_to_join(listing_id: Id, user: CompleteUser):
 
 @app.post("/api/listings/{listing_id}/requests/{user_id}/approve", status_code=204)
 def approve_request(listing_id: Id, user_id: Id, user: CompleteUser):
-    require_admin(listing_id, user)
+    require_creator(listing_id, user)
     if db.accept_request_by_user_id_and_listing_id(user_id, listing_id) is None:
         raise ValueError("No pending request from this user")
     return Response(status_code=204)

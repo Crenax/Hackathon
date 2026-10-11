@@ -1,7 +1,8 @@
 from datetime import date, datetime
 from enum import Enum
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 
 from courses import Course
 
@@ -65,6 +66,15 @@ class ListingMember(BaseModel):
     listing: Listing
     role: MemberRole
     joinedAt: datetime  # time of the request while the role is request_pending
+
+
+class JoinRequest(ListingMember):
+    # Only the creator-only requests endpoint serializes this field.
+    message: str = ""
+
+
+class JoinRequestForCreate(BaseModel):
+    message: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] = ""
 
 #Models for interaction with db:
 class UserForCreate(BaseModel):

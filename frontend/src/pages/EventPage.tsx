@@ -11,10 +11,11 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getListingMembers, getMyListings, getMyRequests, MemberRole } from "../api";
+import { getListing, getListingMembers, getMe, getMyListings, getMyRequests, MemberRole } from "../api";
 import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
+import JoinRequests from "../components/JoinRequests";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
 import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
@@ -39,6 +40,7 @@ interface EventLoadState {
     members?: ListingMember[];
     membersError?: string;
     hasJoined?: boolean;
+    isCreator?: boolean;
     pending?: boolean;
     error?: string;
 }
@@ -58,14 +60,16 @@ export default function EventPage() {
             getListing(listingId),
             getMyListings().catch((): Listing[] => []),
             getMyRequests().catch((): ListingMember[] => []),
+            getMe().catch(() => null),
         ])
-            .then(async ([event, memberships, requests]) => {
+            .then(async ([event, memberships, requests, user]) => {
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
                 setLoadState({
                     listingId,
                     event,
                     hasJoined,
+                    isCreator: user !== null && event.createdBy?.id === user.id,
                     pending: requests.some((request) => request.listing.id === listingId),
                     // createdBy is the full user, even if the creator has left the event
                     creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
@@ -118,6 +122,7 @@ export default function EventPage() {
         members={loadState.members}
         membersError={loadState.membersError}
         hasJoined={loadState.hasJoined === true}
+        isCreator={loadState.isCreator === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
             current.listingId === listingId ? { ...current, pending: true } : current
@@ -162,11 +167,12 @@ interface EventPageContentProps {
     members?: ListingMember[];
     membersError?: string;
     hasJoined: boolean;
+    isCreator: boolean;
     pending: boolean;
     onRequested: () => void;
 }
 
-function EventPageContent({ event, creatorName, members, membersError, hasJoined, pending, onRequested }: EventPageContentProps) {
+function EventPageContent({ event, creatorName, members, membersError, hasJoined, isCreator, pending, onRequested }: EventPageContentProps) {
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
         ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
@@ -193,6 +199,8 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                         {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
                     </header>
                 </div>
+
+                {isCreator && <JoinRequests key={event.id} listingId={event.id} />}
 
                 <section className="form-card event-page__card" aria-label="Event details">
                     <section className="event-page__detail event-page__schedule" aria-label="Schedule">
