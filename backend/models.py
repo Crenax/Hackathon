@@ -51,12 +51,6 @@ class PublicUser(BaseModel):
     gender: Gender | None = None
     description: str = ""
 
-
-class PublicProfile(PublicUser):
-    pass
-
-    description: str = ""
-
 class Listing(BaseModel):
     id: str
     createdBy: User | None = None

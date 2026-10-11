@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
+    ArrowLeft,
     Book,
     Calendar3,
     Clock,
@@ -24,7 +25,6 @@ import {
     updateListing,
 } from "../api";
 import type { JoinRequest, Listing, ListingMember } from "../api";
-import BackButton from "../components/BackButton";
 import ChatBox from "../components/ChatBox";
 import EditListingForm from "../components/EditListingForm";
 import JoinEventButton from "../components/JoinEventButton";
@@ -188,11 +188,31 @@ export default function EventPage() {
     />;
 }
 
+function EventBackButton() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    function goBack() {
+        // "default" means this page was opened directly (e.g. a shared link), with no in-app page to go back to
+        if (location.key !== "default") {
+            navigate(-1);
+        } else {
+            navigate("/", { replace: true });
+        }
+    }
+
+    return (
+        <button className="event-page__back" type="button" onClick={goBack} aria-label="Go back to the previous page" title="Back">
+            <ArrowLeft aria-hidden="true" />
+        </button>
+    );
+}
+
 function EventPageStatus({ children, role }: { children: string; role: "alert" | "status" }) {
     return (
         <main className="form-page event-page">
             <div className="form-container">
-                <BackButton />
+                <EventBackButton />
                 <p className="form-card" role={role}>{children}</p>
             </div>
         </main>
@@ -217,32 +237,6 @@ interface EventPageContentProps {
 
 type RequestDecision = "approve" | "decline";
 
-function useEventHasEnded(endTime: string | null): boolean | undefined {
-    const [endState, setEndState] = useState<{ endTime: string | null; hasEnded: boolean }>();
-
-    useEffect(() => {
-        const endsAt = endTime === null ? Number.NaN : new Date(endTime).getTime();
-        let timeoutId: number;
-
-        function refreshEndState() {
-            const now = Date.now();
-            const hasEnded = Number.isFinite(endsAt) && endsAt <= now;
-            setEndState({ endTime, hasEnded });
-            if (Number.isFinite(endsAt) && endsAt > now) {
-                timeoutId = window.setTimeout(
-                    refreshEndState,
-                    Math.min(endsAt - now + 50, 2_147_483_647),
-                );
-            }
-        }
-
-        timeoutId = window.setTimeout(refreshEndState, 0);
-        return () => window.clearTimeout(timeoutId);
-    }, [endTime]);
-
-    return endState?.endTime === endTime ? endState.hasEnded : undefined;
-}
-
 function EventPageContent({
     event,
     creatorName,
@@ -259,7 +253,6 @@ function EventPageContent({
     onRequestDecided,
 }: EventPageContentProps) {
     const [isEditing, setIsEditing] = useState(false);
-    const hasEnded = useEventHasEnded(event.endTime);
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
         ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
@@ -269,7 +262,7 @@ function EventPageContent({
         <main className="form-page event-page">
             <article className="form-container" aria-labelledby="event-title">
                 <div className="event-page__header-row">
-                    <BackButton />
+                    <EventBackButton />
                     <header className="form-page-header event-page__header">
                         <div className="event-page__heading">
                             <p className="form-eyebrow">Study session</p>
@@ -286,7 +279,7 @@ function EventPageContent({
                         {canEdit ? (
                             <OwnerEventActions key={event.id} event={event} onTerminated={onUpdated}
                                 isEditing={isEditing} onEdit={() => setIsEditing(true)} />
-                        ) : !hasJoined && hasEnded === false && (
+                        ) : !hasJoined && (
                             <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />
                         )}
                     </header>
@@ -368,12 +361,11 @@ function EventPageContent({
                                     {members.map(({ user, role }) => (
                                         <li className="event-page__member" key={user.id}>
                                             <span className="event-page__member-name">
-                                                <UserLink userId={user.id} name={user.fullName.trim() || "Name unavailable"} />
+                                                <UserLink userId={user.id} name={user.fullName} />
                                             </span>
                                             <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
                                                 {role === MemberRole.admin ? "Admin" : "Member"}
                                             </span>
-
                                         </li>
                                     ))}
                                 </ul>
@@ -573,9 +565,8 @@ function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJ
                                     <tr key={userId}>
                                         <td>
                                             <span className="event-page__requester-name">
-                                                <UserLink userId={request.user.id} name={request.user.fullName.trim() || "Name unavailable"} />
+                                                <UserLink userId={request.user.id} name={request.user.fullName} />
                                             </span>
-
                                             {request.user.description.trim() && (
                                                 <span className="event-page__requester-description">
                                                     {request.user.description.trim()}

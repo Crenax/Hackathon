@@ -1,7 +1,6 @@
 """Authenticated API behind the VIScon identity proxy."""
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from ipaddress import ip_address
 import logging
 from pathlib import Path
@@ -230,14 +229,6 @@ def update_me(update: UserForUpdate, user: CurrentUser):
     return db.update_user_by_id(user.id, update)
 
 
-@app.get("/api/users/{user_id}/profile", response_model=PublicProfile)
-def get_public_profile(user_id: Id):
-    user = db.get_user_by_id(user_id)
-    if user is None:
-        raise HTTPException(404, "User not found")
-    return PublicProfile(fullName=user.fullName, description=user.description)
-
-
 @app.get("/api/lecture-halls")
 def get_lecture_halls(building: str, user: CompleteUser):
     try:
@@ -318,12 +309,6 @@ def request_to_join(listing_id: Id, user: CompleteUser, request: JoinRequestForC
     listing = visible_listing(listing_id, user)
     if listing.isPrivate:
         raise PermissionError("This listing is private")
-    if listing.endTime is not None:
-        end_time = listing.endTime
-        if end_time.tzinfo is None:
-            end_time = end_time.replace(tzinfo=timezone.utc)
-        if end_time <= datetime.now(timezone.utc):
-            raise HTTPException(409, "This event has ended")
     if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is not None:
         raise ValueError("Already a member or request already sent")
     try:
