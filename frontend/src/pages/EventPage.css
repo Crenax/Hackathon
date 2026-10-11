@@ -1,3 +1,6 @@
+.event-page .user-link { text-decoration-line: none; }
+.event-page .user-link:hover, .event-page .user-link:focus-visible { text-decoration-line: underline; }
+
 .event-page__header-row { position: relative; }
 .event-page__header-row > .event-page__back { position: absolute; top: 0; left: -56px; }
 .event-page__header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 20px; }
