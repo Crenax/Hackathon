@@ -20,7 +20,6 @@ function todayAsDateInput(): string {
 }
 
 export default function UserSettings() {
-    const [courses, setCourses] = useState<string[]>([]);
     const [courseInput, setCourseInput] = useState("");
     const [visibility, setVisibility] = useState<"public" | "private">("public");
     const [profilePicture, setProfilePicture] = useState<string | null>(null);
@@ -68,14 +67,6 @@ export default function UserSettings() {
     useEffect(() => () => {
         if (profilePicture) URL.revokeObjectURL(profilePicture);
     }, [profilePicture]);
-
-    function addCourse() {
-        const course = courseInput.trim();
-        if (course && !courses.some((item) => item.toLowerCase() === course.toLowerCase())) {
-            setCourses((current) => [...current, course]);
-        }
-        setCourseInput("");
-    }
 
     async function submitProfile(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -203,56 +194,7 @@ export default function UserSettings() {
                             value={description} onChange={(event) => setDescription(event.target.value)} />
                         <small>Up to 300 characters.</small>
                     </label>
-                    <div className="form-field">
-                        <label htmlFor="course-input">Courses you take</label>
-                        <div className="form-inline-entry">
-                            <AutocompleteInputField
-                                id="course-input"
-                                value={courseInput}
-                                onValueChange={setCourseInput}
-                                onKeyDown={(event) => {
-                                    if (event.key === "Enter") {
-                                        event.preventDefault();
-                                        addCourse();
-                                    }
-                                }}
-                                placeholder="Start typing a course name"
-                            />
-                            <button className="form-secondary-button" type="button" onClick={addCourse}>Add course</button>
-                        </div>
-                        <small>Add each course separately.</small>
-                        {courses.length > 0 && (
-                            <ul className="course-tags" aria-label="Added courses">
-                                {courses.map((course) => (
-                                    <li key={course}>
-                                        {course}
-                                        <button type="button" aria-label={`Remove ${course}`} onClick={() => setCourses((current) => current.filter((item) => item !== course))}>
-                                            <XCircle aria-hidden="true" />
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
                 </section>
-
-                <section className="form-card" aria-labelledby="privacy-heading">
-                    <div className="form-section-header">
-                        <h2 id="privacy-heading">Profile visibility</h2>
-                    </div>
-                    <p className="form-section-description">Choose who can view your profile.</p>
-                    <div className="visibility-options">
-                        <label className="visibility-option">
-                            <input type="radio" name="visibility" value="public" checked={visibility === "public"} onChange={() => setVisibility("public")} />
-                            <span><strong>Public</strong><small>Other members can see your profile and courses.</small></span>
-                        </label>
-                        <label className="visibility-option">
-                            <input type="radio" name="visibility" value="private" checked={visibility === "private"} onChange={() => setVisibility("private")} />
-                            <span><strong>Private</strong><small>Only you can see your profile details.</small></span>
-                        </label>
-                    </div>
-                </section>
-
                 {errorMessage && <p className="profile-message profile-message--error" role="alert">{errorMessage}</p>}
                 {statusMessage && <p className="profile-message" role="status">{statusMessage}</p>}
                 <button className="form-primary-button profile-submit" type="submit" disabled={isLoading || isSaving}>
