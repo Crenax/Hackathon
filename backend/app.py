@@ -291,14 +291,6 @@ def get_my_friend_ids(user: CompleteUser):
     return db.get_friend_ids_by_user_id(user.id)
 
 
-@app.get("/api/me/friends/profiles", response_model=list[PublicUser])
-def get_my_friends(user: CompleteUser):
-    # Full display data for friend pickers. A deleted user is skipped in case a
-    # stale friendship row briefly remains while database cascades complete.
-    friends = [db.get_user_by_id(friend_id) for friend_id in db.get_friend_ids_by_user_id(user.id)]
-    return [public_profile(friend, user) for friend in friends if friend is not None]
-
-
 @app.get("/api/me", response_model=User, dependencies=[Depends(current_user)])
 def get_me(user: CurrentUser):
     return user

@@ -242,11 +242,6 @@ export function getMyFriendIds(): Promise<string[]> {
   return request<string[]>(`/api/me/friends`, "GET");
 }
 
-// Accepted friends with the display data needed by friend pickers
-export function getMyFriends(): Promise<PublicUser[]> {
-  return request<PublicUser[]>(`/api/me/friends/profiles`, "GET");
-}
-
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
 }
