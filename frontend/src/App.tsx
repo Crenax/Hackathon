@@ -10,6 +10,7 @@ import HomePage from "./pages/HomePage.tsx";
 import UserEvents from "./pages/UserEvents.tsx";
 import EventPage from "./pages/EventPage.tsx";
 import CreateEvent from "./pages/CreateEvent.tsx";
+import PublicProfilePage from "./pages/PublicProfilePage.tsx";
 
 
 const MapPage = lazy(() => import("./pages/MapPage"));
@@ -39,6 +40,7 @@ const AppContent = () => {
           <Route path="/my-events" element={<UserEvents />} />
           <Route path="/my-profile" element={<UserSettings />} />
           <Route path="/event" element={<EventPage />} />
+          <Route path="/profile/:userId" element={<PublicProfilePage />} />
           {/* Unknown URLs (typos, old links) go to the home page instead of an empty page */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

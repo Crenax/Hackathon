@@ -43,6 +43,10 @@ class User(BaseModel):
     degree: Degree | None = None
     description: str = ""
 
+class PublicProfile(BaseModel):
+    fullName: str = ""
+    description: str = ""
+
 class Listing(BaseModel):
     id: str
     createdBy: User | None = None
