@@ -66,9 +66,6 @@
 
 .event-page__attendance-card { gap: 0; padding: 0; overflow: hidden; }
 .event-page__members { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; max-width: 100%; margin: 16px 0 0; padding: 0 0 4px; overflow-x: auto; list-style: none; }
-.event-page__member { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1px solid #e1e5ee; border-radius: 8px; background: #f7f8fa; }
-.event-page__member-name { color: #242b3d; font-size: 1rem; font-weight: 650; line-height: 1.4; white-space: nowrap; }
-.event-page__member-role { color: #7040b5; font-size: .78rem; font-weight: 600; line-height: 1.4; }
 .event-page__member { display: flex; flex: 0 0 300px; align-items: center; gap: 10px; width: 300px; height: 50px; max-width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1px solid #e1e5ee; border-radius: 8px; background: #f7f8fa; }
 .event-page__member-name { min-width: 0; flex: 1 1 auto; overflow: hidden; color: #242b3d; font-size: 1rem; font-weight: 650; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
 .event-page__member-role { flex: 0 0 auto; color: #7040b5; font-size: .78rem; font-weight: 600; line-height: 1.4; }
@@ -93,10 +90,6 @@
 .event-page__requester-name { color: #242b3d; font-weight: 650; }
 .event-page__requester-description { max-width: 42ch; margin-top: 4px; color: var(--form-muted); font-size: .86rem; line-height: 1.4; white-space: pre-wrap; }
 .event-page__section .event-page__request-error { margin-top: 8px; color: #b83242; font-size: .84rem; line-height: 1.4; }
-.event-page__member-remove { padding: 3px 10px; border: 1px solid #f2c8ce; border-radius: 6px; color: #9f2635; background: #fff; font: inherit; font-size: .75rem; font-weight: 600; cursor: pointer; }
 .event-page__member-remove { flex: 0 0 auto; margin-left: auto; padding: 3px 10px; border: 1px solid #f2c8ce; border-radius: 6px; color: #9f2635; background: #fff; font: inherit; font-size: .75rem; font-weight: 600; cursor: pointer; }
 .event-page__member-remove:hover, .event-page__member-remove:focus-visible { border-color: #9f2635; background: #fff5f6; }
 .event-page__member-remove:disabled { opacity: .6; cursor: default; }
-.event-page__member-header { display: flex; align-items: center; gap: 10px; }
-.event-page__member-actions { display: flex; align-items: center; gap: 6px; }
-.event-page__member-actions .friend-tag { margin-left: 0; }
