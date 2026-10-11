@@ -100,13 +100,6 @@ export default function UserSettings() {
                         Please complete your profile to use the app. Date of birth and full name are required.
                     </p>
                 )}
-
-                <section className="form-card" aria-labelledby="picture-heading">
-                    <div className="form-section-header">
-                        <h2 id="picture-heading">Profile picture</h2>
-                    </div>
-                </section>
-
                 <section className="form-card" aria-labelledby="personal-heading">
                     <div className="form-section-header">
                         <h2 id="personal-heading">Personal information</h2>
@@ -120,7 +113,7 @@ export default function UserSettings() {
                         <span>Email address</span>
                         <input id="profile-email" name="email" type="email" value={email} readOnly />
                         <small>From your ETH login, can't be changed here.</small>
-                    </label>
+                    </label> 
                     <label className="form-field" htmlFor="profile-gender">
                         <span>Gender <span className="form-optional">(optional)</span></span>
                         <select id="profile-gender" name="gender" value={gender}
@@ -137,7 +130,7 @@ export default function UserSettings() {
                             value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} />
                     </label>
                     <label className="form-field" htmlFor="profile-description">
-                        <span>About you<span className="form-optional">(optional)</span></span>
+                        <span>About you <span className="form-optional">(optional)</span></span>
                         <textarea id="profile-description" name="description" rows={4} maxLength={300} placeholder="Degree, major, etc."
                             value={description} onChange={(event) => setDescription(event.target.value)} />
                         <small>Up to 300 characters.</small>
