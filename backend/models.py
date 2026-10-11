@@ -43,6 +43,15 @@ class User(BaseModel):
     degree: Degree | None = None
     description: str = ""
 
+class FriendStatus(str, Enum):
+    # Relation between the viewer and a profile
+    self_ = "self"                        # it's my own profile
+    none = "none"
+    requestSent = "request_sent"          # I sent a request, not accepted yet
+    requestReceived = "request_received"  # they sent me a request I can accept
+    friends = "friends"
+
+
 class PublicUser(BaseModel):
     # What other users may see of a profile: only what users enter on their profile page, no email
     id: str
@@ -50,6 +59,7 @@ class PublicUser(BaseModel):
     dateOfBirth: date | None = None
     gender: Gender | None = None
     description: str = ""
+    friendStatus: FriendStatus = FriendStatus.none
 
 class Listing(BaseModel):
     id: str
@@ -131,7 +141,8 @@ class MessageForCreate(BaseModel):
 class NotificationType(str, Enum):
     message = "message"            # new message in the chat of one of my listings
     joinRequest = "join_request"   # someone asked to join a listing I'm admin of
-    friendRequest = "friend_request"  # reserved, not implemented yet
+    friendRequest = "friend_request"  # someone sent me a friend request -> links to their profile
+    newListing = "new_listing"        # a friend created a listing -> links to the listing
 
 
 class Notification(BaseModel):
@@ -139,6 +150,7 @@ class Notification(BaseModel):
     type: NotificationType
     listingId: str | None = None
     listingTitle: str | None = None  # the listing's description, which is shown as its title
-    actorName: str | None = None     # who caused it (message author, requester); None if deleted
+    actorId: str | None = None       # who caused it (message author, requester, friend); None if deleted
+    actorName: str | None = None
     isRead: bool = False
     createdAt: datetime

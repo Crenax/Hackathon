@@ -47,12 +47,16 @@ export interface User {
 }
 
 // Another user's profile as anyone may see it: name, gender, date of birth and description (no email)
+// How the viewer relates to a profile
+export type FriendStatus = "self" | "none" | "request_sent" | "request_received" | "friends";
+
 export interface PublicUser {
   id: string;
   fullName: string;
   dateOfBirth: string | null;
   gender: Gender | null;
   description: string;
+  friendStatus: FriendStatus;
 }
 
 export interface Listing {
@@ -206,6 +210,20 @@ export function getUserProfile(userId: string): Promise<PublicUser> {
   return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}`, "GET");
 }
 
+export function sendFriendRequest(userId: string): Promise<PublicUser> {
+  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request`, "POST");
+}
+
+// userId is the person who sent the request
+export function acceptFriendRequest(userId: string): Promise<PublicUser> {
+  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request/accept`, "POST");
+}
+
+// Ids of all accepted friends
+export function getMyFriendIds(): Promise<string[]> {
+  return request<string[]>(`/api/me/friends`, "GET");
+}
+
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
 }
@@ -354,13 +372,14 @@ export function getJoinRequests(listingId: string): Promise<JoinRequest[]> {
   );
 }
 
-export type NotificationType = "message" | "join_request" | "friend_request";
+export type NotificationType = "message" | "join_request" | "friend_request" | "new_listing";
 
 export interface Notification {
   id: string;
   type: NotificationType;
   listingId: string | null;
   listingTitle: string | null;
+  actorId: string | null;
   actorName: string | null;
   isRead: boolean;
   createdAt: string;

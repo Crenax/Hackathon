@@ -13,6 +13,7 @@ function notificationText(notification: Notification): string {
         case "message": return `${who} wrote in ${event}`;
         case "join_request": return `${who} wants to join ${event}`;
         case "friend_request": return `${who} sent you a friend request`;
+        case "new_listing": return `Your friend ${who} created ${event}`;
     }
 }
 
@@ -55,10 +56,14 @@ const AppHeader = () => {
         } catch {
             // Still open the event; the notification will show up again on the next refresh
         }
-        // The event page shows both the chat and the join requests
-        window.location.assign(notification.listingId
-            ? `/event?id=${encodeURIComponent(notification.listingId)}`
-            : "/");
+        // Friend requests open the sender's profile; everything else the event page (chat, join requests, joining)
+        if (notification.type === "friend_request" && notification.actorId) {
+            window.location.assign(`/user?id=${encodeURIComponent(notification.actorId)}`);
+        } else {
+            window.location.assign(notification.listingId
+                ? `/event?id=${encodeURIComponent(notification.listingId)}`
+                : "/");
+        }
     }
 
     function goToHome() {

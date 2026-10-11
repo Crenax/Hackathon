@@ -19,6 +19,7 @@ import {
     getListing,
     getListingMembers,
     getMe,
+    getMyFriendIds,
     getMyListings,
     getMyRequests,
     MemberRole,
@@ -29,6 +30,7 @@ import ChatBox from "../components/ChatBox";
 import EditListingForm from "../components/EditListingForm";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
+import FriendTag from "../components/FriendTag";
 import UserLink from "../components/UserLink";
 import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
@@ -53,6 +55,8 @@ interface EventLoadState {
     members?: ListingMember[];
     membersError?: string;
     isOwner?: boolean;
+    // Ids of my accepted friends, for the "Friend" tags
+    friendIds?: string[];
     // Admins (creator or promoted) can edit the event
     isAdmin?: boolean;
     requests?: JoinRequest[];
@@ -78,8 +82,9 @@ export default function EventPage() {
             getMyListings().catch((): Listing[] => []),
             getMyRequests().catch((): ListingMember[] => []),
             getMe().catch(() => null),
+            getMyFriendIds().catch((): string[] => []),
         ])
-            .then(async ([event, memberships, requests, user]) => {
+            .then(async ([event, memberships, requests, user, friendIds]) => {
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
                 const isOwner = user !== null && event.createdBy?.id === user.id;
@@ -88,6 +93,7 @@ export default function EventPage() {
                     event,
                     hasJoined,
                     isOwner,
+                    friendIds,
                     pending: requests.some((request) => request.listing.id === listingId),
                     // createdBy is the full user, even if the creator has left the event
                     creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
@@ -160,6 +166,7 @@ export default function EventPage() {
         membersError={loadState.membersError}
         isOwner={loadState.isOwner === true}
         canEdit={loadState.isOwner === true || loadState.isAdmin === true}
+        friendIds={loadState.friendIds ?? []}
         requests={loadState.requests}
         requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
@@ -226,6 +233,7 @@ interface EventPageContentProps {
     membersError?: string;
     isOwner: boolean;
     canEdit: boolean;
+    friendIds: string[];
     requests?: JoinRequest[];
     requestsError?: string;
     hasJoined: boolean;
@@ -244,6 +252,7 @@ function EventPageContent({
     membersError,
     isOwner,
     canEdit,
+    friendIds,
     requests,
     requestsError,
     hasJoined,
@@ -362,6 +371,7 @@ function EventPageContent({
                                         <li className="event-page__member" key={user.id}>
                                             <span className="event-page__member-name">
                                                 <UserLink userId={user.id} name={user.fullName} />
+                                                {friendIds.includes(user.id) && <FriendTag />}
                                             </span>
                                             <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
                                                 {role === MemberRole.admin ? "Admin" : "Member"}
@@ -375,6 +385,7 @@ function EventPageContent({
                             <PendingJoinRequests
                                 key={event.id}
                                 listingId={event.id}
+                                friendIds={friendIds}
                                 requests={requests}
                                 error={requestsError}
                                 onDecided={onRequestDecided}
@@ -490,12 +501,13 @@ function OwnerEventActions({ event, onTerminated, isEditing, onEdit }: OwnerEven
 
 interface PendingJoinRequestsProps {
     listingId: string;
+    friendIds: string[];
     requests?: JoinRequest[];
     error?: string;
     onDecided: (request: JoinRequest, decision: RequestDecision) => void;
 }
 
-function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJoinRequestsProps) {
+function PendingJoinRequests({ listingId, friendIds, requests, error, onDecided }: PendingJoinRequestsProps) {
     const deciding = useRef(new Set<string>());
     const [activeUserIds, setActiveUserIds] = useState<Set<string>>(() => new Set());
     const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
@@ -566,6 +578,7 @@ function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJ
                                         <td>
                                             <span className="event-page__requester-name">
                                                 <UserLink userId={request.user.id} name={request.user.fullName} />
+                                                {friendIds.includes(request.user.id) && <FriendTag />}
                                             </span>
                                             {request.user.description.trim() && (
                                                 <span className="event-page__requester-description">

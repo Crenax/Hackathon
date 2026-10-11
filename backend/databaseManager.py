@@ -369,6 +369,7 @@ def get_unread_notifications_by_user_id(user_id: str) -> list[Notification]:
             type=row["type"],
             listingId=row["listing_id"],
             listingTitle=listing.description if listing else None,
+            actorId=actor.id if actor else None,
             actorName=actor.fullName if actor else None,
             isRead=row["is_read"],
             createdAt=row["created_at"],
@@ -386,6 +387,62 @@ def mark_notification_read_by_id(notification_id: str, user_id: str) -> bool:
         .data
     )
     return bool(rows)
+
+
+#friendships
+def get_friendship_between(user_id: str, other_id: str) -> dict | None:
+    # The friendship row between two users in either direction, or None
+    for sender, receiver in ((user_id, other_id), (other_id, user_id)):
+        rows = (
+            client.table("friendships")
+            .select("*")
+            .eq("sender_id", sender)
+            .eq("receiver_id", receiver)
+            .limit(1)
+            .execute()
+            .data
+        )
+        if rows:
+            return rows[0]
+    return None
+
+def get_friend_status(user_id: str, other_id: str) -> FriendStatus:
+    if user_id == other_id:
+        return FriendStatus.self_
+    friendship = get_friendship_between(user_id, other_id)
+    if friendship is None:
+        return FriendStatus.none
+    if friendship["is_accepted"]:
+        return FriendStatus.friends
+    return FriendStatus.requestSent if friendship["sender_id"] == user_id else FriendStatus.requestReceived
+
+def create_friend_request(sender_id: str, receiver_id: str):
+    client.table("friendships").insert({"sender_id": sender_id, "receiver_id": receiver_id}).execute()
+
+def accept_friend_request(sender_id: str, receiver_id: str) -> bool:
+    # Only the receiver accepts; False if there is no open request from sender to receiver
+    rows = (
+        client.table("friendships")
+        .update({"is_accepted": True})
+        .eq("sender_id", sender_id)
+        .eq("receiver_id", receiver_id)
+        .eq("is_accepted", False)
+        .execute()
+        .data
+    )
+    return bool(rows)
+
+def get_friend_ids_by_user_id(user_id: str) -> list[str]:
+    # Ids of all accepted friends, whoever sent the request
+    sent = (
+        client.table("friendships").select("receiver_id")
+        .eq("sender_id", user_id).eq("is_accepted", True).execute().data
+    )
+    received = (
+        client.table("friendships").select("sender_id")
+        .eq("receiver_id", user_id).eq("is_accepted", True).execute().data
+    )
+    return [row["receiver_id"] for row in sent] + [row["sender_id"] for row in received]
 
 
 #delete

@@ -191,7 +191,7 @@ def require_creator(listing_id: str, user: User) -> Listing:
     return listing
 
 
-def notify(recipient_ids: list[str], type: NotificationType, listing_id: str, actor_id: str):
+def notify(recipient_ids: list[str], type: NotificationType, listing_id: str | None, actor_id: str):
     # A failed notification must not undo the action that caused it, so errors are only logged
     try:
         db.create_notifications(recipient_ids, type, listing_id, actor_id)
@@ -207,7 +207,7 @@ class CalendarLink(BaseModel):
     url: str
 
 
-def public_profile(user: User) -> PublicUser:
+def public_profile(user: User, viewer: User) -> PublicUser:
     # Only what users enter on their profile page; no email
     return PublicUser(
         id=user.id,
@@ -215,6 +215,7 @@ def public_profile(user: User) -> PublicUser:
         dateOfBirth=user.dateOfBirth,
         gender=user.gender,
         description=user.description,
+        friendStatus=db.get_friend_status(viewer.id, user.id),
     )
 
 
@@ -224,7 +225,42 @@ def get_user_profile(user_id: Id, user: CompleteUser):
     profile = db.get_user_by_id(user_id)
     if profile is None:
         raise HTTPException(404, "User not found")
-    return public_profile(profile)
+    return public_profile(profile, user)
+
+
+@app.post("/api/users/{user_id}/friend-request", response_model=PublicUser)
+def send_friend_request(user_id: Id, user: CompleteUser):
+    receiver = db.get_user_by_id(user_id)
+    if receiver is None:
+        raise HTTPException(404, "User not found")
+    if db.get_friend_status(user.id, user_id) != FriendStatus.none:
+        raise ValueError("Already friends, or a request is already open")
+    try:
+        db.create_friend_request(user.id, user_id)
+    except APIError as error:
+        # e.g. both users sent a request at the same moment
+        if error.code != UNIQUE_VIOLATION:
+            raise
+        raise ValueError("Already friends, or a request is already open") from error
+    notify([user_id], NotificationType.friendRequest, None, user.id)
+    return public_profile(receiver, user)
+
+
+@app.post("/api/users/{user_id}/friend-request/accept", response_model=PublicUser)
+def accept_friend_request(user_id: Id, user: CompleteUser):
+    # user_id is the person who sent the request
+    sender = db.get_user_by_id(user_id)
+    if sender is None:
+        raise HTTPException(404, "User not found")
+    if not db.accept_friend_request(user_id, user.id):
+        raise ValueError("No open friend request from this user")
+    return public_profile(sender, user)
+
+
+@app.get("/api/me/friends", response_model=list[str])
+def get_my_friend_ids(user: CompleteUser):
+    # Ids of accepted friends, used for the "Friend" tags
+    return db.get_friend_ids_by_user_id(user.id)
 
 
 @app.get("/api/me", response_model=User, dependencies=[Depends(current_user)])
@@ -269,7 +305,11 @@ def get_listings(user: CompleteUser, course: Course | None = None):
 
 @app.post("/api/listings", response_model=Listing, status_code=201)
 def create_listing(listing: ListingForCreate, user: CompleteUser):
-    return db.create_listing(listing.model_copy(update={"createdBy": user}))
+    created = db.create_listing(listing.model_copy(update={"createdBy": user}))
+    # Friends can only see and join public listings
+    if not created.isPrivate:
+        notify(db.get_friend_ids_by_user_id(user.id), NotificationType.newListing, created.id, user.id)
+    return created
 
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)

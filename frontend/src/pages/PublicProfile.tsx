@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ArrowLeft } from "react-bootstrap-icons";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { Gender, getUserProfile, type PublicUser } from "../api";
+import { acceptFriendRequest, Gender, getUserProfile, sendFriendRequest, type PublicUser } from "../api";
+import FriendTag from "../components/FriendTag";
 import "../FormLayout.css";
 import "./UserSettings.css";
 import "./PublicProfile.css";
@@ -59,6 +60,25 @@ export default function PublicProfile() {
     }
 
     const profile = state.userId === userId ? state.profile : undefined;
+    const [isFriendActionRunning, setIsFriendActionRunning] = useState(false);
+    const [friendError, setFriendError] = useState("");
+
+    // "Send friend request" for strangers, "Accept friend request" if they asked first
+    async function runFriendAction() {
+        if (!profile || isFriendActionRunning) return;
+        setIsFriendActionRunning(true);
+        setFriendError("");
+        try {
+            const updated = profile.friendStatus === "request_received"
+                ? await acceptFriendRequest(profile.id)
+                : await sendFriendRequest(profile.id);
+            setState({ userId, profile: updated });
+        } catch (error) {
+            setFriendError(error instanceof Error ? error.message : "Could not update the friendship.");
+        } finally {
+            setIsFriendActionRunning(false);
+        }
+    }
     const error = !userId ? "No user id was provided in the URL." : state.userId === userId ? state.error : undefined;
 
     return (
@@ -70,7 +90,22 @@ export default function PublicProfile() {
                     </button>
                     <header className="form-page-header">
                         <p className="form-eyebrow">Profile</p>
-                        <h1>{profile ? profile.fullName.trim() || "Name unavailable" : "User profile"}</h1>
+                        <h1>
+                            {profile ? profile.fullName.trim() || "Name unavailable" : "User profile"}
+                            {profile?.friendStatus === "friends" && <FriendTag />}
+                        </h1>
+                        {profile && (profile.friendStatus === "none" || profile.friendStatus === "request_received") && (
+                            <button className="form-primary-button public-profile__friend-button" type="button"
+                                disabled={isFriendActionRunning} onClick={() => void runFriendAction()}>
+                                {profile.friendStatus === "request_received"
+                                    ? (isFriendActionRunning ? "Accepting…" : "Accept friend request")
+                                    : (isFriendActionRunning ? "Sending…" : "Send friend request")}
+                            </button>
+                        )}
+                        {profile?.friendStatus === "request_sent" && (
+                            <p className="public-profile__friend-note">Friend request sent</p>
+                        )}
+                        {friendError && <p className="profile-message profile-message--error" role="alert">{friendError}</p>}
                     </header>
                 </div>
 

@@ -6,3 +6,5 @@
 .public-profile__details dt { margin-bottom: 4px; color: var(--form-muted); font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .public-profile__details dd { margin: 0; color: var(--form-text); }
 .public-profile__about { margin: 0; color: var(--form-text); white-space: pre-wrap; }
+.public-profile__friend-button { align-self: flex-start; margin-top: 12px; }
+.public-profile__friend-note { margin: 12px 0 0; color: var(--form-muted); font-size: .9rem; }
