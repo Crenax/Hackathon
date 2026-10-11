@@ -238,6 +238,24 @@ export function getListingMembers(listingId: string): Promise<ListingMember[]> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/members`, "GET");
 }
 
+export function getListingRequests(listingId: string): Promise<ListingMember[]> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "GET");
+}
+
+export function approveListingRequest(listingId: string, userId: string): Promise<void> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/requests/${encodeURIComponent(userId)}/approve`,
+    "POST",
+  );
+}
+
+export function declineListingRequest(listingId: string, userId: string): Promise<void> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/members/${encodeURIComponent(userId)}`,
+    "DELETE",
+  );
+}
+
 export function getMessages(listingId: string): Promise<Message[]> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "GET");
 }

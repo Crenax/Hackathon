@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft,
@@ -11,7 +11,21 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
+<<<<<<< HEAD
 import { getListing, getListingMembers, getMe, getMyListings, getMyRequests, MemberRole } from "../api";
+=======
+import {
+    approveListingRequest,
+    declineListingRequest,
+    getListing,
+    getListingMembers,
+    getListingRequests,
+    getMe,
+    getMyListings,
+    getMyRequests,
+    MemberRole,
+} from "../api";
+>>>>>>> 1e20b4a (now able to reject/allow requests)
 import type { Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
@@ -39,6 +53,9 @@ interface EventLoadState {
     creatorName?: string;
     members?: ListingMember[];
     membersError?: string;
+    isOwner?: boolean;
+    requests?: ListingMember[];
+    requestsError?: string;
     hasJoined?: boolean;
     isCreator?: boolean;
     pending?: boolean;
@@ -54,40 +71,66 @@ export default function EventPage() {
         if (!listingId) return;
 
         let active = true;
-        // Both /me endpoints resolve the authenticated user's ID on the server.
+        // The membership endpoints resolve the authenticated user's ID on the server.
         // If they fail, the event is still shown, just as if the user hadn't joined or requested.
         Promise.all([
             getListing(listingId),
+            getMe(),
             getMyListings().catch((): Listing[] => []),
             getMyRequests().catch((): ListingMember[] => []),
             getMe().catch(() => null),
         ])
+<<<<<<< HEAD
             .then(async ([event, memberships, requests, user]) => {
+=======
+            .then(async ([event, user, memberships, requests]) => {
+>>>>>>> 1e20b4a (now able to reject/allow requests)
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
+                const isOwner = event.createdBy?.id === user.id;
                 setLoadState({
                     listingId,
                     event,
                     hasJoined,
+<<<<<<< HEAD
                     isCreator: user !== null && event.createdBy?.id === user.id,
+=======
+                    isOwner,
+>>>>>>> 1e20b4a (now able to reject/allow requests)
                     pending: requests.some((request) => request.listing.id === listingId),
                     // createdBy is the full user, even if the creator has left the event
                     creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
                 });
 
-                if (hasJoined) {
-                    try {
-                        const members = (await getListingMembers(listingId)).filter(
-                            (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
-                        );
-                        if (active) setLoadState((current) => ({ ...current, members }));
-                    } catch {
-                        if (active) setLoadState((current) => ({
-                            ...current,
-                            membersError: "Could not load members. Please try refreshing.",
-                        }));
-                    }
-                }
+                const details: Promise<void>[] = [];
+                if (hasJoined) details.push(
+                    getListingMembers(listingId)
+                        .then((allMembers) => {
+                            const members = allMembers.filter(
+                                (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
+                            );
+                            if (active) setLoadState((current) => ({ ...current, members }));
+                        })
+                        .catch(() => {
+                            if (active) setLoadState((current) => ({
+                                ...current,
+                                membersError: "Could not load members. Please try refreshing.",
+                            }));
+                        }),
+                );
+                if (hasJoined && isOwner) details.push(
+                    getListingRequests(listingId)
+                        .then((joiningRequests) => {
+                            if (active) setLoadState((current) => ({ ...current, requests: joiningRequests }));
+                        })
+                        .catch(() => {
+                            if (active) setLoadState((current) => ({
+                                ...current,
+                                requestsError: "Could not load join requests. Please try refreshing.",
+                            }));
+                        }),
+                );
+                await Promise.all(details);
             })
             .catch((error: unknown) => {
                 if (!active) return;
@@ -121,12 +164,25 @@ export default function EventPage() {
         creatorName={loadState.creatorName}
         members={loadState.members}
         membersError={loadState.membersError}
+        isOwner={loadState.isOwner === true}
+        requests={loadState.requests}
+        requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
         isCreator={loadState.isCreator === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
             current.listingId === listingId ? { ...current, pending: true } : current
         )}
+        onRequestDecided={(request, decision) => setLoadState((current) => {
+            if (current.listingId !== listingId) return current;
+            return {
+                ...current,
+                requests: current.requests?.filter(({ user }) => user.id !== request.user.id),
+                members: decision === "approve" && current.members
+                    ? [...current.members, { ...request, role: MemberRole.member }]
+                    : current.members,
+            };
+        })}
     />;
 }
 
@@ -166,13 +222,31 @@ interface EventPageContentProps {
     creatorName?: string;
     members?: ListingMember[];
     membersError?: string;
+    isOwner: boolean;
+    requests?: ListingMember[];
+    requestsError?: string;
     hasJoined: boolean;
     isCreator: boolean;
     pending: boolean;
     onRequested: () => void;
+    onRequestDecided: (request: ListingMember, decision: RequestDecision) => void;
 }
 
-function EventPageContent({ event, creatorName, members, membersError, hasJoined, isCreator, pending, onRequested }: EventPageContentProps) {
+type RequestDecision = "approve" | "decline";
+
+function EventPageContent({
+    event,
+    creatorName,
+    members,
+    membersError,
+    isOwner,
+    requests,
+    requestsError,
+    hasJoined,
+    pending,
+    onRequested,
+    onRequestDecided,
+}: EventPageContentProps) {
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
         ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
@@ -252,6 +326,15 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                     )}
 
                 </section>
+                {isOwner && hasJoined && (
+                    <JoinRequests
+                        key={event.id}
+                        listingId={event.id}
+                        requests={requests}
+                        error={requestsError}
+                        onDecided={onRequestDecided}
+                    />
+                )}
                 {hasJoined && (
                     <section className="form-card event-page__section" aria-labelledby="event-members-heading">
                         <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
@@ -289,5 +372,118 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>
+    );
+}
+
+interface JoinRequestsProps {
+    listingId: string;
+    requests?: ListingMember[];
+    error?: string;
+    onDecided: (request: ListingMember, decision: RequestDecision) => void;
+}
+
+function JoinRequests({ listingId, requests, error, onDecided }: JoinRequestsProps) {
+    const deciding = useRef(new Set<string>());
+    const [activeUserIds, setActiveUserIds] = useState<Set<string>>(() => new Set());
+    const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
+
+    async function decide(request: ListingMember, decision: RequestDecision) {
+        const userId = request.user.id;
+        if (deciding.current.has(userId)) return;
+
+        deciding.current.add(userId);
+        setActiveUserIds((current) => new Set(current).add(userId));
+        setRequestErrors((current) => {
+            const next = { ...current };
+            delete next[userId];
+            return next;
+        });
+
+        try {
+            if (decision === "approve") {
+                await approveListingRequest(listingId, userId);
+            } else {
+                await declineListingRequest(listingId, userId);
+            }
+            onDecided(request, decision);
+        } catch {
+            setRequestErrors((current) => ({
+                ...current,
+                [userId]: `Could not ${decision === "approve" ? "approve" : "refuse"} this request. Please try again.`,
+            }));
+        } finally {
+            deciding.current.delete(userId);
+            setActiveUserIds((current) => {
+                const next = new Set(current);
+                next.delete(userId);
+                return next;
+            });
+        }
+    }
+
+    return (
+        <section className="form-card event-page__section" aria-labelledby="event-requests-heading">
+            <h2 id="event-requests-heading"><PersonCircle aria-hidden="true" /> Join requests</h2>
+            {error ? (
+                <p role="alert">{error}</p>
+            ) : requests === undefined ? (
+                <p role="status">Loading join requests…</p>
+            ) : requests.length === 0 ? (
+                <p>No pending join requests.</p>
+            ) : (
+                <div className="event-page__table-scroll">
+                    <table className="event-page__attendance-table">
+                        <caption className="event-page__table-caption">
+                            {requests.length} pending {requests.length === 1 ? "request" : "requests"}
+                        </caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Requester</th>
+                                <th scope="col">Requested</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {requests.map((request) => {
+                                const userId = request.user.id;
+                                const isDeciding = activeUserIds.has(userId);
+                                return (
+                                    <tr key={userId}>
+                                        <td>
+                                            <span className="event-page__requester-name">
+                                                {request.user.fullName.trim() || "Name unavailable"}
+                                            </span>
+                                            {request.user.description.trim() && (
+                                                <span className="event-page__requester-description">
+                                                    {request.user.description.trim()}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td>{formatDateTime(request.joinedAt)}</td>
+                                        <td>
+                                            <div className="event-page__attendance-actions">
+                                                <button type="button" disabled={isDeciding}
+                                                    onClick={() => void decide(request, "approve")}>
+                                                    {isDeciding ? "Working…" : "Allow"}
+                                                </button>
+                                                <button className="event-page__request-refuse" type="button" disabled={isDeciding}
+                                                    onClick={() => void decide(request, "decline")}>
+                                                    Refuse
+                                                </button>
+                                            </div>
+                                            {requestErrors[userId] && (
+                                                <p className="event-page__request-error" role="alert">
+                                                    {requestErrors[userId]}
+                                                </p>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
     );
 }
