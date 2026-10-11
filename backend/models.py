@@ -126,3 +126,19 @@ class MessageForCreate(BaseModel):
     listing: Listing | None = None
     author: User | None = None
     content: str
+
+
+class NotificationType(str, Enum):
+    message = "message"            # new message in the chat of one of my listings
+    joinRequest = "join_request"   # someone asked to join a listing I'm admin of
+    friendRequest = "friend_request"  # reserved, not implemented yet
+
+
+class Notification(BaseModel):
+    id: str
+    type: NotificationType
+    listingId: str | None = None
+    listingTitle: str | None = None  # the listing's description, which is shown as its title
+    actorName: str | None = None     # who caused it (message author, requester); None if deleted
+    isRead: bool = False
+    createdAt: datetime

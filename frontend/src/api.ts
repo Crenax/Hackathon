@@ -353,3 +353,24 @@ export function getJoinRequests(listingId: string): Promise<JoinRequest[]> {
     "GET",
   );
 }
+
+export type NotificationType = "message" | "join_request" | "friend_request";
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  listingId: string | null;
+  listingTitle: string | null;
+  actorName: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+// Only unread notifications, newest first
+export function getMyNotifications(): Promise<Notification[]> {
+  return request<Notification[]>(`/api/me/notifications`, "GET");
+}
+
+export function markNotificationRead(notificationId: string): Promise<void> {
+  return request(`/api/notifications/${encodeURIComponent(notificationId)}/read`, "POST");
+}

@@ -191,6 +191,14 @@ def require_creator(listing_id: str, user: User) -> Listing:
     return listing
 
 
+def notify(recipient_ids: list[str], type: NotificationType, listing_id: str, actor_id: str):
+    # A failed notification must not undo the action that caused it, so errors are only logged
+    try:
+        db.create_notifications(recipient_ids, type, listing_id, actor_id)
+    except Exception:
+        logger.exception("Could not create %s notifications for listing %s", type.value, listing_id)
+
+
 class RoleUpdate(BaseModel):
     role: Literal[MemberRole.admin, MemberRole.member]
 
@@ -318,6 +326,9 @@ def request_to_join(listing_id: Id, user: CompleteUser, request: JoinRequestForC
         if error.code != UNIQUE_VIOLATION:
             raise
         raise ValueError("Already a member or request already sent") from error
+    admin_ids = [member.user.id for member in db.get_listingMembers_by_listing(listing_id)
+                 if member.role == MemberRole.admin]
+    notify(admin_ids, NotificationType.joinRequest, listing_id, user.id)
     return Response(status_code=204)
 
 
@@ -362,7 +373,24 @@ def get_messages(listing_id: Id, user: CompleteUser):
 @app.post("/api/listings/{listing_id}/messages", response_model=Message, status_code=201)
 def send_message(listing_id: Id, message: MessageForCreate, user: CompleteUser):
     listing = require_member(listing_id, user)
-    return db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
+    created = db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
+    other_member_ids = [member.user.id for member in db.get_listingMembers_by_listing(listing_id)
+                        if member.user.id != user.id]
+    notify(other_member_ids, NotificationType.message, listing_id, user.id)
+    return created
+
+
+@app.get("/api/me/notifications", response_model=list[Notification])
+def get_my_notifications(user: CompleteUser):
+    # Only unread ones, newest first
+    return db.get_unread_notifications_by_user_id(user.id)
+
+
+@app.post("/api/notifications/{notification_id}/read", status_code=204)
+def mark_notification_read(notification_id: Id, user: CompleteUser):
+    if not db.mark_notification_read_by_id(notification_id, user.id):
+        raise HTTPException(404, "Notification not found")
+    return Response(status_code=204)
 
 
 if __name__ == "__main__":

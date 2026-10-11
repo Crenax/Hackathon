@@ -210,3 +210,23 @@
 .app-sidebar-navigation a:focus-visible {
   background-color: #3a404b;
 }
+
+/* Each notification is a button that opens the event */
+.app-notification-link {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-notification-panel li:has(.app-notification-link:hover),
+.app-notification-panel li:has(.app-notification-link:focus-visible) {
+  background-color: #e6efff;
+}

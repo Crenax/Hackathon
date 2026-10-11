@@ -339,6 +339,55 @@ def accept_request_by_user_id_and_listing_id(user_id: str, listing_id: str) -> L
     return listingMember_from_row(rows[0]) if rows else None
 
 
+#notifications
+def create_notifications(recipient_ids: list[str], type: NotificationType, listing_id: str | None, actor_id: str | None):
+    # One unread notification per recipient
+    if not recipient_ids:
+        return
+    client.table("notifications").insert([
+        {"user_id": recipient_id, "type": type.value, "listing_id": listing_id, "actor_id": actor_id}
+        for recipient_id in recipient_ids
+    ]).execute()
+
+def get_unread_notifications_by_user_id(user_id: str) -> list[Notification]:
+    # Newest first
+    rows = (
+        client.table("notifications")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("is_read", False)
+        .order("created_at", desc=True)
+        .execute()
+        .data
+    )
+    notifications = []
+    for row in rows:
+        listing = get_listing_by_id(row["listing_id"]) if row["listing_id"] else None
+        actor = get_user_by_id(row["actor_id"]) if row["actor_id"] else None
+        notifications.append(Notification(
+            id=row["id"],
+            type=row["type"],
+            listingId=row["listing_id"],
+            listingTitle=listing.description if listing else None,
+            actorName=actor.fullName if actor else None,
+            isRead=row["is_read"],
+            createdAt=row["created_at"],
+        ))
+    return notifications
+
+def mark_notification_read_by_id(notification_id: str, user_id: str) -> bool:
+    # Only the recipient can mark it; False if it isn't theirs
+    rows = (
+        client.table("notifications")
+        .update({"is_read": True})
+        .eq("id", notification_id)
+        .eq("user_id", user_id)
+        .execute()
+        .data
+    )
+    return bool(rows)
+
+
 #delete
 def delete_user_by_id(user_id: str):
     # The database also removes the user's memberships/requests and keeps their messages without author
