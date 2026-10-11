@@ -24,7 +24,7 @@ function sortListings(listings: Listing[]): Listing[] {
 
 
 export default function CreateEvent() {
-    const [events, setEvents] = useState<Listing[]>([]);
+    const [, setEvents] = useState<Listing[]>([]);
     const [courses, setCourses] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
@@ -35,9 +35,6 @@ export default function CreateEvent() {
 
 
 
-    const startsAt = new Date();
-    const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
-    const defaultStartTime = formatLocalDateTime(startsAt);
     const [startTime, setStartTime] = useState(() => formatLocalDateTime(new Date()));
     const [minimumStartTime] = useState(() => formatLocalDateTime(new Date()));
     const [endTime, setEndTime] = useState(() => formatLocalDateTime(new Date(Date.now() + 60 * 60 * 1000)));

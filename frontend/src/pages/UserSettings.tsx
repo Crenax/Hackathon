@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Gender, getMe, isProfileComplete, updateMe } from "../api";
 import "../FormLayout.css";
-import AutocompleteInputField from "../components/AutocompleteInputField";
 import "./UserSettings.css";
 
 const GENDER_LABELS: Record<Gender, string> = {
@@ -20,8 +19,6 @@ function todayAsDateInput(): string {
 }
 
 export default function UserSettings() {
-    const [courseInput, setCourseInput] = useState("");
-    const [visibility, setVisibility] = useState<"public" | "private">("public");
     const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
     // Saved through PATCH /api/me

@@ -11,6 +11,21 @@ const Gender = {
 type Gender = (typeof Gender)[keyof typeof Gender];
 export { Gender };
 
+// Still part of backend/models.py User, even though the profile page no longer edits them
+const Major = {
+    ComputerScience: "computer_science"
+} as const;
+type Major = (typeof Major)[keyof typeof Major];
+export { Major };
+
+const Degree = {
+    Bachelor: "bachelor",
+    Master: "master",
+    PHD: "phd"
+} as const;
+type Degree = (typeof Degree)[keyof typeof Degree];
+export { Degree };
+
 const MemberRole = {
   admin: "admin",
   member: "member",
