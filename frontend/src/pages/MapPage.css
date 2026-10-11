@@ -503,3 +503,12 @@
 }
 
 }
+
+.campus-dot.event { background: #a33ab5; }
+.campus-event-marker { cursor: pointer; }
+.campus-event-marker circle { fill: #a33ab5; stroke: white; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.campus-event-marker text { fill: white; font-weight: 700; pointer-events: none; }
+.campus-event-marker:focus circle { stroke: #23213e; stroke-width: 3px; }
+.campus-event-list { display: grid; gap: 10px; padding: 14px 18px; }
+.campus-event-list a { display: grid; gap: 4px; color: #752486; }
+.campus-event-list small { color: #666; }
