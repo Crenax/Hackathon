@@ -312,46 +312,39 @@ function EventPageContent({
                     )}
 
                 </section>
-                {isOwner && hasJoined && (
-                    <PendingJoinRequests
-                        key={event.id}
-                        listingId={event.id}
-                        requests={requests}
-                        error={requestsError}
-                        onDecided={onRequestDecided}
-                    />
-                )}
                 {hasJoined && (
-                    <section className="form-card event-page__section" aria-labelledby="event-members-heading">
-                        <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
-                        {membersError ? (
-                            <p role="alert">{membersError}</p>
-                        ) : members === undefined ? (
-                            <p role="status">Loading members…</p>
-                        ) : members.length === 0 ? (
-                            <p>No accepted members yet.</p>
-                        ) : (
-                            <div className="event-page__member-groups">
-                                {[MemberRole.admin, MemberRole.member].map((groupRole) => {
-                                    const group = members.filter(({ role }) => role === groupRole);
-                                    if (group.length === 0) return null;
-                                    return (
-                                        <ul className="event-page__members" key={groupRole}
-                                            aria-label={groupRole === MemberRole.admin ? "Admins" : "Members"}>
-                                            {group.map(({ user, role }) => (
-                                                <li className="event-page__member" key={user.id}>
-                                                    <span className="event-page__member-name">
-                                                        {user.fullName.trim() || "Name unavailable"}
-                                                    </span>
-                                                    <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
-                                                        {role === MemberRole.admin ? "Admin" : "Member"}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    );
-                                })}
-                            </div>
+                    <section className="form-card event-page__attendance-card" aria-label="Event attendance">
+                        <section className="event-page__section" aria-labelledby="event-members-heading">
+                            <h2 id="event-members-heading"><PersonCircle aria-hidden="true" /> Members</h2>
+                            {membersError ? (
+                                <p role="alert">{membersError}</p>
+                            ) : members === undefined ? (
+                                <p role="status">Loading members…</p>
+                            ) : members.length === 0 ? (
+                                <p>No accepted members yet.</p>
+                            ) : (
+                                <ul className="event-page__members" aria-label="Accepted event members">
+                                    {members.map(({ user, role }) => (
+                                        <li className="event-page__member" key={user.id}>
+                                            <span className="event-page__member-name">
+                                                {user.fullName.trim() || "Name unavailable"}
+                                            </span>
+                                            <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
+                                                {role === MemberRole.admin ? "Admin" : "Member"}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </section>
+                        {isOwner && (
+                            <PendingJoinRequests
+                                key={event.id}
+                                listingId={event.id}
+                                requests={requests}
+                                error={requestsError}
+                                onDecided={onRequestDecided}
+                            />
                         )}
                     </section>
                 )}
@@ -408,7 +401,7 @@ function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJ
     }
 
     return (
-        <section className="form-card event-page__section" aria-labelledby="event-requests-heading">
+        <section className="event-page__section" aria-labelledby="event-requests-heading">
             <h2 id="event-requests-heading"><PersonCircle aria-hidden="true" /> Join requests</h2>
             {error ? (
                 <p role="alert">{error}</p>
