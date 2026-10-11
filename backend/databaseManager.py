@@ -1,4 +1,5 @@
 from os import getenv
+from uuid import uuid4
 
 from supabase import Client, create_client
 
@@ -220,6 +221,8 @@ def create_user_From_External_Info(fullName: str, email: str) -> User:
     row = (
         client.table("users")
         .insert({
+            # Generated here, so it works even if the id column has no database default
+            "id": str(uuid4()),
             "full_name": fullName.strip(),
             "email": email.strip().lower(),
         })

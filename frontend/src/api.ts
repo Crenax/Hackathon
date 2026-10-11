@@ -184,7 +184,7 @@ export function updateMe(update: UserForUpdate): Promise<User> {
 
 // Matches is_user_complete in backend/app.py
 export function isProfileComplete(user: User): boolean {
-  return user.dateOfBirth !== null && user.degree !== null && user.major !== null;
+  return user.fullName.trim() !== "" && user.dateOfBirth !== null;
 }
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {

@@ -33,9 +33,8 @@ Id = Annotated[str, PathParam(pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-
 
 def is_user_complete(user: User) -> bool:
     return (
-		user.Name != "" and
-		str.Name is not None and
-        user.dateOfBirth is not None 
+        user.fullName.strip() != "" and
+        user.dateOfBirth is not None
     )
 
 
@@ -53,9 +52,25 @@ async def require_proxy_identity(request: Request, call_next):
         except ValueError:
             return False
 
+    # Local development has no proxy: requests from this machine without headers act as a guest user
+    origin = request.headers.get("origin")
+    try:
+        local_origin = origin is None or is_localhost(urlsplit(origin).hostname)
+    except ValueError:
+        local_origin = False
+    local_guest = (
+        request.client is not None
+        and is_localhost(request.client.host)
+        and is_localhost(request.url.hostname)
+        and local_origin
+        and "X-User-Id" not in request.headers
+        and "X-User-Name" not in request.headers
+    )
+    guest_headers = {"X-User-Id": "guest@ethz.ch", "X-User-Name": "guest guest"}
+
     identity = {}
     for header in ("X-User-Id", "X-User-Name"):
-        values = request.headers.getlist(header)
+        values = [guest_headers[header]] if local_guest else request.headers.getlist(header)
         if len(values) != 1:
             return JSONResponse({"detail": "Both proxy authentication headers are required"}, status_code=401)
         try:
@@ -97,7 +112,7 @@ CurrentUser = Annotated[User, Depends(current_user)]
 
 
 def require_complete_user(user: CurrentUser) -> User:
-    # Date of birth, degree and major must be set; /api/me stays open so the profile can be completed
+    # Name and date of birth must be set; /api/me stays open so the profile can be completed
     if not is_user_complete(user):
         raise HTTPException(403, "User profile incomplete")
     return user
@@ -109,7 +124,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url=None,
     openapi_url="/api/openapi.json",
-    dependencies=[Depends(current_user), Depends(require_complete_user)],
+    dependencies=[Depends(current_user)],
 )
 app.middleware("http")(require_proxy_identity)
 
