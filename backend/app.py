@@ -81,7 +81,6 @@ app = FastAPI(
 
 @app.middleware("http")
 async def require_proxy_identity(request: Request, call_next):
-    # Run before routing/body validation, including docs, redirects and unknown URLs.
     def is_localhost(host: str | None) -> bool:
         if host == "localhost":
             return True
@@ -90,42 +89,31 @@ async def require_proxy_identity(request: Request, call_next):
         except ValueError:
             return False
 
-    origin = request.headers.get("origin")
-    try:
-        local_origin = origin is None or is_localhost(urlsplit(origin).hostname)
-    except ValueError:
-        local_origin = False
-    local_guest = (
-        request.client is not None
-        and is_localhost(request.client.host)
-        and is_localhost(request.url.hostname)
-        and local_origin
-        and "X-User-Id" not in request.headers
-        and "X-User-Name" not in request.headers
-    )
-    guest_headers = {"X-User-Id": "guest@ethz.ch", "X-User-Name": "guest guest"}
     identity = {}
     for header in ("X-User-Id", "X-User-Name"):
-        values = [guest_headers[header]] if local_guest else request.headers.getlist(header)
+        values = request.headers.getlist(header)
         if len(values) != 1:
             return JSONResponse({"detail": "Both proxy authentication headers are required"}, status_code=401)
         try:
             value = unquote(values[0], errors="strict")
         except UnicodeDecodeError:
             return JSONResponse({"detail": "Invalid proxy authentication headers"}, status_code=401)
-        if not value.strip() or any(ord(char) < 32 or ord(char) == 127 for char in value):
+        if not value.strip() or any(ord(c) < 32 or ord(c) == 127 for c in value):
             return JSONResponse({"detail": "Invalid proxy authentication headers"}, status_code=401)
         identity[header] = value.strip()
+
     email = identity["X-User-Id"]
     local, separator, domain = email.partition("@")
     if not separator or not local or not domain or "@" in domain or any(c.isspace() for c in email):
         return JSONResponse({"detail": "X-User-Id must contain the proxy user's email"}, status_code=401)
+
     request.state.proxy_email = email.lower()
     request.state.proxy_name = identity["X-User-Name"]
+
     response = await call_next(request)
-    # Authenticated responses must not be reused across users by a proxy/cache.
     response.headers["Cache-Control"] = "no-store"
     return response
+
 
 
 @app.exception_handler(PermissionError)
