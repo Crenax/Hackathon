@@ -37,6 +37,12 @@ import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
 import "./EventPage.css";
 
+// Shortens text to maxLength characters, ending with "…" if it was cut
+function truncate(text: string, maxLength: number): string {
+    const characters = Array.from(text);  // counts emoji etc. as one character
+    return characters.length > maxLength ? `${characters.slice(0, maxLength).join("").trimEnd()}…` : text;
+}
+
 function formatDateTime(value: string | null): string {
     if (!value) return "To be confirmed";
 
@@ -669,8 +675,9 @@ function PendingJoinRequests({ listingId, friendIds, requests, error, onDecided 
                                                 {friendIds.includes(request.user.id) && <FriendTag />}
                                             </span>
                                             {request.user.description.trim() && (
-                                                <span className="event-page__requester-description">
-                                                    {request.user.description.trim()}
+                                                <span className="event-page__requester-description"
+                                                    title={request.user.description.trim()}>
+                                                    {truncate(request.user.description.trim(), 50)}
                                                 </span>
                                             )}
                                         </td>
