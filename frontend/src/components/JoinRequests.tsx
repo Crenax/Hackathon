@@ -36,7 +36,7 @@ export default function JoinRequests({ listingId }: { listingId: string }) {
                     {requests.map((request) => (
                         <li key={request.user.id}>
                             <h3>{request.user.fullName.trim() || "Participant"}</h3>
-                            <p className="join-requests__message">{request.message || "No message provided."}</p>
+                            <p className="join-requests__message">{request.requestReason || "No message provided."}</p>
                         </li>
                     ))}
                 </ul>

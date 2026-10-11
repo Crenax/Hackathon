@@ -69,12 +69,12 @@ class ListingMember(BaseModel):
 
 
 class JoinRequest(ListingMember):
-    # Only the creator-only requests endpoint serializes this field.
-    message: str = ""
+    # Stored in listing_members.request_reason; only the creator-only requests endpoint serializes this field.
+    requestReason: str = ""
 
 
 class JoinRequestForCreate(BaseModel):
-    message: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] = ""
+    requestReason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] = ""
 
 #Models for interaction with db:
 class UserForCreate(BaseModel):

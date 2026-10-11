@@ -316,7 +316,7 @@ export function requestToJoin(
 }
 
 export interface JoinRequest extends ListingMember {
-  message: string;
+  requestReason: string;
 }
 
 export function getJoinRequests(listingId: string): Promise<JoinRequest[]> {

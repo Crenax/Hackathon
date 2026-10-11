@@ -292,7 +292,7 @@ def request_to_join(listing_id: Id, user: CompleteUser, request: JoinRequestForC
     if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is not None:
         raise ValueError("Already a member or request already sent")
     try:
-        db.create_request(user.id, listing_id, request.message)
+        db.create_request(user.id, listing_id, request.requestReason)
     except APIError as error:
         # e.g. a double click sent the request twice
         if error.code != UNIQUE_VIOLATION:

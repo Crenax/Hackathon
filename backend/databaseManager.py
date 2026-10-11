@@ -190,7 +190,7 @@ def get_role_by_user_id_and_listing_id(user_id: str, listing_id: str) -> MemberR
     return MemberRole(rows[0]["role"]) if rows else None
 
 def get_pending_requests_by_listing_id(listing_id: str) -> list[JoinRequest]:
-    # Oldest request first
+    # Oldest request first, including the applicant's reason (only for the listing admin)
     rows = (
         client.table("listing_members")
         .select("*")
@@ -201,7 +201,7 @@ def get_pending_requests_by_listing_id(listing_id: str) -> list[JoinRequest]:
         .data
     )
     return [
-        JoinRequest(**listingMember_from_row(row).model_dump(), message=row.get("request_message") or "")
+        JoinRequest(**listingMember_from_row(row).model_dump(), requestReason=row.get("request_reason") or "")
         for row in rows
     ]
 
@@ -267,7 +267,7 @@ def createMessage(messageForCreate: MessageForCreate) -> Message:
     )
     return message_from_row(row)
 
-def create_request(userId: str, listingId: str, message: str = "") -> ListingMember:
+def create_request(userId: str, listingId: str, requestReason: str = "") -> ListingMember:
     # joined_at is set by the database (time of the request)
     row = (
         client.table("listing_members")
@@ -275,7 +275,7 @@ def create_request(userId: str, listingId: str, message: str = "") -> ListingMem
             "listing_id": listingId,
             "user_id": userId,
             "role": MemberRole.requestPending.value,
-            "request_message": message,
+            "request_reason": requestReason,
         })
         .execute()
         .data[0]
@@ -329,7 +329,7 @@ def accept_request_by_user_id_and_listing_id(user_id: str, listing_id: str) -> L
     # Pending request -> member. None if there was no pending request
     rows = (
         client.table("listing_members")
-        .update({"role": MemberRole.member.value, "request_message": ""})
+        .update({"role": MemberRole.member.value, "request_reason": ""})
         .eq("user_id", user_id)
         .eq("listing_id", listing_id)
         .eq("role", MemberRole.requestPending.value)

@@ -439,7 +439,7 @@ function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJ
                                                 </span>
                                             )}
                                         </td>
-                                        <td>{request.message.trim() || "No message provided."}</td>
+                                        <td>{request.requestReason.trim() || "No message provided."}</td>
                                         <td>{formatDateTime(request.joinedAt)}</td>
                                         <td>
                                             <div className="event-page__attendance-actions">
