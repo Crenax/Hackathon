@@ -1,8 +1,8 @@
-import { useState, type FormEvent  } from "react";
+import { useEffect, useState, type FormEvent  } from "react";
 import "../FormLayout.css";
 import "./HomePage.css";
 import AutocompleteInputField from "../components/AutocompleteInputField";
-import { createListing, type Listing, type ListingForCreate } from "../api";
+import { createListing, getMyFriends, type Listing, type ListingForCreate, type PublicUser } from "../api";
 import { locationRooms } from "../map/rooms";
 
 import { XCircle } from "react-bootstrap-icons";
@@ -30,6 +30,10 @@ export default function CreateEvent() {
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
     const [newCourse, setNewCourse] = useState("");
+    const [friends, setFriends] = useState<PublicUser[]>([]);
+    const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
+    const [isLoadingFriends, setIsLoadingFriends] = useState(true);
+    const [friendsError, setFriendsError] = useState("");
     const [isPrivate, setIsPrivate] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
@@ -39,6 +43,30 @@ export default function CreateEvent() {
     const [startTime, setStartTime] = useState(() => formatLocalDateTime(new Date()));
     const [minimumStartTime] = useState(() => formatLocalDateTime(new Date()));
     const [endTime, setEndTime] = useState(() => formatLocalDateTime(new Date(Date.now() + 60 * 60 * 1000)));
+
+
+    useEffect(() => {
+        let isActive = true;
+        getMyFriends()
+            .then((acceptedFriends) => {
+                if (isActive) {
+                    setFriends(acceptedFriends);
+                    setFriendsError("");
+                }
+            })
+            .catch((error: unknown) => {
+                if (isActive) {
+                    setFriendsError(error instanceof Error ? error.message : "Could not load your friends.");
+                }
+            })
+            .finally(() => {
+                if (isActive) setIsLoadingFriends(false);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
 
 
@@ -66,6 +94,15 @@ export default function CreateEvent() {
             setCourses((current) => [...current, trimmedCourse]);
         }
         setNewCourse("");
+    }
+
+
+    function toggleFriend(friendId: string) {
+        const nextSelectedFriendIds = selectedFriendIds.includes(friendId)
+            ? selectedFriendIds.filter((id) => id !== friendId)
+            : [...selectedFriendIds, friendId];
+        setSelectedFriendIds(nextSelectedFriendIds);
+        if (nextSelectedFriendIds.length === 0) setIsPrivate(false);
     }
 
 
@@ -98,6 +135,7 @@ export default function CreateEvent() {
             location: location.trim(),
             courses,
             isPrivate,
+            memberIds: selectedFriendIds,
         };
 
         setIsSubmitting(true);
@@ -112,14 +150,14 @@ export default function CreateEvent() {
             setDescription("");
             setCourses([]);
             setNewCourse("");
+            setSelectedFriendIds([]);
             setIsPrivate(false);
+            window.location.href = "/";
         } catch (error) {
             setSubmitError(error instanceof Error ? error.message : "Could not create the event.");
         } finally {
             setIsSubmitting(false);
         }
-
-        window.location.href = "/";
     }
 
 
@@ -185,6 +223,49 @@ export default function CreateEvent() {
                             )}
                         </div>
 
+                        <div className="form-field" aria-labelledby="study-event-friends-label">
+                            <span id="study-event-friends-label">Add friends <span className="form-optional">(optional)</span></span>
+                            {isLoadingFriends ? (
+                                <small className="friend-options-status" role="status">Loading friends…</small>
+                            ) : friendsError ? (
+                                <small className="friend-options-status friend-options-status--error" role="alert">{friendsError}</small>
+                            ) : friends.length === 0 ? (
+                                <small className="friend-options-status">You do not have any friends to add yet.</small>
+                            ) : (
+                                <ul className="friend-options" aria-label="Friends available to add">
+                                    {friends.map((friend) => {
+                                        const isSelected = selectedFriendIds.includes(friend.id);
+                                        return (
+                                            <li key={friend.id}>
+                                                <button
+                                                    className="friend-option"
+                                                    type="button"
+                                                    aria-pressed={isSelected}
+                                                    onClick={() => toggleFriend(friend.id)}
+                                                >
+                                                    {friend.fullName || "Unnamed friend"}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </div>
+
+                        {selectedFriendIds.length > 0 && (
+                            <label className="event-private-option">
+                                <input
+                                    type="checkbox"
+                                    checked={isPrivate}
+                                    onChange={(event) => setIsPrivate(event.target.checked)}
+                                />
+                                <span>
+                                    <strong>Do you want this event to be private?</strong>
+                                    <small>Only members you add will be able to access it.</small>
+                                </span>
+                            </label>
+                        )}
+
                         <div className="form-field">
                             <label htmlFor="study-event-location">Location <span className="form-required">*</span></label>
                             <AutocompleteInputField
@@ -198,26 +279,6 @@ export default function CreateEvent() {
                                 required
                             />
                         </div>
-
-                        <fieldset className="event-visibility-fieldset">
-                            <legend>Visibility</legend>
-                            <div className="event-visibility-options">
-                                <label className="event-visibility-option">
-                                    <input type="radio" name="event-visibility" value="public" checked={!isPrivate} onChange={() => setIsPrivate(false)} />
-                                    <span>
-                                        <strong>Public</strong>
-                                        <small>Anyone can discover this event.</small>
-                                    </span>
-                                </label>
-                                <label className="event-visibility-option">
-                                    <input type="radio" name="event-visibility" value="private" checked={isPrivate} onChange={() => setIsPrivate(true)} />
-                                    <span>
-                                        <strong>Private</strong>
-                                        <small>Only members with the invite code can discover this event.</small>
-                                    </span>
-                                </label>
-                            </div>
-                        </fieldset>
 
                         {submitError && <p className="event-submit-error" role="alert">{submitError}</p>}
 

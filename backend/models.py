@@ -121,6 +121,8 @@ class ListingForCreate(BaseModel):
     location: str | None = None
     courses: list[Course] = []
     isPrivate: bool = False
+    # Accepted friends to add directly as members when the listing is created.
+    memberIds: list[str] = []
 
 class ListingForUpdate(BaseModel):
     # Only the fields that are sent get updated; send null to unset start/end time or location
