@@ -1,27 +1,25 @@
-
-
 // These types mirror backend/models.py. Dates and datetimes arrive as ISO strings.
 
 const Gender = {
-    preferNotToSay: "prefer_not_to_say",
-    male: "male",
-    female: "female",
-    nonBinary: "non_binary"
+  preferNotToSay: "prefer_not_to_say",
+  male: "male",
+  female: "female",
+  nonBinary: "non_binary",
 } as const;
 type Gender = (typeof Gender)[keyof typeof Gender];
 export { Gender };
 
 // Still part of backend/models.py User, even though the profile page no longer edits them
 const Major = {
-    ComputerScience: "computer_science"
+  ComputerScience: "computer_science",
 } as const;
 type Major = (typeof Major)[keyof typeof Major];
 export { Major };
 
 const Degree = {
-    Bachelor: "bachelor",
-    Master: "master",
-    PHD: "phd"
+  Bachelor: "bachelor",
+  Master: "master",
+  PHD: "phd",
 } as const;
 type Degree = (typeof Degree)[keyof typeof Degree];
 export { Degree };
@@ -29,14 +27,13 @@ export { Degree };
 const MemberRole = {
   admin: "admin",
   member: "member",
-  requestPending: "request_pending"
+  requestPending: "request_pending",
 } as const;
 type MemberRole = (typeof MemberRole)[keyof typeof MemberRole];
 export { MemberRole };
 
 // A course name from GET /api/courses (backend/courses.py)
 export type Course = string;
-
 
 export interface User {
   id: string;
@@ -143,7 +140,8 @@ function errorMessage(status: number, detail: unknown): string {
   if (status === 404) return "Not found or private.";
   if (status === 403) return "You don't have permission to do this.";
   if (status === 422) return "Some of the entered data is invalid.";
-  if (status >= 500) return "The server is having problems. Please try again later.";
+  if (status >= 500)
+    return "The server is having problems. Please try again later.";
   return `Request failed (HTTP ${status}).`;
 }
 
@@ -167,14 +165,22 @@ async function request<T>(
   // If the response is not OK (e.g., 404, 500), throw a custom error.
   // statusText is empty over HTTP/2, so the message comes from the JSON body instead.
   if (!response.ok) {
-    const detail = await response.json()
+    const detail = await response
+      .json()
       .then((data: unknown) => (data as { detail?: unknown } | null)?.detail)
       .catch(() => undefined);
     // Every page except the profile page needs a complete profile, so send the user there
-    if (response.status === 403 && detail === PROFILE_INCOMPLETE_DETAIL && window.location.pathname !== PROFILE_PAGE) {
+    if (
+      response.status === 403 &&
+      detail === PROFILE_INCOMPLETE_DETAIL &&
+      window.location.pathname !== PROFILE_PAGE
+    ) {
       window.location.assign(`${PROFILE_PAGE}?incomplete=1`);
     }
-    const error = new ApiError(response.status, errorMessage(response.status, detail));
+    const error = new ApiError(
+      response.status,
+      errorMessage(response.status, detail),
+    );
     console.log(`${error.name}: ${error.message}`);
     throw error;
   }
@@ -186,7 +192,6 @@ async function request<T>(
 
   return response.json();
 }
-
 
 export function getMe(): Promise<User> {
   return request(`/api/me`, "GET");
@@ -235,21 +240,35 @@ export function getOutlookCalendarLink(listingId: string): Promise<string> {
 }
 
 export function getListingMembers(listingId: string): Promise<ListingMember[]> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/members`, "GET");
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/members`,
+    "GET",
+  );
 }
 
-export function getListingRequests(listingId: string): Promise<ListingMember[]> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "GET");
+export function getListingRequests(
+  listingId: string,
+): Promise<ListingMember[]> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/requests`,
+    "GET",
+  );
 }
 
-export function approveListingRequest(listingId: string, userId: string): Promise<void> {
+export function approveListingRequest(
+  listingId: string,
+  userId: string,
+): Promise<void> {
   return request(
     `/api/listings/${encodeURIComponent(listingId)}/requests/${encodeURIComponent(userId)}/approve`,
     "POST",
   );
 }
 
-export function declineListingRequest(listingId: string, userId: string): Promise<void> {
+export function declineListingRequest(
+  listingId: string,
+  userId: string,
+): Promise<void> {
   return request(
     `/api/listings/${encodeURIComponent(listingId)}/members/${encodeURIComponent(userId)}`,
     "DELETE",
@@ -257,11 +276,21 @@ export function declineListingRequest(listingId: string, userId: string): Promis
 }
 
 export function getMessages(listingId: string): Promise<Message[]> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "GET");
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/messages`,
+    "GET",
+  );
 }
 
-export function sendMessage(listingId: string, message: MessageForCreate): Promise<Message> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/messages`, "POST", message);
+export function sendMessage(
+  listingId: string,
+  message: MessageForCreate,
+): Promise<Message> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/messages`,
+    "POST",
+    message,
+  );
 }
 
 // Pending requests are ListingMembers with role request_pending
@@ -270,11 +299,20 @@ export function getMyRequests(): Promise<ListingMember[]> {
 }
 
 export function hasPendingJoinRequest(listingId: string): Promise<boolean> {
-  return getMyRequests().then((requests) => requests.some((item) => item.listing.id === listingId));
+  return getMyRequests().then((requests) =>
+    requests.some((item) => item.listing.id === listingId),
+  );
 }
 
-export function requestToJoin(listingId: string, message: string = ""): Promise<void> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "POST", { message });
+export function requestToJoin(
+  listingId: string,
+  message: string = "",
+): Promise<void> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/requests`,
+    "POST",
+    { requestReason: message },
+  );
 }
 
 export interface JoinRequest extends ListingMember {
@@ -282,5 +320,8 @@ export interface JoinRequest extends ListingMember {
 }
 
 export function getJoinRequests(listingId: string): Promise<JoinRequest[]> {
-  return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "GET");
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}/requests`,
+    "GET",
+  );
 }
