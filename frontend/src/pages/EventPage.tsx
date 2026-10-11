@@ -48,6 +48,36 @@ function formatDateTime(value: string | null): string {
     }).format(date);
 }
 
+function useIsPastEvent(event: Listing): boolean {
+    const [isPast, setIsPast] = useState(() => {
+        const endsAt = new Date(event.endTime ?? event.startTime ?? "").getTime();
+        return Number.isFinite(endsAt) && endsAt < Date.now();
+    });
+
+    useEffect(() => {
+        const endsAt = new Date(event.endTime ?? event.startTime ?? "").getTime();
+        let timeoutId: number;
+
+        function refresh() {
+            const now = Date.now();
+            const eventHasPassed = Number.isFinite(endsAt) && endsAt < now;
+            setIsPast(eventHasPassed);
+
+            if (!eventHasPassed && Number.isFinite(endsAt)) {
+                timeoutId = window.setTimeout(
+                    refresh,
+                    Math.min(Math.max(endsAt - now + 50, 0), 2_147_483_647),
+                );
+            }
+        }
+
+        timeoutId = window.setTimeout(refresh, 0);
+        return () => window.clearTimeout(timeoutId);
+    }, [event.startTime, event.endTime]);
+
+    return isPast;
+}
+
 interface EventLoadState {
     listingId: string;
     event?: Listing;
@@ -262,6 +292,7 @@ function EventPageContent({
     onRequestDecided,
 }: EventPageContentProps) {
     const [isEditing, setIsEditing] = useState(false);
+    const isPast = useIsPastEvent(event);
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
         ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
@@ -284,6 +315,9 @@ function EventPageContent({
                                     </span>
                                 )}
                             </div>
+                            {isPast && (
+                                <p className="event-page__past-subtitle">This event has already ended.</p>
+                            )}
                         </div>
                         {canEdit ? (
                             <OwnerEventActions key={event.id} event={event} onTerminated={onUpdated}

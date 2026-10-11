@@ -7,6 +7,7 @@
 .event-page__back:focus-visible { outline: 2px solid var(--form-accent); outline-offset: 3px; }
 .event-page__title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .event-page__title-row h1 { min-width: 0; margin: 0; white-space: pre-wrap; }
+.event-page__past-subtitle { margin: 8px 0 0; color: var(--form-muted); font-size: .95rem; line-height: 1.45; }
 .event-page__private { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; color: #5144bd; background: #eeecff; font-size: .8rem; font-weight: 700; }
 .event-page__card { gap: 0; padding: 0; overflow: hidden; }
 .event-page__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
