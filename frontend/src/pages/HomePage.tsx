@@ -38,7 +38,7 @@ function sortListings(listings: Listing[]): Listing[] {
 
 
 
-export default function EventsList() {
+export default function HomePage() {
     const [events, setEvents] = useState<Listing[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
@@ -96,9 +96,6 @@ export default function EventsList() {
     }
 
 
-
-
-export default function HomePage() {
     return (
         <main className="form-page">
             <div className="form-container">
