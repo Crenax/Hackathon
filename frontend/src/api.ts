@@ -55,6 +55,11 @@ export interface PublicUser {
   description: string;
 }
 
+export interface PublicProfile extends PublicUser {}
+
+  description: string;
+}
+
 export interface Listing {
   id: string;
   createdBy: User | null;
@@ -213,6 +218,13 @@ export function getMe(): Promise<User> {
 // Only the fields that are sent get updated
 export function updateMe(update: UserForUpdate): Promise<User> {
   return request<User>(`/api/me`, "PATCH", update);
+}
+
+export function getPublicProfile(userId: string): Promise<PublicProfile> {
+  return request<PublicProfile>(
+    `/api/users/${encodeURIComponent(userId)}/profile`,
+    "GET",
+  );
 }
 
 // Matches is_user_complete in backend/app.py
