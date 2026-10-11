@@ -18,26 +18,49 @@ export default function ChatBox({ listingId }: { listingId: string }) {
     const [sending, setSending] = useState(false);
     const [loadError, setLoadError] = useState("");
     const [sendError, setSendError] = useState("");
-    const [refresh, setRefresh] = useState(0);
     const sendingRef = useRef(false);
 
     useEffect(() => {
         let active = true;
-        getMessages(listingId)
-            .then((incoming) => {
+        let inFlight = false;
+        let timeoutId: number | undefined;
+
+        async function refreshMessages() {
+            if (!active || inFlight || document.hidden) return;
+            window.clearTimeout(timeoutId);
+            inFlight = true;
+            try {
+                const incoming = await getMessages(listingId);
                 if (active) {
                     setMessages((previous) => mergeMessages(previous, incoming));
                     setLoadError("");
                 }
-            })
-            .catch(() => {
-                if (active) setLoadError("Could not load messages. Please try refreshing.");
-            })
-            .finally(() => {
-                if (active) setLoading(false);
-            });
-        return () => { active = false; };
-    }, [listingId, refresh]);
+            } catch {
+                if (active) setLoadError("Could not load messages. Retrying automatically…");
+            } finally {
+                inFlight = false;
+                if (active) {
+                    setLoading(false);
+                    if (!document.hidden) {
+                        timeoutId = window.setTimeout(() => void refreshMessages(), 3000);
+                    }
+                }
+            }
+        }
+
+        function handleVisibilityChange() {
+            window.clearTimeout(timeoutId);
+            if (!document.hidden) void refreshMessages();
+        }
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        void refreshMessages();
+        return () => {
+            active = false;
+            window.clearTimeout(timeoutId);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [listingId]);
 
     async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -62,10 +85,6 @@ export default function ChatBox({ listingId }: { listingId: string }) {
         <section className="form-card chat-box" aria-labelledby="event-chat-heading">
             <header className="chat-box__header">
                 <h2 id="event-chat-heading">Event chat</h2>
-                <button className="form-secondary-button" type="button" disabled={loading}
-                    onClick={() => { setLoading(true); setRefresh((value) => value + 1); }}>
-                    Refresh
-                </button>
             </header>
             {loading && <p role="status">Loading messages…</p>}
             {loadError && <p className="chat-box__error" role="alert">{loadError}</p>}

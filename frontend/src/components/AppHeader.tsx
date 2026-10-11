@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, Calendar3, House, List, Map, People, PersonBadge, PencilSquare } from "react-bootstrap-icons";
 import { getMyNotifications, markNotificationRead, type Notification } from "../api";
 import "./AppHeader.css";
 
 // How often the bell checks for new notifications
-const NOTIFICATION_REFRESH_MS = 30 * 1000;
+const NOTIFICATION_REFRESH_MS = 3000;
 
 function notificationText(notification: Notification): string {
     const who = notification.actorName?.trim() || "Someone";
@@ -37,17 +37,45 @@ const AppHeader = () => {
     const notificationsRef = useRef<HTMLDivElement>(null);
     const notificationsButtonRef = useRef<HTMLButtonElement>(null);
 
-    const refreshNotifications = useCallback(() => {
-        getMyNotifications()
-            .then(setNotifications)
-            .catch(() => { /* e.g. not logged in or profile incomplete: keep the bell quiet */ });
-    }, []);
+    const refreshNotificationsRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
-        refreshNotifications();
-        const timer = window.setInterval(refreshNotifications, NOTIFICATION_REFRESH_MS);
-        return () => window.clearInterval(timer);
-    }, [refreshNotifications]);
+        let active = true;
+        let inFlight = false;
+        let timeoutId: number | undefined;
+
+        async function refreshNotifications() {
+            if (!active || inFlight || document.hidden) return;
+            window.clearTimeout(timeoutId);
+            inFlight = true;
+            try {
+                const incoming = await getMyNotifications();
+                if (active) setNotifications(incoming);
+            } catch {
+                // Keep existing notifications and retry on the next poll.
+            } finally {
+                inFlight = false;
+                if (active && !document.hidden) {
+                    timeoutId = window.setTimeout(() => void refreshNotifications(), NOTIFICATION_REFRESH_MS);
+                }
+            }
+        }
+
+        function handleVisibilityChange() {
+            window.clearTimeout(timeoutId);
+            if (!document.hidden) void refreshNotifications();
+        }
+
+        refreshNotificationsRef.current = () => void refreshNotifications();
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        void refreshNotifications();
+        return () => {
+            active = false;
+            window.clearTimeout(timeoutId);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            refreshNotificationsRef.current = null;
+        };
+    }, []);
 
     async function openNotification(notification: Notification) {
         setNotifications((current) => current.filter(({ id }) => id !== notification.id));
@@ -199,7 +227,7 @@ const AppHeader = () => {
                     aria-expanded={areNotificationsOpen}
                     aria-haspopup="true"
                     onClick={() => {
-                        if (!areNotificationsOpen) refreshNotifications();
+                        if (!areNotificationsOpen) refreshNotificationsRef.current?.();
                         setAreNotificationsOpen((isOpen) => !isOpen);
                         setIsMenuOpen(false);
                     }}
