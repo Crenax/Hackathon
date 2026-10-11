@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, Calendar3, House, List, Map, PersonBadge } from "react-bootstrap-icons";
+import { Bell, Calendar3, House, List, Map, PersonBadge, PencilSquare } from "react-bootstrap-icons";
 import "./AppHeader.css";
 
 const notifications = [
@@ -133,6 +133,10 @@ const AppHeader = () => {
                             <a href="/map">
                                 <Map aria-hidden="true" />
                                 Map
+                            </a>
+                            <a href="/create-event">
+                                <PencilSquare />
+                                Add an Event
                             </a>
                             <a href="/my-events">
                                 <Calendar3 aria-hidden="true" />
