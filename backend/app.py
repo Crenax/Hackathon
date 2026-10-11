@@ -44,41 +44,6 @@ async def lifespan(app: FastAPI):
     db.initDatabaseManager()
     yield
 
-
-def current_user(request: Request) -> User:
-    # The proxy email identifies the account; permissions use its database ID.
-    user = db.get_user_by_email(request.state.proxy_email)
-    if user is not None:
-        return user
-    try:
-        return db.create_user_From_External_Info(request.state.proxy_name, request.state.proxy_email)
-    except APIError as error:
-        # A parallel first request already created this user
-        if error.code != UNIQUE_VIOLATION:
-            raise
-        return db.get_user_by_email(request.state.proxy_email)
-
-
-CurrentUser = Annotated[User, Depends(current_user)]
-
-
-def require_complete_user(user: CurrentUser) -> User:
-    # Date of birth, degree and major must be set; /api/me stays open so the profile can be completed
-    if not is_user_complete(user):
-        raise HTTPException(403, "User profile incomplete")
-    return user
-
-
-CompleteUser = Annotated[User, Depends(require_complete_user)]
-app = FastAPI(
-    lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url=None,
-    openapi_url="/api/openapi.json",
-    dependencies=[Depends(current_user)],
-)
-
-
 @app.middleware("http")
 async def require_proxy_identity(request: Request, call_next):
     def is_localhost(host: str | None) -> bool:
@@ -114,6 +79,39 @@ async def require_proxy_identity(request: Request, call_next):
     response.headers["Cache-Control"] = "no-store"
     return response
 
+
+def current_user(request: Request) -> User:
+    # The proxy email identifies the account; permissions use its database ID.
+    user = db.get_user_by_email(request.state.proxy_email)
+    if user is not None:
+        return user
+    try:
+        return db.create_user_From_External_Info(request.state.proxy_name, request.state.proxy_email)
+    except APIError as error:
+        # A parallel first request already created this user
+        if error.code != UNIQUE_VIOLATION:
+            raise
+        return db.get_user_by_email(request.state.proxy_email)
+
+
+CurrentUser = Annotated[User, Depends(current_user)]
+
+
+def require_complete_user(user: CurrentUser) -> User:
+    # Date of birth, degree and major must be set; /api/me stays open so the profile can be completed
+    if not is_user_complete(user):
+        raise HTTPException(403, "User profile incomplete")
+    return user
+
+
+CompleteUser = Annotated[User, Depends(require_complete_user)]
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url=None,
+    openapi_url="/api/openapi.json",
+    dependencies=[Depends(current_user)],
+)
 
 
 @app.exception_handler(PermissionError)
