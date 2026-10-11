@@ -14,18 +14,17 @@ import {
 import {
     approveListingRequest,
     declineListingRequest,
+    getJoinRequests,
     getListing,
     getListingMembers,
-    getListingRequests,
     getMe,
     getMyListings,
     getMyRequests,
     MemberRole,
 } from "../api";
-import type { Listing, ListingMember } from "../api";
+import type { JoinRequest, Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
-import JoinRequests from "../components/JoinRequests";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
 import { findLocationRoom } from "../map/rooms";
 import "../FormLayout.css";
@@ -50,10 +49,9 @@ interface EventLoadState {
     members?: ListingMember[];
     membersError?: string;
     isOwner?: boolean;
-    requests?: ListingMember[];
+    requests?: JoinRequest[];
     requestsError?: string;
     hasJoined?: boolean;
-    isCreator?: boolean;
     pending?: boolean;
     error?: string;
 }
@@ -71,15 +69,14 @@ export default function EventPage() {
         // If they fail, the event is still shown, just as if the user hadn't joined or requested.
         Promise.all([
             getListing(listingId),
-            getMe(),
             getMyListings().catch((): Listing[] => []),
             getMyRequests().catch((): ListingMember[] => []),
             getMe().catch(() => null),
         ])
-            .then(async ([event, user, memberships, requests]) => {
+            .then(async ([event, memberships, requests, user]) => {
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
-                const isOwner = event.createdBy?.id === user.id;
+                const isOwner = user !== null && event.createdBy?.id === user.id;
                 setLoadState({
                     listingId,
                     event,
@@ -107,7 +104,7 @@ export default function EventPage() {
                         }),
                 );
                 if (hasJoined && isOwner) details.push(
-                    getListingRequests(listingId)
+                    getJoinRequests(listingId)
                         .then((joiningRequests) => {
                             if (active) setLoadState((current) => ({ ...current, requests: joiningRequests }));
                         })
@@ -156,7 +153,6 @@ export default function EventPage() {
         requests={loadState.requests}
         requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
-        isCreator={loadState.isCreator === true}
         pending={loadState.pending === true}
         onRequested={() => setLoadState((current) =>
             current.listingId === listingId ? { ...current, pending: true } : current
@@ -167,7 +163,12 @@ export default function EventPage() {
                 ...current,
                 requests: current.requests?.filter(({ user }) => user.id !== request.user.id),
                 members: decision === "approve" && current.members
-                    ? [...current.members, { ...request, role: MemberRole.member }]
+                    ? [...current.members, {
+                        user: request.user,
+                        listing: request.listing,
+                        role: MemberRole.member,
+                        joinedAt: request.joinedAt,
+                    }]
                     : current.members,
             };
         })}
@@ -211,13 +212,12 @@ interface EventPageContentProps {
     members?: ListingMember[];
     membersError?: string;
     isOwner: boolean;
-    requests?: ListingMember[];
+    requests?: JoinRequest[];
     requestsError?: string;
     hasJoined: boolean;
-    isCreator: boolean;
     pending: boolean;
     onRequested: () => void;
-    onRequestDecided: (request: ListingMember, decision: RequestDecision) => void;
+    onRequestDecided: (request: JoinRequest, decision: RequestDecision) => void;
 }
 
 type RequestDecision = "approve" | "decline";
@@ -261,8 +261,6 @@ function EventPageContent({
                         {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
                     </header>
                 </div>
-
-                {isCreator && <JoinRequests key={event.id} listingId={event.id} />}
 
                 <section className="form-card event-page__card" aria-label="Event details">
                     <section className="event-page__detail event-page__schedule" aria-label="Schedule">
@@ -315,7 +313,7 @@ function EventPageContent({
 
                 </section>
                 {isOwner && hasJoined && (
-                    <JoinRequests
+                    <PendingJoinRequests
                         key={event.id}
                         listingId={event.id}
                         requests={requests}
@@ -363,19 +361,19 @@ function EventPageContent({
     );
 }
 
-interface JoinRequestsProps {
+interface PendingJoinRequestsProps {
     listingId: string;
-    requests?: ListingMember[];
+    requests?: JoinRequest[];
     error?: string;
-    onDecided: (request: ListingMember, decision: RequestDecision) => void;
+    onDecided: (request: JoinRequest, decision: RequestDecision) => void;
 }
 
-function JoinRequests({ listingId, requests, error, onDecided }: JoinRequestsProps) {
+function PendingJoinRequests({ listingId, requests, error, onDecided }: PendingJoinRequestsProps) {
     const deciding = useRef(new Set<string>());
     const [activeUserIds, setActiveUserIds] = useState<Set<string>>(() => new Set());
     const [requestErrors, setRequestErrors] = useState<Record<string, string>>({});
 
-    async function decide(request: ListingMember, decision: RequestDecision) {
+    async function decide(request: JoinRequest, decision: RequestDecision) {
         const userId = request.user.id;
         if (deciding.current.has(userId)) return;
 
@@ -427,6 +425,7 @@ function JoinRequests({ listingId, requests, error, onDecided }: JoinRequestsPro
                         <thead>
                             <tr>
                                 <th scope="col">Requester</th>
+                                <th scope="col">Message</th>
                                 <th scope="col">Requested</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -447,6 +446,7 @@ function JoinRequests({ listingId, requests, error, onDecided }: JoinRequestsPro
                                                 </span>
                                             )}
                                         </td>
+                                        <td>{request.message.trim() || "No message provided."}</td>
                                         <td>{formatDateTime(request.joinedAt)}</td>
                                         <td>
                                             <div className="event-page__attendance-actions">
