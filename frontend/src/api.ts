@@ -231,6 +231,21 @@ export function getListing(listingId: string): Promise<Listing> {
   );
 }
 
+export function updateListing(listingId: string, update: ListingForUpdate): Promise<Listing> {
+  return request<Listing>(
+    `/api/listings/${encodeURIComponent(listingId)}`,
+    "PATCH",
+    update,
+  );
+}
+
+export function deleteListing(listingId: string): Promise<void> {
+  return request(
+    `/api/listings/${encodeURIComponent(listingId)}`,
+    "DELETE",
+  );
+}
+
 // Outlook link that opens a prefilled "new event" form, e.g. window.open(url, "_blank")
 export function getOutlookCalendarLink(listingId: string): Promise<string> {
   return request<{ url: string }>(

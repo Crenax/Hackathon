@@ -13,6 +13,7 @@ import {
 
 import {
     approveListingRequest,
+    deleteListing,
     declineListingRequest,
     getJoinRequests,
     getListing,
@@ -21,6 +22,7 @@ import {
     getMyListings,
     getMyRequests,
     MemberRole,
+    updateListing,
 } from "../api";
 import type { JoinRequest, Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
@@ -154,6 +156,9 @@ export default function EventPage() {
         requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
         pending={loadState.pending === true}
+        onTerminated={(updatedEvent) => setLoadState((current) =>
+            current.listingId === listingId ? { ...current, event: updatedEvent } : current
+        )}
         onRequested={() => setLoadState((current) =>
             current.listingId === listingId ? { ...current, pending: true } : current
         )}
@@ -216,6 +221,7 @@ interface EventPageContentProps {
     requestsError?: string;
     hasJoined: boolean;
     pending: boolean;
+    onTerminated: (event: Listing) => void;
     onRequested: () => void;
     onRequestDecided: (request: JoinRequest, decision: RequestDecision) => void;
 }
@@ -232,6 +238,7 @@ function EventPageContent({
     requestsError,
     hasJoined,
     pending,
+    onTerminated,
     onRequested,
     onRequestDecided,
 }: EventPageContentProps) {
@@ -258,7 +265,11 @@ function EventPageContent({
                                 )}
                             </div>
                         </div>
-                        {!hasJoined && <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />}
+                        {isOwner ? (
+                            <OwnerEventActions key={event.id} event={event} onTerminated={onTerminated} />
+                        ) : !hasJoined && (
+                            <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />
+                        )}
                     </header>
                 </div>
 
@@ -351,6 +362,98 @@ function EventPageContent({
                 {hasJoined && <ChatBox key={event.id} listingId={event.id} />}
             </article>
         </main>
+    );
+}
+
+interface OwnerEventActionsProps {
+    event: Listing;
+    onTerminated: (event: Listing) => void;
+}
+
+function OwnerEventActions({ event, onTerminated }: OwnerEventActionsProps) {
+    const navigate = useNavigate();
+    const actionInProgress = useRef(false);
+    const [activeAction, setActiveAction] = useState<"terminate" | "delete" | null>(null);
+    const [isTerminated, setIsTerminated] = useState(false);
+    const [canTerminate, setCanTerminate] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const startsAt = event.startTime === null ? Number.NaN : new Date(event.startTime).getTime();
+        const endsAt = event.endTime === null ? Number.NaN : new Date(event.endTime).getTime();
+        let timeoutId: number;
+
+        function refreshAvailability() {
+            const now = Date.now();
+            setCanTerminate(Number.isFinite(startsAt) && Number.isFinite(endsAt) && startsAt <= now && now < endsAt);
+
+            const nextBoundary = [startsAt, endsAt]
+                .filter((boundary) => Number.isFinite(boundary) && boundary > now)
+                .sort((left, right) => left - right)[0];
+            if (nextBoundary !== undefined) {
+                timeoutId = window.setTimeout(
+                    refreshAvailability,
+                    Math.min(nextBoundary - now + 50, 2_147_483_647),
+                );
+            }
+        }
+
+        timeoutId = window.setTimeout(refreshAvailability, 0);
+        return () => window.clearTimeout(timeoutId);
+    }, [event.startTime, event.endTime]);
+
+    async function terminateEvent() {
+        if (actionInProgress.current || isTerminated) return;
+        if (!window.confirm("Terminate this event now? Its end time will be changed to the current time.")) return;
+
+        actionInProgress.current = true;
+        setActiveAction("terminate");
+        setError("");
+        try {
+            const updatedEvent = await updateListing(event.id, { newEndTime: new Date().toISOString() });
+            onTerminated(updatedEvent);
+            setIsTerminated(true);
+        } catch (actionError) {
+            setError(actionError instanceof Error ? actionError.message : "Could not terminate the event.");
+        } finally {
+            actionInProgress.current = false;
+            setActiveAction(null);
+        }
+    }
+
+    async function removeEvent() {
+        if (actionInProgress.current) return;
+        if (!window.confirm(`Delete “${event.description.trim() || "Study event"}”? This cannot be undone.`)) return;
+
+        actionInProgress.current = true;
+        setActiveAction("delete");
+        setError("");
+        try {
+            await deleteListing(event.id);
+            navigate("/", { replace: true });
+        } catch (actionError) {
+            setError(actionError instanceof Error ? actionError.message : "Could not delete the event.");
+            actionInProgress.current = false;
+            setActiveAction(null);
+        }
+    }
+
+    return (
+        <div className="event-page__owner-controls">
+            <div className="event-page__owner-actions" aria-label="Event owner actions">
+                {canTerminate && !isTerminated && (
+                    <button className="event-page__owner-button" type="button"
+                        disabled={activeAction !== null} onClick={() => void terminateEvent()}>
+                        {activeAction === "terminate" ? "Terminating…" : "Terminate event"}
+                    </button>
+                )}
+                <button className="event-page__owner-button event-page__owner-button--delete" type="button"
+                    disabled={activeAction !== null} onClick={() => void removeEvent()}>
+                    {activeAction === "delete" ? "Deleting…" : "Delete event"}
+                </button>
+            </div>
+            {error && <p className="event-page__owner-error" role="alert">{error}</p>}
+        </div>
     );
 }
 

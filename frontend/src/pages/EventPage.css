@@ -43,6 +43,16 @@
 .event-page__join-status, .event-page__join-error { max-width: 280px; text-align: right; }
 .event-page__join-status { margin: 0; color: var(--form-muted); }
 .event-page__join-error { margin: 0; color: #b83242; }
+.event-page__owner-controls { display: flex; align-items: flex-end; flex-direction: column; gap: 8px; max-width: 100%; margin-left: auto; }
+.event-page__owner-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+.event-page__owner-button { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #bbb5ea; border-radius: 6px; padding: 6px 9px; color: var(--form-accent); background: #f5f3ff; font: inherit; font-size: .82rem; cursor: pointer; }
+.event-page__owner-button:hover { border-color: var(--form-accent); background: #eeecff; }
+.event-page__owner-button:focus-visible { outline: 2px solid var(--form-accent); outline-offset: 2px; }
+.event-page__owner-button--delete { border-color: #dca4ab; color: #a12635; background: #fff7f8; }
+.event-page__owner-button--delete:hover { border-color: #b83242; background: #ffedef; }
+.event-page__owner-button--delete:focus-visible { outline-color: #b83242; }
+.event-page__owner-button:disabled { opacity: .6; cursor: not-allowed; }
+.event-page__owner-error { max-width: 360px; margin: 0; color: #b83242; font-size: .85rem; text-align: right; }
 
 .event-page__courses-row { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
 .event-page__courses { min-width: 0; max-width: 100%; }
