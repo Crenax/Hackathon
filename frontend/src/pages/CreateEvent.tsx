@@ -117,6 +117,8 @@ export default function CreateEvent() {
         } finally {
             setIsSubmitting(false);
         }
+
+        window.location.href = "/";
     }
 
 
