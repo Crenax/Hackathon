@@ -98,7 +98,11 @@ export default function UserEvents() {
         };
     }, [events]);
 
-    const getStatusLabel = (event: Listing) => relationships.get(event.id);
+    const getStatusLabel = (event: Listing) => {
+        const relationship = relationships.get(event.id);
+        if (!relationship) return event.isPrivate ? ["Private"] : undefined;
+        return event.isPrivate ? [relationship, "Private"] : relationship;
+    };
     const isDimmed = (event: Listing) => isPastEvent(event, referenceTime);
 
     return (

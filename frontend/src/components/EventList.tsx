@@ -9,7 +9,7 @@ import "./EventList.css";
 export interface EventListProps {
     events: Listing[];
     emptyMessage?: string;
-    getStatusLabel?: (event: Listing) => string | undefined;
+    getStatusLabel?: (event: Listing) => string | readonly string[] | undefined;
     isDimmed?: (event: Listing) => boolean;
 }
 
@@ -36,6 +36,7 @@ export default function EventList({
                 const eventEnd = new Date(event.endTime ?? event.startTime ?? "");
                 const eventEndTimestamp = eventEnd.getTime();
                 const statusLabel = getStatusLabel?.(event);
+                const statusLabels = typeof statusLabel === "string" ? [statusLabel] : statusLabel ?? [];
 
                 return (
                     <article
@@ -51,7 +52,11 @@ export default function EventList({
                             <div className="event-details">
                                 <div className="event-title-row">
                                     <h3>{eventTitle}</h3>
-                                    {statusLabel && <span className="event-status">{statusLabel}</span>}
+                                    {statusLabels.length > 0 && (
+                                        <span className="event-statuses">
+                                            {statusLabels.map((label) => <span className="event-status" key={label}>{label}</span>)}
+                                        </span>
+                                    )}
                                 </div>
                                 {event.courses.length > 0 && (
                                     <div className="event-course-viewport">

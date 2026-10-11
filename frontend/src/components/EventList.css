@@ -10,6 +10,7 @@
 .event-details { min-width: 0; flex: 1; }
 .event-title-row { display: flex; align-items: flex-start; gap: 8px; }
 .event-details h3 { min-width: 0; margin: 0; color: #171c2c; font-size: 1.15rem; font-weight: 750; line-height: 1.35; white-space: pre-wrap; }
+.event-statuses { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 6px; }
 .event-status { flex: 0 0 auto; border-radius: 999px; padding: 2px 8px; color: #5144bd; background: #eeecff; font-size: .7rem; font-weight: 700; }
 .event-course-viewport { position: relative; width: 100%; max-width: 100%; overflow: hidden; }
 .event-course-viewport::after { position: absolute; top: 9px; right: 0; bottom: 0; width: 32px; background: linear-gradient(90deg, rgb(255 255 255 / 0%), rgb(255 255 255 / 96%)); content: ""; pointer-events: none; }
