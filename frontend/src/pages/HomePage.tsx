@@ -11,10 +11,6 @@ import "./HomePage.css";
 const ONE_DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
 
-function formatLocalDateTime(date: Date): string {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
 function eventEndTimestamp(event: Listing): number | undefined {
     const timestamp = new Date(event.endTime ?? event.startTime ?? "").getTime();
     return Number.isNaN(timestamp) ? undefined : timestamp;
@@ -43,10 +39,6 @@ export default function HomePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [referenceTime, setReferenceTime] = useState(() => Date.now());
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
-    const [submitError, setSubmitError] = useState("");
-    const [minimumStartTime, setMinimumStartTime] = useState(() => formatLocalDateTime(new Date()));
 
 
 
@@ -91,9 +83,6 @@ export default function HomePage() {
 
 
     
-    function openAddEventPage() {
-        window.location.href = "/create-event";
-    }
 
 
     return (
@@ -106,7 +95,7 @@ export default function HomePage() {
                             <h1 id="upcoming-events-heading">Upcoming events</h1>
                             <p className="form-page-description">Find your next study session or create a new one.</p>
                         </div>
-                        <button className="form-primary-button" type="button" onClick={openAddEventPage} aria-label="Create a study event">
+                        <button className="form-primary-button" type="button" onClick={() => (window.location.href = "/create-event")} aria-label="Create a study event">
                             Add Event
                         </button>
                     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent  } from "react";
+import { useState, type FormEvent  } from "react";
 import "../FormLayout.css";
 import "./HomePage.css";
 import AutocompleteInputField from "../components/AutocompleteInputField";
@@ -17,14 +17,14 @@ function formatLocalDateTime(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-
+function sortListings(listings: Listing[]): Listing[] {
+    return [...listings].sort(compareEventsFutureToPast);
+}
 
 
 
 export default function CreateEvent() {
-
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
+    const [events, setEvents] = useState<Listing[]>([]);
     const [courses, setCourses] = useState<string[]>([]);
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState("");
@@ -32,19 +32,15 @@ export default function CreateEvent() {
     const [isPrivate, setIsPrivate] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
-    const [minimumStartTime, setMinimumStartTime] = useState(() => formatLocalDateTime(new Date()));
-
 
 
 
     const startsAt = new Date();
     const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
     const defaultStartTime = formatLocalDateTime(startsAt);
-
-    setMinimumStartTime(defaultStartTime);
-    setStartTime(defaultStartTime);
-    setEndTime(formatLocalDateTime(endsAt));
-    setSubmitError("");
+    const [startTime, setStartTime] = useState(() => formatLocalDateTime(new Date()));
+    const [minimumStartTime] = useState(() => formatLocalDateTime(new Date()));
+    const [endTime, setEndTime] = useState(() => formatLocalDateTime(new Date(Date.now() + 60 * 60 * 1000)));
 
 
 
@@ -119,7 +115,6 @@ export default function CreateEvent() {
             setCourses([]);
             setNewCourse("");
             setIsPrivate(false);
-            setIsAdding(false);
         } catch (error) {
             setSubmitError(error instanceof Error ? error.message : "Could not create the event.");
         } finally {
@@ -219,7 +214,6 @@ export default function CreateEvent() {
 
                         <div className="form-actions">
                             <button className="form-primary-button" type="submit" disabled={isSubmitting}>{isSubmitting ? "Publishing…" : "Add event"}</button>
-                            <button className="form-link-button" type="button" onClick={() => setIsAdding(false)} disabled={isSubmitting}>Cancel</button>
                         </div>
                     </form>
                 </section>
