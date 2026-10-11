@@ -33,18 +33,26 @@ const AppContent = () => {
   return (
     <div className="app-content">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/create-event" element={<CreateEvent />}></Route>
-          <Route path="/map" element={<Suspense fallback={<p style={{ textAlign: "center" }}>Loading campus map…</p>}><MapPage /></Suspense>} />
-          <Route path="/my-events" element={<UserEvents />} />
-          <Route path="/my-profile" element={<UserSettings />} />
-          <Route path="/event" element={<EventPage />} />
-          <Route path="/user" element={<PublicProfile />} />
-          {/* Unknown URLs (typos, old links) go to the home page instead of an empty page */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <Suspense fallback={
+          <div className="route-loading" role="status" aria-live="polite">
+            <span className="route-loading-spinner" aria-hidden="true" />
+            <p>Loading page…</p>
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/create-event" element={<CreateEvent />}></Route>
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/my-events" element={<UserEvents />} />
+            <Route path="/my-profile" element={<UserSettings />} />
+            <Route path="/event" element={<EventPage />} />
+            <Route path="/user" element={<PublicProfile />} />
+            {/* Unknown URLs (typos, old links) go to the home page instead of an empty page */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
+      
       <div className="icon-attribution">
         <a href={scienceIconAttribution.url}>
           {scienceIconAttribution.text}

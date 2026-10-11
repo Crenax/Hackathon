@@ -1,18 +1,7 @@
-- Nachrichten für Requesten
-- generell: Knöpfe und Infos unterscheiden nach Berechtigung
-	- Events löschen
-	- Events früher terminieren
-- Freunden-Beziehungen und dann Nachrichten
-- öffentliche Profilseite
+- Benachrichtungen
+- Freunden-Beziehungen
 - Blog erweitern
 - Events auf der Karte
-- inkomplettes Profil ablehnen
-
-
-- Calendare: Apple, Google
 - private events mit Zuganscode
-- Mensagruppen?
-- Profilbild
-- Logo erstellen
-- Suspence mit logo
+- Mensagruppen
 - Gamification
