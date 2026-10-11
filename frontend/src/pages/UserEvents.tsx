@@ -14,6 +14,12 @@ import "./UserEvents.css";
 
 type EventRelationship = "Published" | "Joined" | "Requested";
 
+// An event is past once its end (or, without an end, its start) has passed
+function isPastEvent(event: Listing, referenceTime: number): boolean {
+    const endsAt = new Date(event.endTime ?? event.startTime ?? "").getTime();
+    return !Number.isNaN(endsAt) && endsAt < referenceTime;
+}
+
 interface UserEvent {
     listing: Listing;
     relationship: EventRelationship;
@@ -23,6 +29,13 @@ export default function UserEvents() {
     const [events, setEvents] = useState<UserEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
+    const [referenceTime, setReferenceTime] = useState(() => Date.now());
+
+    // Re-check every minute so events turn dimmed while the page is open
+    useEffect(() => {
+        const timer = window.setInterval(() => setReferenceTime(Date.now()), 60 * 1000);
+        return () => window.clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         let isActive = true;
@@ -86,6 +99,7 @@ export default function UserEvents() {
     }, [events]);
 
     const getStatusLabel = (event: Listing) => relationships.get(event.id);
+    const isDimmed = (event: Listing) => isPastEvent(event, referenceTime);
 
     return (
         <main className="form-page user-events-page">
@@ -115,6 +129,7 @@ export default function UserEvents() {
                                 events={membershipEvents}
                                 emptyMessage="You have not published or joined any events."
                                 getStatusLabel={getStatusLabel}
+                                isDimmed={isDimmed}
                             />
                         </section>
 
@@ -127,6 +142,7 @@ export default function UserEvents() {
                                 events={requestedEvents}
                                 emptyMessage="You have no pending join requests."
                                 getStatusLabel={getStatusLabel}
+                                isDimmed={isDimmed}
                             />
                         </section>
                     </>

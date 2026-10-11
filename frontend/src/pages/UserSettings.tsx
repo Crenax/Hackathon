@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { XCircle } from "react-bootstrap-icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Gender, getMe, isProfileComplete, updateMe } from "../api";
