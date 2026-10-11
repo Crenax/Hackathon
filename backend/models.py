@@ -142,7 +142,7 @@ class NotificationType(str, Enum):
     message = "message"            # new message in the chat of one of my listings
     joinRequest = "join_request"   # someone asked to join a listing I'm admin of
     friendRequest = "friend_request"  # someone sent me a friend request -> links to their profile
-    newListing = "new_listing"        # a friend created a listing -> links to the listing
+    newListing = "new_listing"        # no longer created; kept so existing notifications still load
 
 
 class Notification(BaseModel):

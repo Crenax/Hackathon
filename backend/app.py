@@ -257,6 +257,21 @@ def accept_friend_request(user_id: Id, user: CompleteUser):
     return public_profile(sender, user)
 
 
+@app.get("/api/me/friend-requests", response_model=list[PublicUser])
+def get_my_friend_requests(user: CompleteUser):
+    # Profiles of people waiting for me to accept their friend request
+    senders = [db.get_user_by_id(sender_id) for sender_id in db.get_pending_friend_request_sender_ids(user.id)]
+    return [public_profile(sender, user) for sender in senders if sender is not None]
+
+
+@app.get("/api/me/friends/profiles", response_model=list[PublicUser])
+def get_my_friends(user: CompleteUser):
+    # Public profiles of all accepted friends, sorted by name
+    friends = [db.get_user_by_id(friend_id) for friend_id in db.get_friend_ids_by_user_id(user.id)]
+    profiles = [public_profile(friend, user) for friend in friends if friend is not None]
+    return sorted(profiles, key=lambda profile: profile.fullName.lower())
+
+
 @app.get("/api/me/friends", response_model=list[str])
 def get_my_friend_ids(user: CompleteUser):
     # Ids of accepted friends, used for the "Friend" tags
@@ -305,11 +320,7 @@ def get_listings(user: CompleteUser, course: Course | None = None):
 
 @app.post("/api/listings", response_model=Listing, status_code=201)
 def create_listing(listing: ListingForCreate, user: CompleteUser):
-    created = db.create_listing(listing.model_copy(update={"createdBy": user}))
-    # Friends can only see and join public listings
-    if not created.isPrivate:
-        notify(db.get_friend_ids_by_user_id(user.id), NotificationType.newListing, created.id, user.id)
-    return created
+    return db.create_listing(listing.model_copy(update={"createdBy": user}))
 
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)

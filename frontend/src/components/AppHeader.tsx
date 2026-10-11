@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Calendar3, House, List, Map, PersonBadge, PencilSquare } from "react-bootstrap-icons";
+import { Bell, Calendar3, House, List, Map, People, PersonBadge, PencilSquare } from "react-bootstrap-icons";
 import { getMyNotifications, markNotificationRead, type Notification } from "../api";
 import "./AppHeader.css";
 
@@ -175,6 +175,10 @@ const AppHeader = () => {
                             <a href="/my-events">
                                 <Calendar3 aria-hidden="true" />
                                 My Events
+                            </a>
+                            <a href="/friends">
+                                <People aria-hidden="true" />
+                                Friends
                             </a>
                             <a href="/my-profile">
                                 <PersonBadge aria-hidden="true" />

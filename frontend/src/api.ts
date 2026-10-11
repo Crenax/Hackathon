@@ -219,6 +219,16 @@ export function acceptFriendRequest(userId: string): Promise<PublicUser> {
   return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request/accept`, "POST");
 }
 
+// People waiting for me to accept their friend request, oldest first
+export function getMyFriendRequests(): Promise<PublicUser[]> {
+  return request<PublicUser[]>(`/api/me/friend-requests`, "GET");
+}
+
+// Profiles of all accepted friends, sorted by name
+export function getMyFriends(): Promise<PublicUser[]> {
+  return request<PublicUser[]>(`/api/me/friends/profiles`, "GET");
+}
+
 // Ids of all accepted friends
 export function getMyFriendIds(): Promise<string[]> {
   return request<string[]>(`/api/me/friends`, "GET");

@@ -1,0 +1,9 @@
+.friends-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.friends-list li { display: flex; flex-direction: column; gap: 3px; padding: 12px 0; border-bottom: 1px solid var(--form-border); font-weight: 600; }
+.friends-list li:last-child { border-bottom: 0; }
+.friends-list__description { overflow: hidden; color: var(--form-muted); font-size: .85rem; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.friends-message { margin: 0; color: var(--form-muted); }
+.friends-message--error { color: #9f2635; }
+.friends-list li.friends-list__request { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.friends-list__person { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.friends-list__accept { flex-shrink: 0; padding: 8px 16px; }

@@ -432,6 +432,16 @@ def accept_friend_request(sender_id: str, receiver_id: str) -> bool:
     )
     return bool(rows)
 
+def get_pending_friend_request_sender_ids(user_id: str) -> list[str]:
+    # Ids of users whose friend request to this user is still open, oldest first
+    rows = (
+        client.table("friendships").select("sender_id")
+        .eq("receiver_id", user_id).eq("is_accepted", False)
+        .order("created_at")
+        .execute().data
+    )
+    return [row["sender_id"] for row in rows]
+
 def get_friend_ids_by_user_id(user_id: str) -> list[str]:
     # Ids of all accepted friends, whoever sent the request
     sent = (
