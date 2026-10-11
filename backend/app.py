@@ -44,7 +44,6 @@ async def lifespan(app: FastAPI):
     db.initDatabaseManager()
     yield
 
-@app.middleware("http")
 async def require_proxy_identity(request: Request, call_next):
     def is_localhost(host: str | None) -> bool:
         if host == "localhost":
@@ -112,6 +111,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     dependencies=[Depends(current_user)],
 )
+app.middleware("http")(require_proxy_identity)
 
 
 @app.exception_handler(PermissionError)
