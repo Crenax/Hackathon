@@ -22,5 +22,8 @@
 @media (max-width: 420px) {
   .picture-picker { align-items: flex-start; }
 }
-.profile-share-link { align-self: flex-start; color: var(--form-accent); font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.profile-share-link { padding: 0; border: 0; color: var(--form-accent); background: none; font: inherit; font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .profile-share-link:hover, .profile-share-link:focus-visible { color: var(--form-accent-hover); }
+.profile-share { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.profile-share-status { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #1f6b3a; font-size: .85rem; font-weight: 600; }
+.profile-share-url { min-width: 260px; padding: 4px 8px; border: 1px solid var(--form-border); border-radius: 6px; color: var(--form-text); font: inherit; font-size: .8rem; font-weight: 400; }

@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Gender, getMe, isProfileComplete, updateMe } from "../api";
 import "../FormLayout.css";
@@ -21,6 +21,8 @@ export default function UserSettings() {
     // Saved through PATCH /api/me
     // Needed for the link to the public profile page
     const [userId, setUserId] = useState("");
+    // "copied" briefly after copying; "failed" shows the link so it can be copied by hand
+    const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
@@ -61,6 +63,25 @@ export default function UserSettings() {
         };
     }, []);
 
+    // Hide "Link copied!" again after a moment
+    useEffect(() => {
+        if (shareState !== "copied") return;
+        const timer = window.setTimeout(() => setShareState("idle"), 2500);
+        return () => window.clearTimeout(timer);
+    }, [shareState]);
+
+    const shareUrl = userId ? `${window.location.origin}/user?id=${encodeURIComponent(userId)}` : "";
+
+    async function copyShareLink() {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setShareState("copied");
+        } catch {
+            // Clipboard access can be blocked, e.g. on non-HTTPS pages
+            setShareState("failed");
+        }
+    }
+
     async function submitProfile(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setStatusMessage("");
@@ -96,9 +117,18 @@ export default function UserSettings() {
                     <h1>{isComplete ? "Your profile" : "Create your profile"}</h1>
                     <p className="form-page-description">Introduce yourself.</p>
                     {userId && (
-                        <Link className="profile-share-link" to={`/user?id=${encodeURIComponent(userId)}`}>
-                            Link to share profile
-                        </Link>
+                        <div className="profile-share">
+                            <button className="profile-share-link" type="button" onClick={() => void copyShareLink()}>
+                                Link to share profile
+                            </button>
+                            {shareState === "copied" && <span className="profile-share-status" role="status">Link copied!</span>}
+                            {shareState === "failed" && (
+                                <span className="profile-share-status" role="status">
+                                    Copy this link: <input className="profile-share-url" value={shareUrl} readOnly
+                                        onFocus={(event) => event.target.select()} aria-label="Profile link" />
+                                </span>
+                            )}
+                        </div>
                     )}
                 </header>
 
