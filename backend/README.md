@@ -436,3 +436,11 @@ known lecture rooms against ETH bookings. It returns `checkedAt`, `windowEndsAt`
 timeouts check schedules covering yesterday through tomorrow. The frontend
 compares indoor travel times to verified free rooms in the starting building.
 The endpoint uses the same authentication as the rest of the API.
+
+### Pending-request profile preview
+
+`GET /api/listings/{listing_id}/requests/{user_id}/profile` returns the applicant's
+`User` profile. Requires authentication and listing admin access. Returns `404`
+if that user has no pending request on this listing (including after approval
+or denial). Callers without admin access receive `403`; private listings are
+hidden with `404` from nonmembers.

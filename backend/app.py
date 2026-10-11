@@ -235,6 +235,17 @@ def get_requests(listing_id: str, user: CurrentUser):
     return db.get_pending_requests_by_listing_id(listing_id)
 
 
+@app.get("/api/listings/{listing_id}/requests/{user_id}/profile", response_model=User)
+def get_request_profile(listing_id: str, user_id: str, user: CurrentUser):
+    require_admin(listing_id, user)
+    if db.get_role_by_user_id_and_listing_id(user_id, listing_id) != MemberRole.requestPending:
+        raise HTTPException(status_code=404, detail="No pending request from this user")
+    profile = db.get_user_by_id(user_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return profile
+
+
 @app.post("/api/listings/{listing_id}/requests", status_code=204)
 def request_to_join(listing_id: str, user: CurrentUser):
     listing = visible_listing(listing_id, user)

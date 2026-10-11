@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft,
@@ -10,8 +10,8 @@ import {
     PersonCircle,
 } from "react-bootstrap-icons";
 
-import { getListing, getListingMembers, getMyListings, getMyRequests, getMe, MemberRole } from "../api";
-import type { Listing, ListingMember } from "../api";
+import { getListing, getListingMembers, getMyListings, getMyRequests, getMe, getPendingRequestProfile, MemberRole } from "../api";
+import type { Listing, ListingMember, User } from "../api";
 import ChatBox from "../components/ChatBox";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
@@ -261,6 +261,7 @@ function Attendance({ event, members, membersError, hasJoined, currentUserId }: 
     hasJoined: boolean;
     currentUserId?: string;
 }) {
+    const [previewUserId, setPreviewUserId] = useState<string | null>(null);
     const [updatedMembers, setUpdatedMembers] = useState<ListingMember[]>();
     const [requests, setRequests] = useState<ListingMember[]>();
     const [requestsError, setRequestsError] = useState("");
@@ -309,10 +310,15 @@ function Attendance({ event, members, membersError, hasJoined, currentUserId }: 
                 </tr></thead>
                 <tbody>{items.map((member) => {
                     const [firstName, ...lastName] = member.user.fullName.trim().split(/\s+/);
-                    return <tr key={member.user.id}>
-                        <td>{firstName || "Not provided"}</td><td>{lastName.join(" ") || "Not provided"}</td>
+                    return <tr key={member.user.id}
+                        className={pendingRequests ? "event-page__request-row" : undefined}
+                        onClick={pendingRequests ? () => setPreviewUserId(member.user.id) : undefined}>
+                        <td>{pendingRequests ? <button type="button" className="event-page__profile-link"
+                            onClick={(event) => { event.stopPropagation(); setPreviewUserId(member.user.id); }}
+                            aria-label={`Preview profile of ${member.user.fullName || "requesting user"}`}>
+                            {firstName || "Not provided"}</button> : firstName || "Not provided"}</td><td>{lastName.join(" ") || "Not provided"}</td>
                         <td>{displayValue(member.user.major)}</td><td>{displayValue(member.user.degree)}</td>
-                        {isAdmin && <td><div className="event-page__attendance-actions">
+                        {isAdmin && <td onClick={(event) => event.stopPropagation()}><div className="event-page__attendance-actions">
                             {member.user.id === currentUserId ? <span aria-label="No actions available">—</span> : pendingRequests ? <>
                                 <button type="button" disabled={busy} onClick={() => void act(member, "accept")}>Accept</button>
                                 <button type="button" disabled={busy} onClick={() => void act(member, "deny")}>Deny</button>
@@ -336,5 +342,49 @@ function Attendance({ event, members, membersError, hasJoined, currentUserId }: 
                 : requests.length === 0 ? <p>No pending requests.</p> : table(requests, true)}
         </section>}
         {actionError && <p role="alert">{actionError}</p>}
+        {previewUserId && <ProfilePreview key={previewUserId} listingId={event.id} userId={previewUserId}
+            onClose={() => setPreviewUserId(null)} /> }
     </section>;
+}
+
+function ProfilePreview({ listingId, userId, onClose }: {
+    listingId: string; userId: string; onClose: () => void;
+}) {
+    const dialog = useRef<HTMLDialogElement>(null);
+    const [profile, setProfile] = useState<User>();
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const element = dialog.current;
+        const previousFocus = document.activeElement;
+        element?.showModal();
+        let active = true;
+        getPendingRequestProfile(listingId, userId)
+            .then((user) => { if (active) setProfile(user); })
+            .catch(() => { if (active) setError("Could not load this profile. The request may no longer be pending. Close and try again."); });
+        return () => {
+            active = false;
+            element?.close();
+            if (previousFocus instanceof HTMLElement) previousFocus.focus();
+        };
+    }, [listingId, userId]);
+
+    return <dialog ref={dialog} className="event-page__profile-preview" aria-labelledby="profile-preview-title"
+        onCancel={(event) => { event.preventDefault(); onClose(); }}>
+        <div className="event-page__profile-header">
+            <h2 id="profile-preview-title">Profile overview</h2>
+            <button type="button" onClick={onClose} autoFocus>Close</button>
+        </div>
+        {error ? <p role="alert">{error}</p> : !profile ? <p role="status">Loading profile…</p> : <>
+            <h3>{profile.fullName.trim() || "Name unavailable"}</h3>
+            <dl>
+                <dt>Email</dt><dd>{profile.emailAddress || "Not provided"}</dd>
+                <dt>Major</dt><dd>{displayValue(profile.major)}</dd>
+                <dt>Degree</dt><dd>{displayValue(profile.degree)}</dd>
+                <dt>Gender</dt><dd>{displayValue(profile.gender)}</dd>
+                <dt>Date of birth</dt><dd>{profile.dateOfBirth || "Not provided"}</dd>
+            </dl>
+            <h4>About</h4><p className="event-page__profile-description">{profile.description.trim() || "No description provided."}</p>
+        </>}
+    </dialog>;
 }

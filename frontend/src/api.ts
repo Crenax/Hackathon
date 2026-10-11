@@ -217,3 +217,7 @@ export function hasPendingJoinRequest(listingId: string): Promise<boolean> {
 export function requestToJoin(listingId: string): Promise<void> {
   return request(`/api/listings/${encodeURIComponent(listingId)}/requests`, "POST");
 }
+
+export function getPendingRequestProfile(listingId: string, userId: string): Promise<User> {
+  return request(`/api/listings/${encodeURIComponent(listingId)}/requests/${encodeURIComponent(userId)}/profile`, "GET");
+}
