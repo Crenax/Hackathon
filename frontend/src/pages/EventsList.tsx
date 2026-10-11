@@ -179,6 +179,13 @@ export default function EventsList() {
 
                     <section className="form-card" aria-labelledby="create-event-heading">
                         <form className="form-stack" onSubmit={addEvent}>
+
+                            <label className="form-field" htmlFor="study-event-description">
+                                <span>Title <span className="form-required">*</span></span>
+                                <input id="study-event-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will you work on?" maxLength={120} required />
+                            </label>
+
+
                             <div className="form-row">
                                 <label className="form-field" htmlFor="study-event-start-time">
                                     <span>Starts <span className="form-required">*</span></span>
@@ -224,11 +231,6 @@ export default function EventsList() {
                             <label className="form-field" htmlFor="study-event-location">
                                 <span>Location <span className="form-required">*</span></span>
                                 <input id="study-event-location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Room or meeting link" maxLength={120} required />
-                            </label>
-
-                            <label className="form-field" htmlFor="study-event-description">
-                                <span>Description <span className="form-optional">(optional)</span></span>
-                                <textarea id="study-event-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What will you work on?" rows={3} maxLength={500} />
                             </label>
 
                             <fieldset className="event-visibility-fieldset">
