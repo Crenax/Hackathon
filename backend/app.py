@@ -254,6 +254,7 @@ def accept_friend_request(user_id: Id, user: CompleteUser):
         raise HTTPException(404, "User not found")
     if not db.accept_friend_request(user_id, user.id):
         raise ValueError("No open friend request from this user")
+    db.mark_friend_request_notifications_read(user.id, user_id)
     return public_profile(sender, user)
 
 
@@ -337,7 +338,10 @@ def create_listing(listing: ListingForCreate, user: CompleteUser):
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)
 def get_listing(listing_id: Id, user: CompleteUser):
-    return visible_listing(listing_id, user)
+    listing = visible_listing(listing_id, user)
+    # Opening a listing counts as reading all its notifications (chat messages, join requests)
+    db.mark_notifications_read_by_listing_id(user.id, listing_id)
+    return listing
 
 
 @app.get("/api/listings/{listing_id}/calendar", response_model=CalendarLink)

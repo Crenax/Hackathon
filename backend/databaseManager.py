@@ -389,6 +389,24 @@ def mark_notification_read_by_id(notification_id: str, user_id: str) -> bool:
     return bool(rows)
 
 
+def mark_notifications_read_by_listing_id(user_id: str, listing_id: str):
+    # All of the user's notifications about this listing (messages, join requests)
+    (
+        client.table("notifications").update({"is_read": True})
+        .eq("user_id", user_id).eq("listing_id", listing_id).eq("is_read", False)
+        .execute()
+    )
+
+def mark_friend_request_notifications_read(user_id: str, sender_id: str):
+    # The user's friend-request notifications from this sender
+    (
+        client.table("notifications").update({"is_read": True})
+        .eq("user_id", user_id).eq("actor_id", sender_id)
+        .eq("type", NotificationType.friendRequest.value).eq("is_read", False)
+        .execute()
+    )
+
+
 #friendships
 def get_friendship_between(user_id: str, other_id: str) -> dict | None:
     # The friendship row between two users in either direction, or None

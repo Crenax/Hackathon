@@ -216,7 +216,9 @@ export function sendFriendRequest(userId: string): Promise<PublicUser> {
 
 // userId is the person who sent the request
 export function acceptFriendRequest(userId: string): Promise<PublicUser> {
-  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request/accept`, "POST");
+  // The backend marks the friend-request notification as read
+  return request<PublicUser>(`/api/users/${encodeURIComponent(userId)}/friend-request/accept`, "POST")
+    .then(announceNotificationsChanged);
 }
 
 // Ends a friendship (or an open request) in either direction
@@ -271,10 +273,11 @@ export function getMyListings(): Promise<Listing[]> {
 }
 
 export function getListing(listingId: string): Promise<Listing> {
+  // The backend marks all my notifications about this listing as read
   return request<Listing>(
     `/api/listings/${encodeURIComponent(listingId)}`,
     "GET",
-  );
+  ).then(announceNotificationsChanged);
 }
 
 export function updateListing(listingId: string, update: ListingForUpdate): Promise<Listing> {
@@ -398,6 +401,14 @@ export interface Notification {
   actorName: string | null;
   isRead: boolean;
   createdAt: string;
+}
+
+// Fired when the backend may have marked notifications as read, so the bell refreshes right away
+export const NOTIFICATIONS_CHANGED_EVENT = "notifications-changed";
+
+function announceNotificationsChanged<T>(result: T): T {
+  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));
+  return result;
 }
 
 // Only unread notifications, newest first

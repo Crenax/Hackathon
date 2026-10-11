@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, Calendar3, House, List, Map, People, PersonBadge, PencilSquare } from "react-bootstrap-icons";
-import { getMyNotifications, markNotificationRead, type Notification } from "../api";
+import { getMyNotifications, markNotificationRead, NOTIFICATIONS_CHANGED_EVENT, type Notification } from "../api";
 import "./AppHeader.css";
 
 // How often the bell checks for new notifications
@@ -46,7 +46,11 @@ const AppHeader = () => {
     useEffect(() => {
         refreshNotifications();
         const timer = window.setInterval(refreshNotifications, NOTIFICATION_REFRESH_MS);
-        return () => window.clearInterval(timer);
+        window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshNotifications);
+        return () => {
+            window.clearInterval(timer);
+            window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshNotifications);
+        };
     }, [refreshNotifications]);
 
     async function openNotification(notification: Notification) {
