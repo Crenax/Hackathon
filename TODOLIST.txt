@@ -2,6 +2,6 @@
 - Freunden-Beziehungen
 - Blog erweitern
 - Events auf der Karte
-- private events mit Zuganscode
+
 - Mensagruppen
 - Gamification
