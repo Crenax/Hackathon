@@ -14,6 +14,8 @@ import "./AutocompleteInputField.css";
 interface AutocompleteInputFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> {
     value: string;
     onValueChange: (value: string) => void;
+    suggestions?: readonly string[];
+    suggestionType?: string;
 }
 
 let courseSuggestionsRequest: Promise<string[]> | null = null;
@@ -61,18 +63,24 @@ function loadCourseSuggestions(): Promise<string[]> {
 export default function AutocompleteInputField({
     value,
     onValueChange,
+    suggestions: providedSuggestions,
+    suggestionType = "course",
     placeholder,
     onFocus,
     onKeyDown,
     ...inputProps
 }: AutocompleteInputFieldProps) {
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasError, setHasError] = useState(false);
+    const [loadedSuggestions, setLoadedSuggestions] = useState<string[]>([]);
+    const [isCourseLoading, setIsCourseLoading] = useState(true);
+    const [hasCourseError, setHasCourseError] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const listboxId = useId();
+    const suggestions = providedSuggestions ?? loadedSuggestions;
+    const isLoading = providedSuggestions === undefined && isCourseLoading;
+    const hasError = providedSuggestions === undefined && hasCourseError;
+    const suggestionLabel = `${suggestionType[0].toLocaleUpperCase()}${suggestionType.slice(1)} suggestions`;
 
     const filteredSuggestions = useMemo(() => {
         const query = value.trim().toLocaleLowerCase();
@@ -94,30 +102,34 @@ export default function AutocompleteInputField({
     }, [suggestions, value]);
 
     useEffect(() => {
+        if (providedSuggestions !== undefined) {
+            return;
+        }
+
         let isActive = true;
 
         loadCourseSuggestions()
             .then((courses) => {
                 if (isActive) {
-                    setSuggestions(courses);
-                    setHasError(false);
+                    setLoadedSuggestions(courses);
+                    setHasCourseError(false);
                 }
             })
             .catch(() => {
                 if (isActive) {
-                    setHasError(true);
+                    setHasCourseError(true);
                 }
             })
             .finally(() => {
                 if (isActive) {
-                    setIsLoading(false);
+                    setIsCourseLoading(false);
                 }
             });
 
         return () => {
             isActive = false;
         };
-    }, []);
+    }, [providedSuggestions]);
 
     useEffect(() => {
         function closeOnOutsideClick(event: MouseEvent) {
@@ -181,6 +193,7 @@ export default function AutocompleteInputField({
                         ? `${listboxId}-option-${highlightedIndex}`
                         : undefined
                 }
+                autoComplete="off"
                 value={value}
                 onChange={handleChange}
                 onFocus={(event) => {
@@ -195,13 +208,13 @@ export default function AutocompleteInputField({
             {showMenu && (
                 <div className="course-autocomplete-menu">
                     {isLoading ? (
-                        <p className="course-autocomplete-status">Loading courses…</p>
+                        <p className="course-autocomplete-status">Loading {suggestionType}s…</p>
                     ) : hasError ? (
-                        <p className="course-autocomplete-status course-autocomplete-error">Could not load course suggestions.</p>
+                        <p className="course-autocomplete-status course-autocomplete-error">Could not load {suggestionType} suggestions.</p>
                     ) : filteredSuggestions.length === 0 ? (
-                        <p className="course-autocomplete-status">No matching courses.</p>
+                        <p className="course-autocomplete-status">No matching {suggestionType}s.</p>
                     ) : (
-                        <ul id={listboxId} role="listbox" aria-label="Course suggestions">
+                        <ul id={listboxId} role="listbox" aria-label={suggestionLabel}>
                             {filteredSuggestions.map((course, index) => (
                                 <li
                                     id={`${listboxId}-option-${index}`}

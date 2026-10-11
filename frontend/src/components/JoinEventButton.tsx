@@ -32,7 +32,7 @@ export default function JoinEventButton({ event, pending, onRequested }: JoinEve
     }
 
     return (
-        <form className="form-stack event-page__join" onSubmit={handleJoin}>
+        <form className="form-stack event-page__join" autoComplete="off" onSubmit={handleJoin}>
             <div className="form-actions">
                 <button className="form-primary-button" type="submit"
                     disabled={sending || pending || event.isPrivate}>

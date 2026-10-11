@@ -3,6 +3,7 @@ import "../FormLayout.css";
 import "./HomePage.css";
 import AutocompleteInputField from "../components/AutocompleteInputField";
 import { createListing, type Listing, type ListingForCreate } from "../api";
+import { locationRooms } from "../map/rooms";
 
 import { XCircle } from "react-bootstrap-icons";
 import { compareEventsFutureToPast } from "../eventSorting";
@@ -117,6 +118,8 @@ export default function CreateEvent() {
         } finally {
             setIsSubmitting(false);
         }
+
+        window.location.href = "/";
     }
 
 
@@ -132,7 +135,7 @@ export default function CreateEvent() {
                 </header>
 
                 <section className="form-card" aria-labelledby="create-event-heading">
-                    <form className="form-stack" onSubmit={addEvent}>
+                    <form className="form-stack" autoComplete="off" onSubmit={addEvent}>
 
                         <label className="form-field" htmlFor="study-event-description">
                             <span>Title <span className="form-required">*</span></span>
@@ -182,10 +185,19 @@ export default function CreateEvent() {
                             )}
                         </div>
 
-                        <label className="form-field" htmlFor="study-event-location">
-                            <span>Location <span className="form-required">*</span></span>
-                            <input id="study-event-location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Room or meeting link" maxLength={120} required />
-                        </label>
+                        <div className="form-field">
+                            <label htmlFor="study-event-location">Location <span className="form-required">*</span></label>
+                            <AutocompleteInputField
+                                id="study-event-location"
+                                value={location}
+                                onValueChange={setLocation}
+                                suggestions={locationRooms}
+                                suggestionType="room"
+                                placeholder="Room or meeting link"
+                                maxLength={120}
+                                required
+                            />
+                        </div>
 
                         <fieldset className="event-visibility-fieldset">
                             <legend>Visibility</legend>
