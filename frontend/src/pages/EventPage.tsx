@@ -26,6 +26,7 @@ import {
 } from "../api";
 import type { JoinRequest, Listing, ListingMember } from "../api";
 import ChatBox from "../components/ChatBox";
+import EditListingForm from "../components/EditListingForm";
 import JoinEventButton from "../components/JoinEventButton";
 import OutlookCalendarButton from "../components/OutlookCalendarButton";
 import { findLocationRoom } from "../map/rooms";
@@ -51,6 +52,8 @@ interface EventLoadState {
     members?: ListingMember[];
     membersError?: string;
     isOwner?: boolean;
+    // Admins (creator or promoted) can edit the event
+    isAdmin?: boolean;
     requests?: JoinRequest[];
     requestsError?: string;
     hasJoined?: boolean;
@@ -96,7 +99,10 @@ export default function EventPage() {
                             const members = allMembers.filter(
                                 (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
                             );
-                            if (active) setLoadState((current) => ({ ...current, members }));
+                            const isAdmin = user !== null && members.some(
+                                (member) => member.user.id === user.id && member.role === MemberRole.admin,
+                            );
+                            if (active) setLoadState((current) => ({ ...current, members, isAdmin }));
                         })
                         .catch(() => {
                             if (active) setLoadState((current) => ({
@@ -152,11 +158,12 @@ export default function EventPage() {
         members={loadState.members}
         membersError={loadState.membersError}
         isOwner={loadState.isOwner === true}
+        canEdit={loadState.isOwner === true || loadState.isAdmin === true}
         requests={loadState.requests}
         requestsError={loadState.requestsError}
         hasJoined={loadState.hasJoined === true}
         pending={loadState.pending === true}
-        onTerminated={(updatedEvent) => setLoadState((current) =>
+        onUpdated={(updatedEvent) => setLoadState((current) =>
             current.listingId === listingId ? { ...current, event: updatedEvent } : current
         )}
         onRequested={() => setLoadState((current) =>
@@ -217,11 +224,12 @@ interface EventPageContentProps {
     members?: ListingMember[];
     membersError?: string;
     isOwner: boolean;
+    canEdit: boolean;
     requests?: JoinRequest[];
     requestsError?: string;
     hasJoined: boolean;
     pending: boolean;
-    onTerminated: (event: Listing) => void;
+    onUpdated: (event: Listing) => void;
     onRequested: () => void;
     onRequestDecided: (request: JoinRequest, decision: RequestDecision) => void;
 }
@@ -234,14 +242,16 @@ function EventPageContent({
     members,
     membersError,
     isOwner,
+    canEdit,
     requests,
     requestsError,
     hasJoined,
     pending,
-    onTerminated,
+    onUpdated,
     onRequested,
     onRequestDecided,
 }: EventPageContentProps) {
+    const [isEditing, setIsEditing] = useState(false);
     const mappedRoom = findLocationRoom(event.location);
     const directionsUrl = mappedRoom
         ? `/map?${new URLSearchParams({ destination: "room", room: mappedRoom }).toString()}`
@@ -265,14 +275,26 @@ function EventPageContent({
                                 )}
                             </div>
                         </div>
-                        {isOwner ? (
-                            <OwnerEventActions key={event.id} event={event} onTerminated={onTerminated} />
+                        {canEdit ? (
+                            <OwnerEventActions key={event.id} event={event} onTerminated={onUpdated}
+                                isEditing={isEditing} onEdit={() => setIsEditing(true)} />
                         ) : !hasJoined && (
                             <JoinEventButton key={event.id} event={event} pending={pending} onRequested={onRequested} />
                         )}
                     </header>
                 </div>
 
+                {isEditing && (
+                    <EditListingForm
+                        key={`edit-${event.id}`}
+                        event={event}
+                        onSaved={(updatedEvent) => {
+                            onUpdated(updatedEvent);
+                            setIsEditing(false);
+                        }}
+                        onCancel={() => setIsEditing(false)}
+                    />
+                )}
                 <section className="form-card event-page__card" aria-label="Event details">
                     <section className="event-page__detail event-page__schedule" aria-label="Schedule">
                         <dl className="event-page__times">
@@ -368,9 +390,11 @@ function EventPageContent({
 interface OwnerEventActionsProps {
     event: Listing;
     onTerminated: (event: Listing) => void;
+    isEditing: boolean;
+    onEdit: () => void;
 }
 
-function OwnerEventActions({ event, onTerminated }: OwnerEventActionsProps) {
+function OwnerEventActions({ event, onTerminated, isEditing, onEdit }: OwnerEventActionsProps) {
     const navigate = useNavigate();
     const actionInProgress = useRef(false);
     const [activeAction, setActiveAction] = useState<"terminate" | "delete" | null>(null);
@@ -441,6 +465,12 @@ function OwnerEventActions({ event, onTerminated }: OwnerEventActionsProps) {
     return (
         <div className="event-page__owner-controls">
             <div className="event-page__owner-actions" aria-label="Event owner actions">
+                {!isEditing && (
+                    <button className="event-page__owner-button" type="button"
+                        disabled={activeAction !== null} onClick={onEdit}>
+                        Edit event
+                    </button>
+                )}
                 {canTerminate && !isTerminated && (
                     <button className="event-page__owner-button" type="button"
                         disabled={activeAction !== null} onClick={() => void terminateEvent()}>
