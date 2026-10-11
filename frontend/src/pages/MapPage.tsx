@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { GeoAlt, Map as MapIcon, ArrowRight, Crosshair, Plus, Dash } from 'react-bootstrap-icons';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { getListings, getMyListings, getMyRequests } from '../api';
+import type { Listing } from '../api';
 import { buildingOf, floorName, loadCampus, roomName } from '../map/campus';
 import type { Availability, Dataset, Feature, Point, Router, RouteResult } from '../map/campus';
 import { findLocationRoom, locationRooms } from '../map/rooms';
@@ -17,6 +19,10 @@ export default function MapPage() {
     : undefined);
   const [campus, setCampus] = useState<{ data: Dataset; router: Router }>();
   const [error, setError] = useState('');
+  const [events, setEvents] = useState<Listing[]>([]);
+  const [eventsError, setEventsError] = useState('');
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [now, setNow] = useState(Date.now);
   const [building, setBuilding] = useState('ETH.HG');
   const [level, setLevel] = useState('ETH.HG.E');
   const [from, setFrom] = useState('');
@@ -61,6 +67,28 @@ export default function MapPage() {
     }).catch(error => { if (mounted) setError(error.message); });
     return () => { mounted = false; pendingRequest.current++; abort.current?.abort(); tracker.current?.stop(); };
   }, [initialRoom]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.allSettled([
+      getListings(),
+      getMyRequests().then(requests => requests.map(({ listing }) => listing)),
+      getMyListings(),
+    ]).then(results => {
+      if (!active) return;
+      const listings = new Map<string, Listing>();
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          for (const listing of result.value) listings.set(listing.id, listing);
+        }
+      }
+      setEvents([...listings.values()]);
+      setEventsError(results.some(result => result.status === 'rejected')
+        ? 'Some events could not be loaded. Reload to try again.' : '');
+    }).finally(() => { if (active) setEventsLoading(false); });
+    const timer = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
 
   function clear() {
     request.current++; abort.current?.abort(); setBusy(false); setRoute(null); setAvailability(undefined); setError(''); setStatus('');
@@ -119,6 +147,16 @@ export default function MapPage() {
     } finally { if (current === request.current) setBusy(false); }
   }
 
+  const eventRooms = new Map<Feature, Listing[]>();
+  for (const event of events) {
+    const endsAt = Date.parse(event.endTime ?? event.startTime ?? '');
+    if (!Number.isFinite(endsAt) || endsAt <= now) continue;
+    const room = event.location ? router?.findRoom(findLocationRoom(event.location) ?? event.location) : undefined;
+    if (!room || buildingOf(room) !== building || room.attributes.LEVEL_ID !== level) continue;
+    eventRooms.set(room, [...(eventRooms.get(room) ?? []), event]);
+  }
+  const selectedEvents = selected ? eventRooms.get(selected) ?? [] : [];
+
   const hall = availability?.rooms.find(item => route && item.name.replace(/\s/g, '') === roomName(route.end).replace(/\s/g, ''));
   const time = (value: string) => new Date(value).toLocaleTimeString([], { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' });
   const point: Point | undefined = position ? window.MapLocation.project(position.coords.longitude, position.coords.latitude) : undefined;
@@ -158,9 +196,12 @@ export default function MapPage() {
           if (tracking) { tracker.current?.stop(); setTracking(false); setPosition(undefined); setHeading(undefined); setUseLocation(false); setLocationStatus('Location tracking stopped.'); clear(); }
           else { setLocationLevel(level); setTracking(await tracker.current!.start()); }
         }}><GeoAlt />{tracking ? 'Stop locating' : 'Locate me'}</button></div>
-        <FloorMap data={campus.data} router={router!} level={level} route={route} selected={selected} select={setSelected} position={tracking && level === locationLevel ? point : undefined} accuracy={position?.coords.accuracy} heading={heading} />
+        <FloorMap data={campus.data} router={router!} level={level} route={route} eventRooms={eventRooms} selected={selected} select={setSelected} position={tracking && level === locationLevel ? point : undefined} accuracy={position?.coords.accuracy} heading={heading} />
         {selected && <div className="campus-selection"><div><strong>{router!.label(selected)}</strong><small>{selected.attributes.USE_TYPE}</small></div><button onClick={() => { clear(); setUseLocation(false); setFrom(router!.label(selected)); }}>Start here</button><button onClick={() => { clear(); setDestination('room'); setTo(router!.label(selected)); }}>Go here</button><button aria-label="Close room selection" onClick={() => setSelected(undefined)}>×</button></div>}
-        <div className="campus-map-caption"><span><i className="campus-dot room" />Rooms</span><span><i className="campus-dot toilet" />Toilets</span><span><i className="campus-dot stairs" />Stairs</span><span><i className="campus-dot elevator" />Elevators</span><span><i className="campus-dot path" />Your route</span><span>Scroll to zoom · drag to move</span></div>
+        {selectedEvents.length > 0 && <div className="campus-event-list" aria-label="Events in selected room">{selectedEvents.map(event => <Link key={event.id} to={`/event?id=${encodeURIComponent(event.id)}`}><strong>{event.description || 'Study event'}</strong><small>{event.isPrivate ? 'Private · ' : ''}{event.startTime ? new Date(event.startTime).toLocaleString() : 'Start time not specified'} · {event.location}</small></Link>)}</div>}
+        {eventsLoading && <p className="campus-hint" role="status">Loading events…</p>}
+        {eventsError && <p className="campus-error" role="alert">{eventsError}</p>}
+        <div className="campus-map-caption"><span><i className="campus-dot event" />Events</span><span><i className="campus-dot room" />Rooms</span><span><i className="campus-dot toilet" />Toilets</span><span><i className="campus-dot stairs" />Stairs</span><span><i className="campus-dot elevator" />Elevators</span><span><i className="campus-dot path" />Your route</span><span>Scroll to zoom · drag to move</span></div>
         {locationStatus && <p className="campus-location-status" role="status">{locationStatus}</p>}
         <p className="campus-hint campus-map-note">Indoor GPS can be approximate. Choose a room if the blue dot is misplaced. Routes are estimates based on available floor plans; elevator routes do not guarantee accessibility.</p>
       </section>
@@ -168,7 +209,7 @@ export default function MapPage() {
   </main>;
 }
 
-function FloorMap({ data, router, level, route, selected, select, position, accuracy, heading }: { data: Dataset; router: Router; level: string; route: RouteResult | null; selected?: Feature; select: (room: Feature) => void; position?: Point; accuracy?: number; heading?: number }) {
+function FloorMap({ data, router, level, route, eventRooms, selected, select, position, accuracy, heading }: { data: Dataset; router: Router; level: string; route: RouteResult | null; eventRooms: Map<Feature, Listing[]>; selected?: Feature; select: (room: Feature) => void; position?: Point; accuracy?: number; heading?: number }) {
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const [camera, setCamera] = useState<{ level: string; zoom: number; x: number; y: number }>({ level, zoom: 1, x: 0, y: 0 });
@@ -237,6 +278,18 @@ function FloorMap({ data, router, level, route, selected, select, position, accu
     {units.filter(item => !['Hallway', 'Entrance and Exit', 'Common Room', 'Ramp', 'Exhibition', 'Service Room', 'Storage Room'].includes(item.attributes.USE_TYPE) && (item.geometry.bounds[2] - item.geometry.bounds[0]) > width / 28 && (item.geometry.bounds[3] - item.geometry.bounds[1]) > height / 90).map(item => <text key={item.id} x={(item.geometry.bounds[0] + item.geometry.bounds[2]) / 2} y={-(item.geometry.bounds[1] + item.geometry.bounds[3]) / 2} fontSize={Math.min(2.4, width / 85)} textAnchor="middle" dominantBaseline="middle" className={`campus-room-label ${shapeKind(item)}`}>{/Toilet/.test(item.attributes.USE_TYPE) ? 'WC' : item.attributes.USE_TYPE === 'Stairs' ? '↗' : item.attributes.USE_TYPE === 'Elevator' ? '↕' : item.attributes.Suchfeld1 || ''}</text>)}
     {segments.map((segment, index) => <g key={index}><path d={path([segment.points], false)} className="campus-route-line halo" /><path d={path([segment.points], false)} className="campus-route-line" /></g>)}
     {segments.flatMap((segment, index) => [segment.points[0], segment.points.at(-1)!].map((p, endpoint) => <circle key={`${index}-${endpoint}`} cx={p[0]} cy={-p[1]} r={width / 95} className="campus-route-end" />))}
+    {[...eventRooms].map(([room, listings]) => {
+      const x = (room.geometry.bounds[0] + room.geometry.bounds[2]) / 2;
+      const y = -(room.geometry.bounds[1] + room.geometry.bounds[3]) / 2;
+      return <g key={room.id} className="campus-event-marker" transform={`translate(${x} ${y})`} role="button" tabIndex={0}
+        aria-label={`${listings.length} ${listings.length === 1 ? 'event' : 'events'} in ${router.label(room)}`}
+        onPointerDown={event => event.stopPropagation()} onPointerUp={event => { event.stopPropagation(); select(room); }}
+        onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(room); } }}>
+        <title>{listings.map(event => event.description || 'Study event').join(' · ')}</title>
+        <circle r={width / 65} />
+        <text textAnchor="middle" dominantBaseline="central" fontSize={width / 65}>{listings.length}</text>
+      </g>;
+    })}
     {position && <g transform={`translate(${position[0]} ${-position[1]})`}><circle r={Math.min(accuracy ?? 0, 100) * Math.cosh(position[1] / 6378137)} className="campus-accuracy" />{heading !== undefined && <path d={`M0,${-width / 22} l${width / 70},${width / 35} h${-width / 35} Z`} transform={`rotate(${heading})`} fill="#007bff" />}<circle r={width / 85} className="campus-position" /></g>}
   </svg><div className="campus-zoom"><button aria-label="Zoom in" onClick={() => zoom(1.3)}><Plus /></button><button aria-label="Zoom out" onClick={() => zoom(1 / 1.3)}><Dash /></button><button aria-label="Reset map view" onClick={() => setCamera({ level, zoom: 1, x: 0, y: 0 })}><Crosshair /></button></div></div>;
 }
