@@ -94,7 +94,7 @@ export default function UserSettings() {
 
     return (
         <main className="form-page">
-            <form className="form-container" onSubmit={submitProfile}>
+            <form className="form-container" autoComplete="off" onSubmit={submitProfile}>
                 <header className="form-page-header">
                     <p className="form-eyebrow">Your account</p>
                     <h1>{isComplete ? "Your profile" : "Create your profile"}</h1>
@@ -146,7 +146,7 @@ export default function UserSettings() {
                     </div>
                     <label className="form-field" htmlFor="profile-name">
                         <span>Full name <span className="form-required">*</span></span>
-                        <input id="profile-name" name="name" type="text" autoComplete="name" placeholder="Your name" required
+                        <input id="profile-name" name="name" type="text" autoComplete="off" placeholder="Your name" required
                             value={fullName} onChange={(event) => setFullName(event.target.value)} />
                     </label>
                     <label className="form-field" htmlFor="profile-email">
@@ -156,7 +156,7 @@ export default function UserSettings() {
                     </label>
                     <label className="form-field" htmlFor="profile-username">
                         <span>Username <span className="form-optional">(optional)</span></span>
-                        <input id="profile-username" name="username" type="text" autoComplete="username" placeholder="Choose a username" />
+                        <input id="profile-username" name="username" type="text" autoComplete="off" placeholder="Choose a username" />
                     </label>
                     <label className="form-field" htmlFor="profile-gender">
                         <span>Gender <span className="form-optional">(optional)</span></span>

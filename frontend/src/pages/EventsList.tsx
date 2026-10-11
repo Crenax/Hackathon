@@ -207,7 +207,7 @@ export default function EventsList() {
                     </header>
 
                     <section className="form-card" aria-labelledby="create-event-heading">
-                        <form className="form-stack" onSubmit={addEvent}>
+                        <form className="form-stack" autoComplete="off" onSubmit={addEvent}>
                             <div className="form-row">
                                 <label className="form-field" htmlFor="study-event-start-time">
                                     <span>Starts <span className="form-required">*</span></span>

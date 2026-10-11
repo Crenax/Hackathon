@@ -2,11 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { GeoAlt, Map as MapIcon, ArrowRight, Crosshair, Plus, Dash } from 'react-bootstrap-icons';
 import { buildingOf, floorName, loadCampus, roomName } from '../map/campus';
 import type { Availability, Dataset, Feature, Point, Router, RouteResult } from '../map/campus';
-import locationsTsv from '../map/locations.tsv?raw';
+import { locationRooms } from '../map/rooms';
 import './MapPage.css';
-
-const locationRooms = [...new Set(locationsTsv.trim().split(/\r?\n/).slice(1)
-  .map(row => row.split('\t')[0].trim()).filter(Boolean))];
 
 export default function MapPage() {
   const [campus, setCampus] = useState<{ data: Dataset; router: Router }>();
@@ -114,7 +111,7 @@ export default function MapPage() {
     {!campus ? <div className="campus-card" role="status">{error || 'Getting the campus map ready…'}{error && <button onClick={() => window.location.reload()}>Try again</button>}</div> : <div className="campus-layout">
       <section className="campus-card campus-directions" aria-label="Plan your route">
         <h2>Where are you heading?</h2><p className="campus-muted">Directions inside your building.</p>
-        <form onSubmit={findRoute}>
+        <form autoComplete="off" onSubmit={findRoute}>
           <label>Starting point<input list="campus-rooms" value={useLocation ? 'My current location' : from} readOnly={useLocation} required={!useLocation} placeholder="e.g. HG E 26.1" onChange={event => { clear(); setFrom(event.target.value); }} /></label>
           <button className="campus-location-button" type="button" onClick={async () => {
             clear();

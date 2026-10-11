@@ -82,7 +82,7 @@ export default function ChatBox({ listingId }: { listingId: string }) {
                     </article>
                 ))}
             </div>
-            <form className="form-stack" onSubmit={handleSubmit}>
+            <form className="form-stack" autoComplete="off" onSubmit={handleSubmit}>
                 <label className="form-field" htmlFor="event-chat-message">
                     Message
                     <textarea id="event-chat-message" value={content} required disabled={sending}
