@@ -14,6 +14,7 @@ import "./AutocompleteInputField.css";
 interface AutocompleteInputFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> {
     value: string;
     onValueChange: (value: string) => void;
+    onSuggestionSelect?: (value: string) => void;
     suggestions?: readonly string[];
     suggestionType?: string;
 }
@@ -63,6 +64,7 @@ function loadCourseSuggestions(): Promise<string[]> {
 export default function AutocompleteInputField({
     value,
     onValueChange,
+    onSuggestionSelect,
     suggestions: providedSuggestions,
     suggestionType = "course",
     placeholder,
@@ -144,7 +146,11 @@ export default function AutocompleteInputField({
     }, []);
 
     function selectSuggestion(course: string) {
-        onValueChange(course);
+        if (onSuggestionSelect) {
+            onSuggestionSelect(course);
+        } else {
+            onValueChange(course);
+        }
         setIsOpen(false);
         setHighlightedIndex(-1);
     }

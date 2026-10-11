@@ -88,8 +88,8 @@ export default function CreateEvent() {
 
 
 
-    function addCourse() {
-        const trimmedCourse = newCourse.trim();
+    function addCourse(courseName: string = newCourse) {
+        const trimmedCourse = courseName.trim();
         if (trimmedCourse && !courses.some((course) => course.toLowerCase() === trimmedCourse.toLowerCase())) {
             setCourses((current) => [...current, trimmedCourse]);
         }
@@ -199,6 +199,7 @@ export default function CreateEvent() {
                                     id="study-event-courses"
                                     value={newCourse}
                                     onValueChange={setNewCourse}
+                                    onSuggestionSelect={addCourse}
                                     onKeyDown={(event) => {
                                         if (event.key === "Enter") {
                                             event.preventDefault();
@@ -207,7 +208,7 @@ export default function CreateEvent() {
                                     }}
                                     placeholder="Start typing a course name"
                                 />
-                                <button className="form-secondary-button" type="button" onClick={addCourse}>Add course</button>
+                                <button className="form-secondary-button" type="button" onClick={() => addCourse()}>Add course</button>
                             </div>
                             {courses.length > 0 && (
                                 <ul className="course-tags" aria-label="Added courses">
