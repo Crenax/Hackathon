@@ -1,7 +1,9 @@
-.public-profile__header-row { display: flex; align-items: flex-start; gap: 14px; }
-.public-profile__header-row .form-page-header { flex: 1; }
-.public-profile__back { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 40px; height: 40px; margin-top: 4px; border: 1px solid var(--form-border); border-radius: 50%; color: var(--form-text); background: #fff; cursor: pointer; }
-.public-profile__back:hover, .public-profile__back:focus-visible { border-color: var(--form-accent); color: var(--form-accent); }
+.public-profile__header-row { position: relative; }
+.public-profile__header-row .form-page-header { box-sizing: border-box; width: 100%; }
+.public-profile__header-row > .public-profile__back { position: absolute; top: 0; left: -56px; }
+.public-profile__back { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; box-sizing: border-box; padding: 0; border: 1px solid var(--form-border); border-radius: 50%; color: var(--form-accent); background: #fff; box-shadow: 0 3px 10px rgb(25 35 55 / 8%); font: inherit; font-size: 1.2rem; cursor: pointer; }
+.public-profile__back:hover { border-color: #bbb5ea; background: #f5f3ff; }
+.public-profile__back:focus-visible { outline: 2px solid var(--form-accent); outline-offset: 3px; }
 .public-profile__details { display: grid; gap: 16px; margin: 0; }
 .public-profile__details dt { margin-bottom: 4px; color: var(--form-muted); font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .public-profile__details dd { margin: 0; color: var(--form-text); }
@@ -11,3 +13,8 @@
 .public-profile__remove-friend { align-self: flex-start; margin-top: 10px; padding: 5px 12px; border: 1px solid #f2c8ce; border-radius: 8px; color: #9f2635; background: #fff; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
 .public-profile__remove-friend:hover, .public-profile__remove-friend:focus-visible { background: #fff5f6; border-color: #9f2635; }
 .public-profile__remove-friend:disabled { opacity: .6; cursor: default; }
+
+@media (max-width: 903px) {
+    .public-profile__header-row { padding-top: 56px; }
+    .public-profile__header-row > .public-profile__back { left: 0; }
+}
