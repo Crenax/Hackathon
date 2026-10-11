@@ -109,7 +109,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url=None,
     openapi_url="/api/openapi.json",
-    dependencies=[Depends(current_user)],
+    dependencies=[Depends(current_user), Depends(require_complete_user)],
 )
 app.middleware("http")(require_proxy_identity)
 

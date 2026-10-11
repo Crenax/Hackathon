@@ -171,30 +171,19 @@ export default function UserSettings() {
                             ))}
                         </select>
                     </label>
-                </section>
-
-                <section className="form-card" aria-labelledby="studies-heading">
-                    <div className="form-section-header">
-                        <h2 id="studies-heading">Studies</h2>
-                    </div>
                     <label className="form-field" htmlFor="profile-birth-date">
                         <span>Date of birth <span className="form-required">*</span></span>
                         <input id="profile-birth-date" name="dateOfBirth" type="date" required max={todayAsDateInput()}
                             value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} />
                     </label>
-                </section>
-
-                <section className="form-card" aria-labelledby="about-heading">
-                    <div className="form-section-header">
-                        <h2 id="about-heading">About you</h2>
-                    </div>
                     <label className="form-field" htmlFor="profile-description">
-                        <span>Description <span className="form-optional">(optional)</span></span>
-                        <textarea id="profile-description" name="description" rows={4} maxLength={300} placeholder="A little about yourself"
+                        <span>About you<span className="form-optional">(optional)</span></span>
+                        <textarea id="profile-description" name="description" rows={4} maxLength={300} placeholder="Degree, major, etc."
                             value={description} onChange={(event) => setDescription(event.target.value)} />
                         <small>Up to 300 characters.</small>
                     </label>
                 </section>
+
                 {errorMessage && <p className="profile-message profile-message--error" role="alert">{errorMessage}</p>}
                 {statusMessage && <p className="profile-message" role="status">{statusMessage}</p>}
                 <button className="form-primary-button profile-submit" type="submit" disabled={isLoading || isSaving}>
