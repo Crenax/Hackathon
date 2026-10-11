@@ -7,7 +7,6 @@
 - öffentliche Profilseite -> Linus
 - separate Add-Seite -> Eliseo
 - empfehlene Räume in Add-Seite -> Eliseo
-- vertauschen Title und Description -> Eliseo
 - Blog erweitern
 - Calendare: Apple, Google
 
