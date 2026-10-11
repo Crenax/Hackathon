@@ -7,16 +7,16 @@ OUTLOOK_COMPOSE_URL = "https://outlook.live.com/calendar/0/deeplink/compose"
 
 
 def to_outlook_time(value: datetime) -> str:
-    # Outlook expects ISO 8601; send UTC so the user's calendar converts it to their timezone
+    # Lokale Zeitzone automatisch verwenden
     if value.tzinfo is None:
-        value = value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        value = value.replace(tzinfo=datetime.now().astimezone().tzinfo)
+    return value.astimezone(datetime.now().astimezone().tzinfo).strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def get_outlook_calendar_link(listing: Listing) -> str:
     # Opens Outlook's "new event" form prefilled with the listing.
     # Missing start/end time or location are left out, Outlook then uses its defaults.
-    title = "Study session"
+    title = "Study Session: " + listing.description
     if listing.courses:
         title += ": " + ", ".join(course.value for course in listing.courses)
 
