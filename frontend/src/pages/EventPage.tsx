@@ -313,7 +313,7 @@ function Attendance({ event, members, membersError, hasJoined, currentUserId }: 
                         <td>{firstName || "Not provided"}</td><td>{lastName.join(" ") || "Not provided"}</td>
                         <td>{displayValue(member.user.major)}</td><td>{displayValue(member.user.degree)}</td>
                         {isAdmin && <td><div className="event-page__attendance-actions">
-                            {member.user.id === currentUserId ? <span>You</span> : pendingRequests ? <>
+                            {member.user.id === currentUserId ? <span aria-label="No actions available">—</span> : pendingRequests ? <>
                                 <button type="button" disabled={busy} onClick={() => void act(member, "accept")}>Accept</button>
                                 <button type="button" disabled={busy} onClick={() => void act(member, "deny")}>Deny</button>
                             </> : <button type="button" disabled={busy} onClick={() => void act(member, "remove")}>Remove</button>}
