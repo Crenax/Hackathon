@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 
 import AppHeader from "./components/AppHeader";
 import AppFooter from "./components/AppFooter.tsx";
@@ -39,6 +39,8 @@ const AppContent = () => {
           <Route path="/event" element={<EventPage />} />
           <Route path="/map" element={<Suspense fallback={<p style={{ textAlign: "center" }}>Loading campus map…</p>}><MapPage /></Suspense>} />
           <Route path="/my-profile" element={<UserSettings />} />
+          {/* Unknown URLs (typos, old links) go to the home page instead of an empty page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
       <div className="icon-attribution">

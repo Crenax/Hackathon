@@ -5,6 +5,8 @@ from supabase import Client, create_client
 from courses import Course
 from models import *
 
+COURSE_NAMES = {course.value for course in Course}
+
 # Model field name -> database column name
 USER_COLUMNS = {
     "fullName": "full_name",
@@ -61,7 +63,8 @@ def listing_from_row(row: dict) -> Listing:
         startTime=row["start_time"],
         endTime=row["end_time"],
         location=row["location"],
-        courses=row["courses"] or [],
+        # Skip course names that are no longer in courses.py, instead of failing the whole request
+        courses=[course for course in row["courses"] or [] if course in COURSE_NAMES],
         isPrivate=row["is_private"],
         memberIds=[
             m["user_id"]
@@ -278,6 +281,8 @@ def update_user_by_id(user_id: str, userForUpdate: UserForUpdate) -> User | None
     # Only fields that were set get updated
     fields = userForUpdate.model_dump(mode="json", exclude_unset=True)
     columns = {USER_COLUMNS[key]: value for key, value in fields.items() if key in USER_COLUMNS}
+    if "full_name" in columns and columns["full_name"] is None:
+        columns["full_name"] = ""
     if not columns:
         return get_user_by_id(user_id)
 
@@ -357,6 +362,16 @@ def delete_listing_member_by_user_id_and_listing_id(user_id: str, listing_id: st
         .delete()
         .eq("user_id", user_id)
         .eq("listing_id", listing_id)
+        .execute()
+    )
+
+def delete_pending_requests_by_listing_id(listing_id: str):
+    # Declines all open join requests of the listing
+    (
+        client.table("listing_members")
+        .delete()
+        .eq("listing_id", listing_id)
+        .eq("role", MemberRole.requestPending.value)
         .execute()
     )
 

@@ -123,10 +123,23 @@ export interface MessageForCreate {
 }
 
 export class ApiError extends Error {
+  readonly status: number;
+
   constructor(status: number, message: string) {
-    super(`${status} / ${message}`);
+    super(message);
     this.name = "ApiError";
+    this.status = status;
   }
+}
+
+// Readable message for a failed request; prefers the backend's own "detail" text
+function errorMessage(status: number, detail: unknown): string {
+  if (typeof detail === "string" && detail) return detail;
+  if (status === 404) return "Not found or private.";
+  if (status === 403) return "You don't have permission to do this.";
+  if (status === 422) return "Some of the entered data is invalid.";
+  if (status >= 500) return "The server is having problems. Please try again later.";
+  return `Request failed (HTTP ${status}).`;
 }
 
 async function request<T>(
@@ -147,8 +160,12 @@ async function request<T>(
   const response = await fetch(endpoint, config);
 
   // If the response is not OK (e.g., 404, 500), throw a custom error.
+  // statusText is empty over HTTP/2, so the message comes from the JSON body instead.
   if (!response.ok) {
-    const error = new ApiError(response.status, response.statusText);
+    const detail = await response.json()
+      .then((data: unknown) => (data as { detail?: unknown } | null)?.detail)
+      .catch(() => undefined);
+    const error = new ApiError(response.status, errorMessage(response.status, detail));
     console.log(`${error.name}: ${error.message}`);
     throw error;
   }
@@ -168,6 +185,11 @@ export function getMe(): Promise<User> {
 
 export function createListing(listing: ListingForCreate): Promise<Listing> {
   return request<Listing>(`/api/listings`, "POST", listing);
+}
+
+// All valid course names; listings only accept these exact names
+export function getCourses(): Promise<Course[]> {
+  return request<Course[]>(`/api/courses`, "GET");
 }
 
 export function getListings(): Promise<Listing[]> {

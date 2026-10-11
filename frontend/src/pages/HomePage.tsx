@@ -1,17 +1,9 @@
-import { useEffect, useState } from "react";
-import { getMe, type User } from "../api";
-import CreateEvent from "./EventsList";
+import EventsList from "./EventsList";
 
 export default function HomePage() {
-    const [, setMe] = useState<User | undefined>();
-
-    useEffect(() => {
-        getMe().then(setMe);
-    }, []);
-
     return (
         <>
-            <CreateEvent></CreateEvent>
+            <EventsList></EventsList>
         </>
     );
 }

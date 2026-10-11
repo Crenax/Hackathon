@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { XCircle } from "react-bootstrap-icons";
+import { useNavigate } from "react-router-dom";
 
-import { createListing, getListings, type Listing, type ListingForCreate } from "../api";
+import { createListing, getCourses, getListings, type Listing, type ListingForCreate } from "../api";
 import AutocompleteInputField from "../components/AutocompleteInputField";
 import EventList from "../components/EventList";
 import { compareEventsFutureToPast } from "../eventSorting";
@@ -44,6 +45,19 @@ export default function EventsList() {
     const [loadError, setLoadError] = useState("");
     const [minimumStartTime, setMinimumStartTime] = useState(() => formatLocalDateTime(new Date()));
     const [referenceTime, setReferenceTime] = useState(() => Date.now());
+    // Valid course names; null while loading or if they couldn't be loaded (the backend still validates)
+    const [knownCourses, setKnownCourses] = useState<string[] | null>(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        let isActive = true;
+        getCourses()
+            .then((courseNames) => { if (isActive) setKnownCourses(courseNames); })
+            .catch(() => { /* fall back to backend validation */ });
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     useEffect(() => {
         let isActive = true;
@@ -83,8 +97,18 @@ export default function EventsList() {
 
     function addCourse() {
         const trimmedCourse = newCourse.trim();
-        if (trimmedCourse && !courses.some((course) => course.toLowerCase() === trimmedCourse.toLowerCase())) {
-            setCourses((current) => [...current, trimmedCourse]);
+        if (!trimmedCourse) return;
+        // Only exact course names are accepted by the backend, so use the official spelling
+        const officialCourse = knownCourses
+            ? knownCourses.find((course) => course.toLowerCase() === trimmedCourse.toLowerCase())
+            : trimmedCourse;
+        if (!officialCourse) {
+            setSubmitError(`"${trimmedCourse}" is not a known course. Please pick one from the suggestions.`);
+            return;
+        }
+        setSubmitError("");
+        if (!courses.some((course) => course.toLowerCase() === officialCourse.toLowerCase())) {
+            setCourses((current) => [...current, officialCourse]);
         }
         setNewCourse("");
     }
@@ -149,6 +173,11 @@ export default function EventsList() {
         setIsSubmitting(true);
         try {
             const createdEvent = await createListing(newEvent);
+            if (createdEvent.isPrivate) {
+                // Private events never show up in this public list, so open the new event instead
+                navigate(`/event?id=${encodeURIComponent(createdEvent.id)}`);
+                return;
+            }
             setEvents((current) =>
                 sortListings([...current.filter((event) => event.id !== createdEvent.id), createdEvent]),
             );
@@ -245,7 +274,7 @@ export default function EventsList() {
                                         <input type="radio" name="event-visibility" value="private" checked={isPrivate} onChange={() => setIsPrivate(true)} />
                                         <span>
                                             <strong>Private</strong>
-                                            <small>Only members with the invite code can discover this event.</small>
+                                            <small>Hidden from search. Nobody new can request to join.</small>
                                         </span>
                                     </label>
                                 </div>

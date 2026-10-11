@@ -2,6 +2,7 @@
 
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
+import logging
 from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import unquote, urlsplit
@@ -9,18 +10,33 @@ from urllib.parse import unquote, urlsplit
 import httpx
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Path as PathParam, Request, Response
 from fastapi.responses import JSONResponse
 from postgrest.exceptions import APIError
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 import calanderManager
 import databaseManager as db
-from campus_schedule import availability
+from campus_schedule import ScheduleUnavailableError, availability
 from courses import Course
 from models import *
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+logger = logging.getLogger("uvicorn.error")
+
+# Postgres error code for a unique/primary key violation
+UNIQUE_VIOLATION = "23505"
+
+# Listing and user ids are UUIDs; anything else is rejected with 422 before reaching the database
+Id = Annotated[str, PathParam(pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+
+def is_user_complete(user: User) -> bool:
+    return (
+        user.date_of_birth is not None and
+        user.degree is not None and
+        user.major is not None
+    )
 
 
 @asynccontextmanager
@@ -34,7 +50,18 @@ def current_user(request: Request) -> User:
     user = db.get_user_by_email(request.state.proxy_email)
     if user is not None:
         return user
-    return db.create_user_From_External_Info(request.state.proxy_name, request.state.proxy_email)
+    try:
+        return db.create_user_From_External_Info(request.state.proxy_name, request.state.proxy_email)
+    except APIError as error:
+        # A parallel first request already created this user
+        if error.code != UNIQUE_VIOLATION:
+            raise
+        return db.get_user_by_email(request.state.proxy_email)
+
+def require_complete_user(user: CurrentUser):
+    if not is_user_complete(user):
+        raise HTTPException(403, "User profile incomplete")
+    return user
 
 
 CurrentUser = Annotated[User, Depends(current_user)]
@@ -43,7 +70,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url=None,
     openapi_url="/api/openapi.json",
-    dependencies=[Depends(current_user)],
+    dependencies=[Depends(current_user), Depends(require_complete_user)],
 )
 
 
@@ -103,6 +130,10 @@ async def permission_error(request: Request, exc: PermissionError):
 
 @app.exception_handler(ValueError)
 async def invalid_operation(request: Request, exc: ValueError):
+    # pydantic's ValidationError is also a ValueError: there it means bad data on the server, not a bad request
+    if isinstance(exc, ValidationError):
+        logger.error("Invalid data while building a response", exc_info=exc)
+        return JSONResponse({"detail": "Internal server error"}, status_code=500)
     return JSONResponse({"detail": "Invalid operation or conflicting resource state"}, status_code=400)
 
 
@@ -155,12 +186,12 @@ class CalendarLink(BaseModel):
     url: str
 
 
-@app.get("/api/me", response_model=User)
+@app.get("/api/me", response_model=User, dependencies=[Depends(current_user)])
 def get_me(user: CurrentUser):
     return user
 
 
-@app.patch("/api/me", response_model=User)
+@app.patch("/api/me", response_model=User, dependencies=[Depends(current_user)])
 def update_me(update: UserForUpdate, user: CurrentUser):
     return db.update_user_by_id(user.id, update)
 
@@ -171,6 +202,8 @@ def get_lecture_halls(building: str):
         return availability(building.strip().upper().removeprefix("ETH."))
     except ValueError as error:
         raise HTTPException(404, str(error)) from error
+    except ScheduleUnavailableError as error:
+        raise HTTPException(503, str(error)) from error
 
 
 @app.get("/api/courses", response_model=list[Course])
@@ -199,55 +232,64 @@ def create_listing(listing: ListingForCreate, user: CurrentUser):
 
 
 @app.get("/api/listings/{listing_id}", response_model=Listing)
-def get_listing(listing_id: str, user: CurrentUser):
+def get_listing(listing_id: Id, user: CurrentUser):
     return visible_listing(listing_id, user)
 
 
 @app.get("/api/listings/{listing_id}/calendar", response_model=CalendarLink)
-def get_calendar_link(listing_id: str, user: CurrentUser):
+def get_calendar_link(listing_id: Id, user: CurrentUser):
     # Outlook deep link that opens a prefilled "new event" form for the listing
     listing = visible_listing(listing_id, user)
     return CalendarLink(url=calanderManager.get_outlook_calendar_link(listing))
 
 
 @app.patch("/api/listings/{listing_id}", response_model=Listing)
-def update_listing(listing_id: str, update: ListingForUpdate, user: CurrentUser):
+def update_listing(listing_id: Id, update: ListingForUpdate, user: CurrentUser):
     require_admin(listing_id, user)
+    if update.newIsPrivate:
+        # Nobody can join a private listing, so open requests are declined (and stop seeing it)
+        db.delete_pending_requests_by_listing_id(listing_id)
     return db.update_listing_by_id(listing_id, update)
 
 
 @app.delete("/api/listings/{listing_id}", status_code=204)
-def delete_listing(listing_id: str, user: CurrentUser):
+def delete_listing(listing_id: Id, user: CurrentUser):
     require_admin(listing_id, user)
     db.delete_listing_by_id(listing_id)
     return Response(status_code=204)
 
 
 @app.get("/api/listings/{listing_id}/members", response_model=list[ListingMember])
-def get_members(listing_id: str, user: CurrentUser):
+def get_members(listing_id: Id, user: CurrentUser):
     require_member(listing_id, user)
     return db.get_listingMembers_by_listing(listing_id)
 
 
 @app.get("/api/listings/{listing_id}/requests", response_model=list[ListingMember])
-def get_requests(listing_id: str, user: CurrentUser):
+def get_requests(listing_id: Id, user: CurrentUser):
     require_admin(listing_id, user)
     return db.get_pending_requests_by_listing_id(listing_id)
 
 
 @app.post("/api/listings/{listing_id}/requests", status_code=204)
-def request_to_join(listing_id: str, user: CurrentUser):
+def request_to_join(listing_id: Id, user: CurrentUser):
     listing = visible_listing(listing_id, user)
     if listing.isPrivate:
         raise PermissionError("This listing is private")
     if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is not None:
         raise ValueError("Already a member or request already sent")
-    db.create_request(user.id, listing_id)
+    try:
+        db.create_request(user.id, listing_id)
+    except APIError as error:
+        # e.g. a double click sent the request twice
+        if error.code != UNIQUE_VIOLATION:
+            raise
+        raise ValueError("Already a member or request already sent") from error
     return Response(status_code=204)
 
 
 @app.post("/api/listings/{listing_id}/requests/{user_id}/approve", status_code=204)
-def approve_request(listing_id: str, user_id: str, user: CurrentUser):
+def approve_request(listing_id: Id, user_id: Id, user: CurrentUser):
     require_admin(listing_id, user)
     if db.accept_request_by_user_id_and_listing_id(user_id, listing_id) is None:
         raise ValueError("No pending request from this user")
@@ -255,7 +297,7 @@ def approve_request(listing_id: str, user_id: str, user: CurrentUser):
 
 
 @app.patch("/api/listings/{listing_id}/members/{user_id}", status_code=204)
-def set_member_role(listing_id: str, user_id: str, update: RoleUpdate, user: CurrentUser):
+def set_member_role(listing_id: Id, user_id: Id, update: RoleUpdate, user: CurrentUser):
     require_admin(listing_id, user)
     if db.update_role_by_user_id_and_listing_id(user_id, listing_id, update.role) is None:
         raise ValueError("User is not a member of this listing")
@@ -263,7 +305,7 @@ def set_member_role(listing_id: str, user_id: str, update: RoleUpdate, user: Cur
 
 
 @app.delete("/api/listings/{listing_id}/members/me", status_code=204)
-def leave_listing(listing_id: str, user: CurrentUser):
+def leave_listing(listing_id: Id, user: CurrentUser):
     # Pending users must also be able to cancel their request to a private listing.
     if db.get_role_by_user_id_and_listing_id(user.id, listing_id) is None:
         raise HTTPException(404, "Membership or request not found")
@@ -272,20 +314,20 @@ def leave_listing(listing_id: str, user: CurrentUser):
 
 
 @app.delete("/api/listings/{listing_id}/members/{user_id}", status_code=204)
-def remove_member(listing_id: str, user_id: str, user: CurrentUser):
+def remove_member(listing_id: Id, user_id: Id, user: CurrentUser):
     require_admin(listing_id, user)
     db.delete_listing_member_by_user_id_and_listing_id(user_id, listing_id)
     return Response(status_code=204)
 
 
 @app.get("/api/listings/{listing_id}/messages", response_model=list[Message])
-def get_messages(listing_id: str, user: CurrentUser):
+def get_messages(listing_id: Id, user: CurrentUser):
     require_member(listing_id, user)
     return db.get_messages_by_listing(listing_id)
 
 
 @app.post("/api/listings/{listing_id}/messages", response_model=Message, status_code=201)
-def send_message(listing_id: str, message: MessageForCreate, user: CurrentUser):
+def send_message(listing_id: Id, message: MessageForCreate, user: CurrentUser):
     listing = require_member(listing_id, user)
     return db.createMessage(message.model_copy(update={"listing": listing, "author": user}))
 

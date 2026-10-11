@@ -21,7 +21,8 @@ function formatDay(date: Date, referenceDate: Date): string {
     if (dayDifference === 0) return "Today";
     if (dayDifference === 1) return "Tomorrow";
     if (dayDifference === -1) return "Yesterday";
-    if (Math.abs(dayDifference) < 7) {
+    // A bare weekday reads as the coming one, so only use it for the next days; past dates get the full date
+    if (dayDifference > 0 && dayDifference < 7) {
         return date.toLocaleDateString(undefined, { weekday: "long" });
     }
 

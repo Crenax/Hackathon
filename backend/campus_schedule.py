@@ -1,15 +1,25 @@
 #!/usr/bin/env python3
 """ETH booking checks for the campus API, adapted from map/lecturehalls.py."""
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import json
+import logging
 import re
 from urllib.parse import urlencode, quote
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
 ZURICH = ZoneInfo('Europe/Zurich')
+# Per room request and for the whole check, so a slow ETH service can't block the API for long
+ROOM_TIMEOUT_SECONDS = 4
+TOTAL_TIMEOUT_SECONDS = 8
+
+logger = logging.getLogger('uvicorn.error')
+
+
+class ScheduleUnavailableError(Exception):
+    """No room schedule could be loaded from ETH."""
 # Canonical booking names, seats, and optional room nicknames, as supplied.
 ROOM_DATA = """CAB G 11|193
 CAB G 51|90
@@ -148,7 +158,7 @@ def fetch_schedule(room, day):
                        'to': (day + timedelta(days=1)).isoformat()}, quote_via=quote)
     request = Request('https://ethz.ch/bin/ethz/roominfo?' + query,
                       headers={'Accept': 'application/json', 'User-Agent': 'ETH-Lecture-Halls/1.0'})
-    with urlopen(request, timeout=12) as response:
+    with urlopen(request, timeout=ROOM_TIMEOUT_SECONDS) as response:
         return parse_allocations(json.load(response))
 
 
@@ -159,13 +169,22 @@ def availability(building):
     if not rooms:
         raise ValueError("No lecture halls in this building")
     day = datetime.now(ZURICH).date()
-    def check(room):
-        try:
-            return room, fetch_schedule(room, day)
-        except Exception:
-            return room, None
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        schedules = list(pool.map(check, rooms))
+    # All rooms in parallel; whatever isn't back after TOTAL_TIMEOUT_SECONDS stays unknown
+    pool = ThreadPoolExecutor(max_workers=len(rooms))
+    futures = {pool.submit(fetch_schedule, room, day): room for room in rooms}
+    done, _ = wait(futures, timeout=TOTAL_TIMEOUT_SECONDS)
+    pool.shutdown(wait=False, cancel_futures=True)
+    schedules = []
+    for future, room in futures.items():
+        bookings = None
+        if future in done:
+            try:
+                bookings = future.result()
+            except Exception as error:
+                logger.warning('Could not load the schedule of %s: %r', room.name, error)
+        schedules.append((room, bookings))
+    if all(bookings is None for _, bookings in schedules):
+        raise ScheduleUnavailableError('ETH room schedules are currently unavailable')
     now = datetime.now(timezone.utc)
     until = now + timedelta(minutes=30)
     results = []

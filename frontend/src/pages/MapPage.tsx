@@ -86,6 +86,7 @@ export default function MapPage() {
         else {
           setStatus('Checking lecture room availability…');
           const response = await fetch(`/api/lecture-halls?building=${encodeURIComponent(buildingOf(startRoom))}`, { signal: controller.signal, cache: 'no-store' });
+          if (response.status === 404) throw new Error('There are no bookable lecture halls in this building.');
           if (!response.ok) throw new Error('Lecture room schedules are unavailable. Please try again.');
           const schedules: Availability = await response.json();
           if (current !== request.current) return;

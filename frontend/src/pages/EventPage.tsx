@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
     ArrowLeft,
     Book,
@@ -51,7 +51,12 @@ export default function EventPage() {
 
         let active = true;
         // Both /me endpoints resolve the authenticated user's ID on the server.
-        Promise.all([getListing(listingId), getMyListings(), getMyRequests()])
+        // If they fail, the event is still shown, just as if the user hadn't joined or requested.
+        Promise.all([
+            getListing(listingId),
+            getMyListings().catch((): Listing[] => []),
+            getMyRequests().catch((): ListingMember[] => []),
+        ])
             .then(async ([event, memberships, requests]) => {
                 if (!active) return;
                 const hasJoined = memberships.some((listing) => listing.id === listingId);
@@ -60,6 +65,8 @@ export default function EventPage() {
                     event,
                     hasJoined,
                     pending: requests.some((request) => request.listing.id === listingId),
+                    // createdBy is the full user, even if the creator has left the event
+                    creatorName: event.createdBy?.fullName.trim() || "Name unavailable",
                 });
 
                 if (hasJoined) {
@@ -67,18 +74,10 @@ export default function EventPage() {
                         const members = (await getListingMembers(listingId)).filter(
                             (member) => member.role === MemberRole.admin || member.role === MemberRole.member,
                         );
-                        const creator = members.find((member) => member.user.id === event.createdBy?.id)?.user;
-                        if (active) setLoadState((current) => ({
-                            ...current,
-                            members,
-                            creatorName: creator
-                                ? `${creator.firstName} ${creator.lastName}`.trim() || "Name unavailable"
-                                : "Name unavailable",
-                        }));
+                        if (active) setLoadState((current) => ({ ...current, members }));
                     } catch {
                         if (active) setLoadState((current) => ({
                             ...current,
-                            creatorName: "Name unavailable",
                             membersError: "Could not load members. Please try refreshing.",
                         }));
                     }
@@ -126,9 +125,11 @@ export default function EventPage() {
 
 function EventBackButton() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     function goBack() {
-        if (window.history.length > 1) {
+        // "default" means this page was opened directly (e.g. a shared link), with no in-app page to go back to
+        if (location.key !== "default") {
             navigate(-1);
         } else {
             navigate("/", { replace: true });
@@ -249,7 +250,7 @@ function EventPageContent({ event, creatorName, members, membersError, hasJoined
                                             {group.map(({ user, role }) => (
                                                 <li className="event-page__member" key={user.id}>
                                                     <span className="event-page__member-name">
-                                                        {`${user.firstName} ${user.lastName}`.trim() || "Name unavailable"}
+                                                        {user.fullName.trim() || "Name unavailable"}
                                                     </span>
                                                     <span className={`event-page__member-role${role === MemberRole.admin ? " event-page__member-role--admin" : ""}`}>
                                                         {role === MemberRole.admin ? "Admin" : "Member"}
