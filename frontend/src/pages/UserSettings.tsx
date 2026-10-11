@@ -19,8 +19,6 @@ function todayAsDateInput(): string {
 }
 
 export default function UserSettings() {
-    const [profilePicture, setProfilePicture] = useState<string | null>(null);
-
     // Saved through PATCH /api/me
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
@@ -60,10 +58,6 @@ export default function UserSettings() {
             isActive = false;
         };
     }, []);
-
-    useEffect(() => () => {
-        if (profilePicture) URL.revokeObjectURL(profilePicture);
-    }, [profilePicture]);
 
     async function submitProfile(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -111,33 +105,6 @@ export default function UserSettings() {
                     <div className="form-section-header">
                         <h2 id="picture-heading">Profile picture</h2>
                     </div>
-                    <div className="picture-picker">
-                        {profilePicture ? (
-                            <img className="picture-preview" src={profilePicture} alt="Profile preview" />
-                        ) : (
-                            <div className="picture-placeholder" aria-hidden="true">Add photo</div>
-                        )}
-                        <div className="picture-controls">
-                            <label className="form-secondary-button picture-upload">
-                                <span>{profilePicture ? "Change picture" : "Choose picture"}</span>
-                                <input
-                                    type="file"
-                                    name="profilePicture"
-                                    accept="image/*"
-                                    onChange={(event) => {
-                                        const file = event.currentTarget.files?.[0];
-                                        if (file) setProfilePicture(URL.createObjectURL(file));
-                                    }}
-                                />
-                            </label>
-                            {profilePicture && (
-                                <button className="form-link-button remove-picture" type="button" onClick={() => setProfilePicture(null)} aria-label="Remove picture">
-                                    <XCircle aria-hidden="true" />
-                                </button>
-                            )}
-                            <small>Choose an image from your device.</small>
-                        </div>
-                    </div>
                 </section>
 
                 <section className="form-card" aria-labelledby="personal-heading">
@@ -153,10 +120,6 @@ export default function UserSettings() {
                         <span>Email address</span>
                         <input id="profile-email" name="email" type="email" value={email} readOnly />
                         <small>From your ETH login, can't be changed here.</small>
-                    </label>
-                    <label className="form-field" htmlFor="profile-username">
-                        <span>Username <span className="form-optional">(optional)</span></span>
-                        <input id="profile-username" name="username" type="text" autoComplete="off" placeholder="Choose a username" />
                     </label>
                     <label className="form-field" htmlFor="profile-gender">
                         <span>Gender <span className="form-optional">(optional)</span></span>
